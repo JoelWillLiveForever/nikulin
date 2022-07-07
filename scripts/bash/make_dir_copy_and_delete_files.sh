@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 
+# Make directory:
+# ./make_dir_copy_and_delete_files -mkdir /path/to/destination_dir
+
+# Copy options:
+# ./make_dir_copy_and_delete_files file_path_to_copy.file ... /path_to_copy_dir ... /path_to_destination_dir
+# ./make_dir_copy_and_delete_files -all /path_to_dir_copy_all_content
+
+# Removal options:
+# ./make_dir_copy_and_delete_files -rm file_to_delete.file ... /path_to_dir_to_delete ... /path_to_dir_where_delete
+# ./make_dir_copy_and_delete_files -rm -all /path_to_dir_delete_all_content
+
 case "$1" in
+    --help)
+        echo -e '\tMake directory:'
+        echo -e '\t    -mkdir /path/to/destination_dir'
+        echo -e '\n\tCopy options:'
+        echo -e '\t    file_path_to_copy.file ... /path_to_copy_dir ... /path_to_destination_dir'
+        echo -e '\t    -all /path_to_dir_copy_all_content'
+        echo -e '\n\tRemoval options:'
+        echo -e '\t    -rm file_to_delete.file ... /path_to_dir_to_delete ... /path_to_dir_where_delete'
+        echo -e '\t    -rm -all /path_to_dir_delete_all_content'
+        ;;
     -mkdir)
         # make folder in destination
         
@@ -14,7 +35,7 @@ case "$1" in
         fi
 
         mkdir $DEST_DIR #create folder/directory
-        chmod 777 $DEST_DIR #escalation of access rights
+        chmod 755 $DEST_DIR #escalation of access rights
         ;;
     -rm)
         #delete files or directories in destination
@@ -61,7 +82,7 @@ case "$1" in
         then
             echo "Нет такой директории!"
             mkdir $DEST_DIR
-            chmod 777 $DEST_DIR
+            chmod 755 $DEST_DIR
             echo "Директория создана!"
         fi
 
@@ -73,7 +94,9 @@ case "$1" in
                 echo "Все файлы и папки из текущей директории успешно скопированы в \"$DEST_DIR\""
                 ;;
             *)
-                cp "$@"
+                cp -r "$@"
+
+                echo "Успешное копирование в \"$DEST_DIR\""
                 ;;
         esac
         ;;
