@@ -1,4 +1,7 @@
-__kernel void compute(__global const uint *points, __global const uint *randoms, __global uint *good_points)
+/* Условие задачи 2:
+ * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
+
+__kernel void boost(__global const uint *points, __global const uint *randoms, __global uint *good_points)
 {    
     int id = get_global_id(0);
     good_points[id] = 0;

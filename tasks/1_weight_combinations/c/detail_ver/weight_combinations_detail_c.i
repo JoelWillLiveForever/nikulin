@@ -1,9 +1,13 @@
-# 0 "search_all_ways_to_compose_weight.c"
+# 0 "detail_ver/weight_combinations_detail.c"
 # 0 "<built-in>"
 # 0 "<command-line>"
 # 1 "/usr/include/stdc-predef.h" 1 3 4
 # 0 "<command-line>" 2
-# 1 "search_all_ways_to_compose_weight.c"
+# 1 "detail_ver/weight_combinations_detail.c"
+
+
+
+
 # 1 "/usr/include/stdio.h" 1 3 4
 # 27 "/usr/include/stdio.h" 3 4
 # 1 "/usr/include/bits/libc-header-start.h" 1 3 4
@@ -734,7 +738,7 @@ extern int __uflow (FILE *);
 extern int __overflow (FILE *, int);
 # 909 "/usr/include/stdio.h" 3 4
 
-# 2 "search_all_ways_to_compose_weight.c" 2
+# 6 "detail_ver/weight_combinations_detail.c" 2
 # 1 "/usr/include/locale.h" 1 3 4
 # 28 "/usr/include/locale.h" 3 4
 # 1 "/usr/lib/gcc/x86_64-redhat-linux/12/include/stddef.h" 1 3 4
@@ -864,35 +868,54 @@ extern locale_t uselocale (locale_t __dataset) __attribute__ ((__nothrow__ , __l
 
 
 
-# 3 "search_all_ways_to_compose_weight.c" 2
+# 7 "detail_ver/weight_combinations_detail.c" 2
 
 
 
 
+# 10 "detail_ver/weight_combinations_detail.c"
+int saved_roots[10];
+int counter = -1;
 
+int saved[100][10];
 
-
-
-# 10 "search_all_ways_to_compose_weight.c"
-int saved_hashsums[25];
+int saved_hashsums[100];
 int saved_hashsums_curr_index = 0;
 
 int search_all_ways_recursive(int V, int sub, int sub_remains[], int sub_hash, int sub_hashes_remains[], int remains_size)
 {
+    counter++;
+    saved_roots[counter] = sub;
+
+
+
+
     V -= sub;
+
 
 
     if (V == 0)
     {
-        for (int i = 0; i < 25; i++)
-            if (saved_hashsums[i] == sub_hash) return 0;
+        for (int i = 0; i < 100; i++)
+            if (saved_hashsums[i] == sub_hash) { saved_roots[counter] = 0; counter--; return 0; }
 
         saved_hashsums[saved_hashsums_curr_index] = sub_hash;
         saved_hashsums_curr_index++;
 
+        for (int i = 0; i < 100; i++)
+        {
+            if (saved[i][0] != 0) continue;
+            for (int j = 0; j < 10; j++)
+                saved[i][j] = saved_roots[j];
+            break;
+        }
+
+        saved_roots[counter] = 0;
+        counter--;
+
         return 1;
     }
-    if (V < 0) return 0;
+    if (V < 0) { saved_roots[counter] = 0; counter--; return 0; }
 
     int ways_counter = 0;
     int next_remains_size = remains_size - 1;
@@ -919,8 +942,15 @@ int search_all_ways_recursive(int V, int sub, int sub_remains[], int sub_hash, i
         int next_sub_hash = sub_hash + sub_hashes_remains[i];
 
 
+
         ways_counter += search_all_ways_recursive(V, next_sub, next_sub_remains, next_sub_hash, next_sub_hashes_remains, next_remains_size);
+
+
+
     }
+
+    saved_roots[counter] = 0;
+    counter--;
 
     return ways_counter;
 }
@@ -928,17 +958,20 @@ int search_all_ways_recursive(int V, int sub, int sub_remains[], int sub_hash, i
 int main()
 {
     setlocale(
-# 63 "search_all_ways_to_compose_weight.c" 3 4
+# 93 "detail_ver/weight_combinations_detail.c" 3 4
              6
-# 63 "search_all_ways_to_compose_weight.c"
+# 93 "detail_ver/weight_combinations_detail.c"
                    , "Rus");
 
     int weights[] = {100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000};
     int hash_sums[] = {55, 23, 421, 90, 10, 4, -8, 92, 67, 111};
 
+    for (int i = 0; i < 10; i++)
+        printf("\nХэш код в соответствии с каждой гирей. Гиря: %4d == Хэш: %4d", weights[i], hash_sums[i]);
+
 
     int V;
-    printf("Укажите искомый вес V в граммах из диапазона [100..11200]: ");
+    printf("\nУкажите искомый вес V в граммах из диапазона [100..11200]: ");
     scanf("%d", &V);
 
 
@@ -952,8 +985,12 @@ int main()
     int weights_amount = sizeof(weights) / sizeof(int);
     int remains_size = weights_amount - 1;
 
+    printf("\n");
     for (int sub_index = 0; sub_index < weights_amount; sub_index++)
     {
+
+
+
         int sub_remains[remains_size];
         int sub_hashes_remains[remains_size];
         int remains_curr_index = 0;
@@ -971,10 +1008,22 @@ int main()
         int sub = weights[sub_index];
         int sub_hash = hash_sums[sub_index];
 
+
+
+        counter = -1;
+        saved_roots[10];
+
+
         ways_counter += search_all_ways_recursive(V, sub, sub_remains, sub_hash, sub_hashes_remains, remains_size);
     }
 
-
-    printf("Найдено способов: %d\n", ways_counter);
+    for (int i = 0; i < 100; i++)
+    {
+        printf("\nsaved_hashsums[%d] = %6d\tsaved_roots[%d]: ", i, saved_hashsums[i], i);
+        for (int j = 0; j < 10; j++)
+            printf("%6d", saved[i][j]);
+    }
+# 182 "detail_ver/weight_combinations_detail.c"
+    printf("\n\nНайдено способов: %d\n", ways_counter);
     return 0;
 }

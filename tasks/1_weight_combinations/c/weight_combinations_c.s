@@ -1,4 +1,4 @@
-	.file	"search_all_ways_to_compose_weight.c"
+	.file	"weight_combinations.c"
 	.text
 	.globl	saved_hashsums
 	.bss

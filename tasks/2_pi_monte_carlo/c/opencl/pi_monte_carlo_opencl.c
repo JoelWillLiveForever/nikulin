@@ -1,9 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
+/* Условие задачи 2:
+ * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
 
-#define CL_TARGET_OPENCL_VERSION 120
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#define CL_TARGET_OPENCL_VERSION 120 // OpenCL 1.2
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
@@ -13,7 +15,7 @@
  
 #define MAX_SOURCE_SIZE (0x100000)
 
-#define POINTS_SIZE 10000000UL // размер массива для вычислений
+#define POINTS_SIZE 20000000UL // размер массива для вычислений
 #define POINTS_VALUE 10000UL // количество точек, которое будет обсчитывать каждое kernel
 
 int main()
@@ -21,19 +23,19 @@ int main()
     srand((unsigned int) time(NULL));
 
     uint i, *points, *randoms, *good_points;
-    ulong global_counter = 0;
+    ulong global_counter = 0; // всего точек, входящих в область единичной окружности (удовл. усл.)
 
-    points = (uint*) malloc(sizeof(uint) * POINTS_SIZE);
-    randoms = (uint*) malloc(sizeof(uint) * POINTS_SIZE);
+    points = (uint*) malloc(sizeof(uint) * POINTS_SIZE); // в каждой ячейке содержится кол-во точек, которые нужно сгенерировать
+    randoms = (uint*) malloc(sizeof(uint) * POINTS_SIZE); // случайное число, для каждого kernel, чтобы он смог генерировать псевдослучайные координаты своих точек
 
-    good_points = (uint*) malloc(sizeof(uint) * POINTS_SIZE);
+    good_points = (uint*) malloc(sizeof(uint) * POINTS_SIZE); // точки, входящие в область единичной окружности
  
     for (i = 0; i < POINTS_SIZE; i++)
     {
         points[i] = POINTS_VALUE;
         randoms[i] = rand();
 
-        //printf("points[%d] = %d;\ngood_points[%d] = %f;\n\n", i, points[i], i, good_points[i]);
+        // printf("points[%d] = %d;\ngood_points[%d] = %f;\n\n", i, points[i], i, good_points[i]);
     }
 
     // Load the kernel source code into the array source_str
@@ -91,7 +93,7 @@ int main()
     ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
 
     // Create the OpenCL kernel
-    cl_kernel kernel = clCreateKernel(program, "compute", &ret);
+    cl_kernel kernel = clCreateKernel(program, "boost", &ret);
  
     // Set the arguments of the kernel
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&points_mem_obj);
@@ -108,17 +110,12 @@ int main()
     ret = clEnqueueReadBuffer(command_queue, good_points_mem_obj, CL_TRUE, 0, 
             POINTS_SIZE * sizeof(uint), good_points, 0, NULL, NULL);
     
+    // получить общее количество подходящих точек 
     for (i = 0; i < POINTS_SIZE; i++)
-    {
-        //printf("good_points[%d] = %u;\n", i, good_points[i]);
         global_counter += good_points[i];
-    }
     
-    printf("POINTS_SIZE = %lu; POINTS_VALUE = %lu;\n", POINTS_SIZE, POINTS_VALUE);
-
+    // вычисление значения числа Пи
     ulong all_points = POINTS_SIZE * POINTS_VALUE;
-    printf("good_points = %lu; all_points = %lu;\n", global_counter, all_points);
-
     long double pi = (((long double) 4.0) * ((long double) global_counter)) / ((long double) all_points);
     printf("PI = %Lf\n", pi);
     
