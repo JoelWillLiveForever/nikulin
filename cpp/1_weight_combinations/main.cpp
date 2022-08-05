@@ -4,25 +4,27 @@
 
 #include <iostream>
 #include <iterator>
-#include "weight_combinations.hpp"
+
+#include "weights_combinator.hpp"
 
 int main()
 {
     // инициализация статического массива с размерами гирь
-    int weights[] = {100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000};
+    int weights[] = {200, 3000, 500, 300, 1000, 1200, 1400, 1500, 2000, 100};
 
-    // получить указатели на адрес первого элемента и на адрес элемента следующего за последним элементом массива
-    int *begin = weights;
-    int *end = weights + sizeof(weights) / sizeof(*weights);
+    int* begin = weights;
+    int* end = weights + sizeof(weights) / sizeof(weights[0]);
+    int size = end - begin;
 
     // целевой вес, комбинации для которого необходимо найти
     int target;
     std::cout << "Please, enter target weight for compute combinations: ";
     std::cin >> target; 
 
-    // вызов функции из файла weight_combinations.cpp
-    int combinations_count = get_weight_combinations(begin, end, target);
-    std::cout << "Combinations: " << combinations_count << std::endl;
+    // создаём объект класса WeightsCombinator
+    WeightsCombinator combinator(weights, size);
 
+    // выводим результат
+    std::cout << "Combinations: " << combinator.combine(target) << std::endl;
     return 0;
 }
