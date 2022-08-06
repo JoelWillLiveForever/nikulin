@@ -31,7 +31,7 @@ size_t WeightsCombinator::get_weights_size()
 int WeightsCombinator::combine(int target)
 {
     // вернуть -1 (код ошибки), если кол-во гирь больше чем количество бит в combinator
-    if (my_weights_size > allowed_bits) return -1;
+    if (my_weights_size > static_cast<size_t>(allowed_bits)) return -1;
 
     // число для проверки комбинаций гирь, с помощью битов числа
     unsigned int combinator = 1;

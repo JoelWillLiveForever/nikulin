@@ -140,7 +140,6 @@ int main()
         //saved_roots[counter] = sub;
         //counter++;
         counter = -1;
-        saved_roots[10];
 
         ways_counter += search_all_ways_recursive(V, sub, sub_remains, sub_hash, sub_hashes_remains, remains_size);   // запуск рекурсии
     }

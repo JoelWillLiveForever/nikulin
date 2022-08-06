@@ -40,7 +40,7 @@ int main()
             e = fabs(curr_pi - prev_pi); // разница между прошлым Пи и текущим Пи (точность)
                                          
             // вывод информации с итерации
-            printf("prev_pi = %Lf20; curr_pi = %Lf; eps = %f; gp = %lu; ap = %lu\n", prev_pi, curr_pi, (double) e, gp, ap);
+            printf("prev_pi = %Lf20; curr_pi = %Lf; eps = %f; gp = %llu; ap = %llu\n", prev_pi, curr_pi, (double) e, gp, ap);
         }
     } 
     while (e > EPS); // как только разница между прошлым Пи и текущим Пи будет > EPS, выйти из цикла

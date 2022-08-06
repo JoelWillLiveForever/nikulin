@@ -15,8 +15,8 @@
  
 #define MAX_SOURCE_SIZE (0x100000)
 
-#define POINTS_SIZE 20000000UL // размер массива для вычислений
-#define POINTS_VALUE 10000UL // количество точек, которое будет обсчитывать каждое kernel
+#define POINTS_SIZE 2000000UL // размер массива для вычислений
+#define POINTS_VALUE 1000UL // количество точек, которое будет обсчитывать каждое kernel
 
 int main()
 {   

@@ -1,4 +1,4 @@
-#include "polygon_traversal_direction.h"
+#include "polygon_traversal_direction.hpp"
 
 long Det(int x1, int y1, int x2, int y2, int x3, int y3)
 {

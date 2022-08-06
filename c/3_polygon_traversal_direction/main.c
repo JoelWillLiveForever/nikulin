@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "polygon_traversal_direction.h"
+#include "liberty.h"
 
 int main()
 {

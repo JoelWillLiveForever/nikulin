@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "polygon_traversal_direction.h"
+
+#include "polygon_traversal_direction.hpp"
 
 int main()
 {
