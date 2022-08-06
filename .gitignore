@@ -1,7 +1,20 @@
-# игнорировать компилируемые файлы
+# Ignore all
+*
 
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+# Ignore compile files
 *.i
 *.ii
 *.s
 *.o
+*.obj
 *.out
+
+# Ignore library files
+*.a
+*.so
