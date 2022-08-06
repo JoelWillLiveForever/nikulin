@@ -1,36 +1,74 @@
-#include <stdio.h>
-#include <stdlib.h>
+/* Условие задачи 3:
+* Выпуклый многоугольник задаётся координатами вершин при обходе по часовой или против часовой стрелки.
+* Контур многоугольника не имеет самопересечений.
+* Определить направление обхода.
+* Выполнить то же самое, но только в случае невыпуклого многоугольника. */
 
-#include "polygon_traversal_direction.hpp"
+#include <iostream>
+#include <fstream>  // для файлового ввода/вывода
+#include <vector>
+
+#include "direction_finder.hpp"
+#include "point.hpp"
 
 int main()
 {
-    float *x_source = {2, 4, 8, 10, 6};
-    float *y_source = {1, 5, 6, 3, 0.5};
+    int amount_of_points;                                           // количество точек
 
-    int i = 5; // source size
-    Node *head = NULL;
-    do
-    {
-        push(head, x[i], y[i]);
-    } while (i-- != 0);
+    std::ifstream infile;                                           // создать объект ifstream    
+    infile.open("source.txt", std::ios::in);                        // открыть файл source.txt в режиме чтения
 
-    // создание односвязного списка с координатами точек и проверка на нулевой указатель
-    list points = malloc(sizeof(list));
-    if (!points)
+    if ( !infile )
     {
-        printf("Allocation error!");
-        return 1;
+        std::cout << "Error! File bad or empty!" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    infile >> amount_of_points;                                     // узнать количество точек из файла
+    std::vector<Point> points;                                      // объявляем вектор для точек
+
+    // читаем координаты точек из файла
+    double x, y;
+    int i;
+
+    for (i = 0; i < amount_of_points * 2; i++)
+    {
+        if ( infile.eof() && i < amount_of_points * 2 )
+        {
+            // если количество координат не соответствует количеству точек, то ошибка
+            std::cout << "Error! The number of coordinates doesn't match the number of points!" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        if (i % 2 == 0) 
+        {
+            // координата x
+            infile >> x;
+        }
+        else
+        {
+            // координата y
+            infile >> y;
+
+            Point p(x, y);
+            points.push_back(p);
+        }
     }
     
-    // заполняем список
-    Node *head = NULL;
+    // смотрим на прочитанные координаты
+    std::vector<Point>::iterator iter = points.begin();
+    while (iter != points.end())
+    {
+        std::cout << "Element: " << ((Point) *iter).to_string() << std::endl;
+        iter++;
+    }
 
+    DirectionFinder df(points);
+    int result = df.find_direction();     
 
-    // получить реузультат
-    printf("Result = %d\n", get_traversal_direction(points));
-
-    // чистим память
-    free(points);
+    result == -1
+        ? std::cout << "Result = " << result << "; (anti-clockwise)" << std::endl
+        : std::cout << "Result = " << result << "; (clockwise)" << std::endl;
+    
     return 0;
 }
