@@ -1,5 +1,5 @@
-#ifndef __POINT_HPP__
-#define __POINT_HPP__
+#ifndef __POINT_CLASS_HPP__
+#define __POINT_CLASS_HPP__
 
 #include <string>
 

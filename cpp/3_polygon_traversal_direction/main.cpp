@@ -8,8 +8,8 @@
 #include <fstream>  // для файлового ввода/вывода
 #include <vector>
 
-#include "direction_finder.hpp"
-#include "point.hpp"
+#include "direction_finder_class.hpp"
+#include "point_class.hpp"
 
 int main()
 {

@@ -1,16 +1,18 @@
-#ifndef __CROSS_PRODUCT_HPP__
-#define __CROSS_PRODUCT_HPP__
+#ifndef __CROSS_PRODUCT_CLASS_HPP__
+#define __CROSS_PRODUCT_CLASS_HPP__
 
-#include "point.hpp"
+#include "point_class.hpp"
 #include <vector>
 
 class CrossProduct
 {
 private:
-    Point my_p1, my_p2, my_p3;
+    Point p1_, p2_, p3_;
 
 public:
+    CrossProduct();
     CrossProduct(Point p1, Point p2, Point p3);
+
     ~CrossProduct();
     
     void set_points(Point p1, Point p2, Point p3);
@@ -26,6 +28,7 @@ public:
     Point get_p3();
 
     double compute();
+    double compute(Point p1, Point p2, Point p3);   // перегрузка метода compute()
 };
 
 #endif
