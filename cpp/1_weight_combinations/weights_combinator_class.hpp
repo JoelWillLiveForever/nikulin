@@ -2,13 +2,13 @@
 
 class WeightsCombinator
 {
-  private:
+private:
     const char allowed_bits = sizeof(unsigned int) * 8;         // максимальное количество гирь, которое можно задать
 
     int* my_weights;                                            // указатель на первый элемент массива гирь
     size_t my_weights_size;                                     // размер массива гирь
 
-  public:
+public:
     WeightsCombinator(int* weights, size_t weights_size);       // конструктор класса
 
     void set_weights(int* weights, size_t weights_size);        // set-метод для массива гирь

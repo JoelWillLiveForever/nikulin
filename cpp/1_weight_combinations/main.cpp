@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iterator>
 
-#include "weights_combinator.hpp"
+#include "weights_combinator_class.hpp"
 
 int main()
 {

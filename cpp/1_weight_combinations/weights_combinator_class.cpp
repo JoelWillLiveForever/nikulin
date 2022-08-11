@@ -1,4 +1,4 @@
-#include "weights_combinator.hpp"
+#include "weights_combinator_class.hpp"
 
 #include <algorithm>
 #include <cmath>
