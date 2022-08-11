@@ -28,7 +28,7 @@ double TruePISelector::select_pi()
             threads[i] = std::thread { &TruePISelector::thread_task, this, i };
     
         if (counter % 100 == 0)
-            std::cout << "\nCounter = " << std::setw(20) << std::left << counter << " >>> Threads:";
+            std::cout << "\nCounter = " << std::setw(20) << std::left << counter << ";\t\tThreads:";
 
         // ожидаем пока все потоки закончат выполнение
         for (i = 0; i < total_; i++)
@@ -60,7 +60,7 @@ double TruePISelector::select_pi()
         counter++;
     }
 
-    std::cout << "\nCounter = " << std::setw(20) << std::left << counter << " >>> Threads:";
+    std::cout << "\nCounter = " << std::setw(20) << std::left << counter << ";\t\tThreads:";
     for (i = 0; i < total_; i++)
             std::cout << std::fixed << std::right << " [" << i << "] = " << generators[i].get_pi();
 

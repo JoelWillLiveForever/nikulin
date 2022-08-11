@@ -34,13 +34,13 @@ bool CrossProductTest::compute_ppp_test()
 
 void CrossProductTest::test()
 {
-    std::cout << "\n\tTesting \"CrossProduct\" class:" << std::boolalpha
+    std::cout << "\n\tTesting \"CrossProduct\" class:"
         
         << "\n\t\t"
-        << compute_test()
+        << (compute_test() ? "OK" : "FAIL")
         << " --- \"compute()\""
         << "\n\t\t"
-        << compute_ppp_test()
+        << (compute_ppp_test() ? "OK" : "FAIL")
         << " --- \"compute(Point p1, Point p2, Point p3)\""
         << std::endl;
 }

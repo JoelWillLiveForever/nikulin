@@ -16,7 +16,8 @@ bool TruePISelectorTest::select_pi_test()
 void TruePISelectorTest::test()
 {
     std::cout     
-        << "\n\tTesting \"TruePISelector\" class:" << std::endl;
+        << "\n\tTesting \"TruePISelector\" class:" 
+        << std::endl;
 
     //auto old_buffer = std::cout.rdbuf(nullptr);
     std::cout.setstate(std::ios_base::failbit);     // запрещаем вывод в консоль всех сообщений из функции select_pi()
@@ -26,10 +27,10 @@ void TruePISelectorTest::test()
     //std::cout.rdbuf(old_buffer);
     std::cout.clear();                              // разрешаем вывод в консоль 
 
-    std::cout 
-        << std::boolalpha 
+    std::cout
+        << std::setw(0) 
         << "\t\t"
-        << select_pi_test_result
+        << (select_pi_test_result ? "OK" : "FAIL")
         << " --- \"select_pi()\""
         << std::endl;
 }

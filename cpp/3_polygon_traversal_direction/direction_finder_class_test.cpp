@@ -87,19 +87,19 @@ bool DirectionFinderTest::find_direction_test_convex_polygon_clockwise_points()
 
 void DirectionFinderTest::test()
 {
-    std::cout << "\n\tTesting \"DirectionFinder\" class:" << std::boolalpha
+    std::cout << "\n\tTesting \"DirectionFinder\" class:"
 
         << "\n\t\t"
-        << find_direction_test_non_convex_polygon_anti_clockwise_points()
+        << (find_direction_test_non_convex_polygon_anti_clockwise_points() ? "OK" : "FAIL")
         << " --- \"find_direction()\" --- non-convex polygon + anti-clockwise points"
         << "\n\t\t"
-        << find_direction_test_non_convex_polygon_clockwise_points()
+        << (find_direction_test_non_convex_polygon_clockwise_points() ? "OK" : "FAIL")
         << " --- \"find_direction()\" --- non-convex polygon + clockwise points"
         << "\n\t\t"
-        << find_direction_test_convex_polygon_anti_clockwise_points()
+        << (find_direction_test_convex_polygon_anti_clockwise_points() ? "OK" : "FAIL")
         << " --- \"find_direction()\" --- convex polygon + anti-clockwise points"
         << "\n\t\t"
-        << find_direction_test_convex_polygon_clockwise_points()
+        << (find_direction_test_convex_polygon_clockwise_points() ? "OK" : "FAIL")
         << " --- \"find_direction()\" --- convex polygon + clockwise points"
         << std::endl;
 }
