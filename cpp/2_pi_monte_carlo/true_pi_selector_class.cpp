@@ -18,31 +18,35 @@ double TruePISelector::select_pi()
         generators[i] = PIMonteCarloPointsGenerator { 2000 };
     
     // находимся в цикле, пока по всем потокам (по их Пи) не будет совпадения до нужного числа знаков (0.0001)
+    unsigned long long counter = 0;
+    std::cout.precision(6);
+
     while (isTrue)
     {
         // запускаем потоки
         for (i = 0; i < total_; i++)
             threads[i] = std::thread { &TruePISelector::thread_task, this, i };
     
-        std::cout << "\nThreads:";
-        std::cout.precision(6);
+        if (counter % 100 == 0)
+            std::cout << "\nCounter = " << std::setw(20) << std::left << counter << " >>> Threads:";
 
         // ожидаем пока все потоки закончат выполнение
         for (i = 0; i < total_; i++)
         {
             threads[i].join();
 
-            std::cout << std::fixed << std::right << " [" << i << "] = " << generators[i].get_pi();
+           if (counter % 100 == 0)
+               std::cout << std::fixed << std::right << " [" << i << "] = " << generators[i].get_pi();
         }
 
         // значения всех рассчитанных Пи должны совпадать с заданной точностью
-        int pi_0_int = static_cast<int>(generators[0].get_pi() / eps_ / 10.0);
+        int pi_0_int = static_cast<int>(generators[0].get_pi() / eps_);
         int pi_curr_int;
 
         for (i = 1; i < total_; i++)
         {
             // выделяем нужную дробную часть, остальную отбрасываем
-            pi_curr_int = static_cast<int>(generators[i].get_pi() / eps_ / 10.0);
+            pi_curr_int = static_cast<int>(generators[i].get_pi() / eps_);
 
             // если есть несовпадение, выходим из цикла и считаем Пи дальше в потоках
             if ( pi_0_int != pi_curr_int )
@@ -53,7 +57,12 @@ double TruePISelector::select_pi()
                isTrue = false; 
         }
 
+        counter++;
     }
+
+    std::cout << "\nCounter = " << std::setw(20) << std::left << counter << " >>> Threads:";
+    for (i = 0; i < total_; i++)
+            std::cout << std::fixed << std::right << " [" << i << "] = " << generators[i].get_pi();
 
     return generators[0].get_pi();
 }

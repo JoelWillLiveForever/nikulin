@@ -103,12 +103,3 @@ void DirectionFinderTest::test()
         << " --- \"find_direction()\" --- convex polygon + clockwise points"
         << std::endl;
 }
-
-
-
-
-
-
-
-
-

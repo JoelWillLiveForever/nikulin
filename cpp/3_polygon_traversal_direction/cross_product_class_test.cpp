@@ -14,7 +14,7 @@ bool CrossProductTest::compute_test()
     CrossProduct cp(p1, p2, p3);
     double result = cp.compute();
 
-    return (expected - result) <= eps;
+    return std::fabs(expected - result) <= eps;
 }
 
 bool CrossProductTest::compute_ppp_test()
@@ -29,7 +29,7 @@ bool CrossProductTest::compute_ppp_test()
     CrossProduct cp;
     double result = cp.compute(p1, p2, p3);
 
-    return (expected - result) <= eps;
+    return std::fabs(expected - result) <= eps;
 }
 
 void CrossProductTest::test()
