@@ -1,5 +1,4 @@
-#ifndef __TRUE_PI_SELECTOR_CLASS_TEST_HPP__
-#define __TRUE_PI_SELECTOR_CLASS_TEST_HPP__
+#pragma once
 
 #include <cmath>
 
@@ -14,5 +13,3 @@ public:
     static void test();
 
 };
-
-#endif

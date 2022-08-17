@@ -1,5 +1,4 @@
-#ifndef __TRUE_PI_SELECTOR_CLASS_HPP__
-#define __TRUE_PI_SELECTOR_CLASS_HPP__
+#pragma once
 
 #include "stdafx.hpp"
 #include "pi_monte_carlo_points_generator_class.hpp"
@@ -27,5 +26,3 @@ public:
     double select_pi();                         // рассчёт Пи
 
 };
-
-#endif

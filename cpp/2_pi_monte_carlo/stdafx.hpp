@@ -1,10 +1,9 @@
-#ifndef __STDAFX_HPP__
-#define __STDAFX_HPP__
+#pragma once
 
 // Precompiled headers
 #include <iostream>
 #include <iomanip>
 #include <random>
 #include <thread>
-
-#endif
+#include <vector>
+#include <cfloat>
