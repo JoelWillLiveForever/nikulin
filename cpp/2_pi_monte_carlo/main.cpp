@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
                 << "\nOptions:\n"
                 << std::string(HELP_INDENT, ' ') << "-h, --help" << "\t\t\t\t\t\t\t\t\tShow program help info\n"
                 << std::string(HELP_INDENT, ' ') << "-v, --version" << "\t\t\t\t\t\t\t\tDisplay program version\n"
-                << std::string(HELP_INDENT, ' ') << "-c [total_pi, points_start, points_multiplier, max_points],\n"
-                << std::string(HELP_INDENT, ' ') << "--check [total_pi, points_start, points_multiplier, max_points]" << "\t\tRun in PI convergence check mode\n"
+                << std::string(HELP_INDENT, ' ') << "-c [total_pi, points_start, points_multiplier, max_points, eps],\n"
+                << std::string(HELP_INDENT, ' ') << "--check [total_pi, points_start, points_multiplier, max_points, eps]" << "\tRun in PI convergence check mode\n"
                 << std::endl;
         }
         else 
@@ -53,14 +53,14 @@ int main(int argc, char *argv[])
             std::cout << "\nPI = " << result << std::endl;
         }
     }
-    else if ( argc == 6 )
+    else if ( argc == 7 )
     {
         if ( std::string(argv[1]) == "-c" || std::string(argv[1]) == "--check" )
         {
             unsigned int total_pi = 0, points_start = 0, points_multiplier = 0, max_points = 0;
+            double eps = 0;
 
-
-            for (int i = 2; i < argc; i++)
+            for (int i = 2; i < argc - 1; i++)
             { 
                 std::string arg = argv[i];
 
@@ -101,7 +101,9 @@ int main(int argc, char *argv[])
                 }
             }
 
-            PIConvergenceCheck checker(total_pi, points_start, points_multiplier, max_points);
+            eps = atof(argv[6]);
+
+            PIConvergenceCheck checker(total_pi, points_start, points_multiplier, max_points, eps);
             checker.convergence_check();
         }
     }

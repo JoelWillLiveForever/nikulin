@@ -26,6 +26,7 @@ void PIConvergenceCheck::convergence_check()
         // инициализируем min и max
         double min = DBL_MAX, max = DBL_MIN, avg = 0;
 
+        //std::cout << "Curr Points = " << curr_points << '\n';
         unsigned int prev_points = curr_points;
         curr_points += curr_points * (points_multiplier_ - 1);
 
@@ -51,15 +52,36 @@ void PIConvergenceCheck::convergence_check()
             (*generators_iter).set_n(curr_points);
         }
 
-        double eps = max - min;
+        double e = max - min;
         avg /= total_pi_;
-
-        if (prev_avg == -1)
-            std::cout << "For " << prev_points << " points: " << "MinPI = " << min << "; MaxPI = " << max << "; AvgPI = " << avg << "; E = " << eps << '\n';
-        else
-            std::cout << "For " << prev_points << " points: " << "MinPI = " << min << "; MaxPI = " << max << "; AvgPI = " << avg << "; E = " << eps << "; E2 = " << fabs(avg - prev_avg) << '\n';
+        
+        if (prev_avg != -1)
+        {
+            double e2 = fabs(avg - prev_avg);
+            
+            if (e <= eps_)
+            //if (fabs(eps_ - e) < eps_)
+                std::cout << std::fixed 
+                    << "For " << prev_points << " points [E]: " 
+                    << "MinPI = " << min 
+                    << "; MaxPI = " << max 
+                    << "; AvgPI = " << avg 
+                    << "; E = " << e
+                    << "; E2 = " << e2 << '\n';
+            
+            if (e2 <= eps_)
+            //if (fabs(eps_ - e2) < eps_)
+                std::cout << std::fixed 
+                    << "For " << prev_points << " points [E2]: " 
+                    << "MinPI = " << min 
+                    << "; MaxPI = " << max 
+                    << "; AvgPI = " << avg 
+                    << "; E = " << e
+                    << "; E2 = " << e2 << '\n';
+        }
 
         prev_avg = avg;
+        //std::cout << "All Points = " << (*generators_iter).get_all_points() << '\n';
     }
     while ( (*generators_iter).get_all_points() < max_points_ );
 }
