@@ -23,7 +23,7 @@ void PIConvergenceCheck::convergence_check()
             *threads_iter = std::thread { &PIConvergenceCheck::thread_task, this, generators.begin() + (threads_iter - threads.begin()) };
         
         // инициализируем min и max
-        double min = DBL_MAX, max = DBL_MIN;
+        double min = DBL_MAX, max = DBL_MIN, avg = 0.0;
 
         unsigned int prev_points = curr_points;
         curr_points += curr_points * (points_multiplier_ - 1);
@@ -42,14 +42,18 @@ void PIConvergenceCheck::convergence_check()
 
             if ( max < pi )
                 max = pi;
+
+            // рассчёт среднего
+            avg += pi;
             
             // задать новое кол-во точек для рассчёта всем генераторам для следующей итерации
             (*generators_iter).set_n(curr_points);
         }
 
         double eps = max - min;
+        avg /= total_pi_;
 
-        std::cout << "For " << prev_points << " points: " << "MinPI = " << min << "; MaxPI = " << max << "; E = " << eps << '\n';
+        std::cout << "For " << prev_points << " points: " << "MinPI = " << min << "; MaxPI = " << max << "; AvgPI = " << avg << "; E = " << eps << '\n';
     }
     while ( (*generators_iter).get_all_points() < max_points_ );
 }
