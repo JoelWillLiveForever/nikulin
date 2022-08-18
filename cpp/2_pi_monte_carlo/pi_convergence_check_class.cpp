@@ -15,6 +15,7 @@ void PIConvergenceCheck::convergence_check()
     std::vector<PIMonteCarloPointsGenerator>::iterator generators_iter = generators.begin();
 
     unsigned int curr_points = points_start_;
+    double prev_avg = -1;
 
     do
     {
@@ -23,7 +24,7 @@ void PIConvergenceCheck::convergence_check()
             *threads_iter = std::thread { &PIConvergenceCheck::thread_task, this, generators.begin() + (threads_iter - threads.begin()) };
         
         // инициализируем min и max
-        double min = DBL_MAX, max = DBL_MIN, avg = 0.0;
+        double min = DBL_MAX, max = DBL_MIN, avg = 0;
 
         unsigned int prev_points = curr_points;
         curr_points += curr_points * (points_multiplier_ - 1);
@@ -53,7 +54,12 @@ void PIConvergenceCheck::convergence_check()
         double eps = max - min;
         avg /= total_pi_;
 
-        std::cout << "For " << prev_points << " points: " << "MinPI = " << min << "; MaxPI = " << max << "; AvgPI = " << avg << "; E = " << eps << '\n';
+        if (prev_avg == -1)
+            std::cout << "For " << prev_points << " points: " << "MinPI = " << min << "; MaxPI = " << max << "; AvgPI = " << avg << "; E = " << eps << '\n';
+        else
+            std::cout << "For " << prev_points << " points: " << "MinPI = " << min << "; MaxPI = " << max << "; AvgPI = " << avg << "; E = " << eps << "; E2 = " << fabs(avg - prev_avg) << '\n';
+
+        prev_avg = avg;
     }
     while ( (*generators_iter).get_all_points() < max_points_ );
 }
