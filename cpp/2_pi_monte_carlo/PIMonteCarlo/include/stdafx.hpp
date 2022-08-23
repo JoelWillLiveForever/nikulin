@@ -3,6 +3,7 @@
 // Precompiled headers
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <random>
 #include <thread>
 #include <vector>

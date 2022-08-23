@@ -1,4 +1,4 @@
-#include "true_pi_selector_class.hpp"
+#include "../include/true_pi_selector_class.hpp"
 
 void TruePISelector::thread_task(int thread_id)
 {

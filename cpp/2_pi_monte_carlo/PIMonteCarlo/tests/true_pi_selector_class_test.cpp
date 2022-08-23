@@ -1,4 +1,4 @@
-#include "true_pi_selector_class_test.hpp"
+#include "../include/true_pi_selector_class_test.hpp"
 
 bool TruePISelectorTest::select_pi_test()
 {

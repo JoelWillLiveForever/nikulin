@@ -1,4 +1,4 @@
-#include "pi_convergence_check_class.hpp"
+#include "../include/pi_convergence_check_class.hpp"
 
 void PIConvergenceCheck::thread_task(std::vector<PIMonteCarloPointsGenerator>::iterator generators_iter)
 {

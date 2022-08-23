@@ -1,11 +1,9 @@
 /* Условие задачи 2:
  * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
 
-#include "stdafx.hpp"
-#include "true_pi_selector_class.hpp"
-#include "pi_convergence_check_class.hpp"
-
-#include <sstream>
+#include "../include/stdafx.hpp"
+#include "../include/true_pi_selector_class.hpp"
+#include "../include/pi_convergence_check_class.hpp"
 
 #define HELP_INDENT 4
 

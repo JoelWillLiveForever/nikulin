@@ -1,4 +1,4 @@
-#include "pi_monte_carlo_points_generator_class.hpp"
+#include "../include/pi_monte_carlo_points_generator_class.hpp"
 
 void PIMonteCarloPointsGenerator::next()
 {
