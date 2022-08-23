@@ -1,8 +1,9 @@
 # Ignore all
 *
 
-# Unignore all Makefiles
+# Unignore all Makefiles & CMakeLists.txt
 !Makefile
+!CMakeLists.txt
 
 # Unignore all with extensions
 !*.*
