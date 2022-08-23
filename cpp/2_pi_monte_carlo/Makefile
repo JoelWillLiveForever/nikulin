@@ -1,59 +1,66 @@
-# компилятор и флаги
-CC=g++
-CFLAGS=-c -Wall
-DEBUG=-O0 -g3
-RELEASE=-O3
+# компилятор и базовые флаги
+CXX = g++
+CXXFLAGS = -Wall
 
-# цель по умолчанию
-all: precompiled_headers debug release test
+# исходные файлы
+SRCS = main.cpp \
+	   pi_convergence_check_class.cpp \
+	   pi_monte_carlo_points_generator_class.cpp \
+	   true_pi_selector_class.cpp
 
-precompiled_headers: stdafx.hpp
-	$(CC) $(CFLAGS) stdafx.hpp -o stdafx.hpp.gch
+# заменить суффиксы для получения имён объектных файлов
+OBJS = $(SRCS:.cpp=.o)
 
-# объектные файлы debug
-main_debug.o: main.cpp
-	$(CC) $(CFLAGS) $(DEBUG) -o main_debug.o main.cpp
+# имя исполняемого файла
+EXE = executable
 
-true_pi_selector_class_debug.o: true_pi_selector_class.cpp
-	$(CC) $(CFLAGS) $(DEBUG) -o true_pi_selector_class_debug.o true_pi_selector_class.cpp
+# debug build settings
+DBGDIR = debug
+DBGEXE = $(DBGDIR)/$(EXE)
+DBGOBJS = $(addprefix $(DBGDIR)/, $(OBJS))
+DBGCXXFLAGS = -g -O0 -DDEBUG
 
-pi_monte_carlo_points_generator_class_debug.o: pi_monte_carlo_points_generator_class.cpp
-	$(CC) $(CFLAGS) $(DEBUG) -o pi_monte_carlo_points_generator_class_debug.o pi_monte_carlo_points_generator_class.cpp
+# Release build settings
+RELDIR = release
+RELEXE = $(RELDIR)/$(EXE)
+RELOBJS = $(addprefix $(RELDIR)/, $(OBJS))
+RELCXXFLAGS = -O3 -DNDEBUG
 
-pi_convergence_check_class_debug.o: pi_convergence_check_class.cpp
-	$(CC) $(CFLAGS) $(DEBUG) -o pi_convergence_check_class_debug.o pi_convergence_check_class.cpp
+.PHONY: all clean debug prep release remake
 
-# создать бинарник в Debug режиме
-debug: main_debug.o pi_monte_carlo_points_generator_class_debug.o true_pi_selector_class_debug.o pi_convergence_check_class_debug.o
-	$(CC) -o debug main_debug.o true_pi_selector_class_debug.o pi_monte_carlo_points_generator_class_debug.o pi_convergence_check_class_debug.o
+# Default build
+all: prep release
 
-# создать бинарник в Release режиме
-release: main.o pi_monte_carlo_points_generator_class.o true_pi_selector_class.o pi_convergence_check_class.o
-	$(CC) -o release  main.o true_pi_selector_class.o pi_monte_carlo_points_generator_class.o pi_convergence_check_class.o
+#
+# Debug rules
+# 
+debug: prep $(DBGEXE)
 
-# бинарник, вызывающий модульные тесты
-test: test.o true_pi_selector_class_test.o true_pi_selector_class.o pi_monte_carlo_points_generator_class.o 
-	$(CC) -o test test.o true_pi_selector_class_test.o true_pi_selector_class.o pi_monte_carlo_points_generator_class.o
+$(DBGEXE): $(DBGOBJS)
+	$(CXX) $(CXXFLAGS) $(DBGCXXFLAGS) -o $(DBGEXE) $^
 
-# объектные файлы release
-main.o: main.cpp
-	$(CC) $(CFLAGS) $(RELEASE) main.cpp
+$(DBGDIR)/%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(DBGCXXFLAGS) -o $@ $<
 
-true_pi_selector_class.o: true_pi_selector_class.cpp
-	$(CC) $(CFLAGS) $(RELEASE) true_pi_selector_class.cpp
+#
+# Release rules
+# 
+release: $(RELEXE)
 
-pi_monte_carlo_points_generator_class.o: pi_monte_carlo_points_generator_class.cpp
-	$(CC) $(CFLAGS) $(RELEASE) pi_monte_carlo_points_generator_class.cpp
+$(RELEXE): $(RELOBJS)
+	$(CXX) $(CXXFLAGS) $(RELCXXFLAGS) -o $(RELEXE) $^
 
-pi_convergence_check_class.o: pi_convergence_check_class.cpp
-	$(CC) $(CFLAGS) $(RELEASE) pi_convergence_check_class.cpp
+$(RELDIR)/%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(RELCXXFLAGS) -o $@ $<
 
-test.o: test.cpp
-	$(CC) $(CFLAGS) test.cpp
+#
+# Other rules
+#
+prep:
+	@mkdir -p $(DBGDIR) $(RELDIR)
 
-true_pi_selector_class_test.o: true_pi_selector_class_test.cpp
-	$(CC) $(CFLAGS) true_pi_selector_class_test.cpp
+remake: clean all
 
 # удалить всё компилируемое
 clean:
-	rm -f *.o *.gch debug release test
+	rm -rf $(DBGEXE) $(RELEXE) $(DBGOBJS) $(RELOBJS) $(DBGDIR) $(RELDIR)
