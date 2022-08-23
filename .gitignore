@@ -1,9 +1,8 @@
 # Ignore all
 *
 
-# Unignore all Makefiles & CMakeLists.txt
+# Unignore all Makefiles
 !Makefile
-!CMakeLists.txt
 
 # Unignore all with extensions
 !*.*
@@ -25,3 +24,9 @@
 
 # Ignore Linux SWAP files
 *.swp
+
+# Ignore .vscode dir
+*.vscode/
+
+# Ignore all .csv files
+*.csv
