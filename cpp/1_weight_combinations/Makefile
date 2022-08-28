@@ -1,42 +1,90 @@
-# компилятор и флаги
-CC=g++
-CFLAGS=-c -Wall
-PIC_CFLAG=-fPIC
+# компилятор и базовые флаги
+CXX = g++
+CXXFLAGS = -Wall
 
-# по умолчанию создать два бинарника
-all: binary_static_lib binary_dynamic_lib test
+# precompiled headers file
+PCHPATH = pch.hpp
 
-# бинарник со статической библиотекой
-binary_static_lib: main.o libweicom.a
-	$(CC) main.o -o binary_static_lib -L. -lweicom -lm -lstdc++
+# исходные файлы
+SRCS = main.cpp \
+	   weight_combinator_class.cpp
+SRCS_TEST = test.cpp \
+			weight_combinator_class.cpp
 
-# бинарник с динамической библиотекой
-binary_dynamic_lib: main.o libweicom.so
-	$(CC) main.o -o binary_dynamic_lib -L. -lweicom -lm -lstdc++ -Wl,-rpath,.
+# заменить суффиксы для получения имён объектных файлов
+OBJS = $(SRCS:.cpp=.o)
+OBJS_TEST = $(SRCS_TEST:.cpp=.o)
 
-test: test.o weights_combinator_class_test.o weights_combinator_class.o
-	$(CC) -o test test.o weights_combinator_class_test.o weights_combinator_class.o
+# имя исполняемого файла
+EXE = executable
 
-# объектные файлы
-main.o: main.cpp
-	$(CC) $(CFLAGS) main.cpp
+# debug build settings
+DBGDIR = debug
+DBGEXE = $(DBGDIR)/$(EXE)
+DBGOBJS = $(addprefix $(DBGDIR)/, $(OBJS))
+DBGCXXFLAGS = -g -O0 -DDEBUG
 
-# создать обычный объектный файл и объектный с PIC (позиционно-независимым кодом)
-weights_combinator_class.o: weights_combinator_class.cpp
-	$(CC) $(CFLAGS) weights_combinator_class.cpp
-	$(CC) $(CFLAGS) $(PIC_CFLAG) weights_combinator_class.cpp -o weights_combinator_class_PIC.o
+# Release build settings
+RELDIR = release
+RELEXE = $(RELDIR)/$(EXE)
+RELOBJS = $(addprefix $(RELDIR)/, $(OBJS))
+RELCXXFLAGS = -O3 -DNDEBUG
 
-# создаём статическую библиотеку
-libweicom.a: weights_combinator_class.o
-	ar cr libweicom.a weights_combinator_class.o
+# tests build settings
+TESTDIR = tests
+TESTEXE = $(TESTDIR)/$(EXE)
+TESTOBJS = $(addprefix $(TESTDIR)/, $(OBJS_TEST))
+TESTCXXFLAGS = -g -O0 -DDEBUG
 
-# создаём динамическую библиотеку
-libweicom.so: weights_combinator_class_PIC.o
-	gcc -shared -o libweicom.so weights_combinator_class_PIC.o
+.PHONY: all clean debug prep release test remake pch
 
-weights_combinator_class_test.o: weights_combinator_class_test.cpp
-	$(CC) $(CFLAGS) weights_combinator_class_test.cpp
+# Default build
+all: prep release
+
+#
+# Debug rules
+# 
+debug: prep $(DBGEXE)
+
+$(DBGEXE): $(DBGOBJS)
+	$(CXX) $(CXXFLAGS) $(DBGCXXFLAGS) -o $(DBGEXE) $^
+
+$(DBGDIR)/%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(DBGCXXFLAGS) -o $@ $<
+
+#
+# Release rules
+# 
+release: $(RELEXE)
+
+$(RELEXE): $(RELOBJS)
+	$(CXX) $(CXXFLAGS) $(RELCXXFLAGS) -o $(RELEXE) $^
+
+$(RELDIR)/%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(RELCXXFLAGS) -o $@ $<
+
+#
+# Tests rules
+#
+test: prep $(TESTEXE)
+
+$(TESTEXE): $(TESTOBJS)
+	$(CXX) $(CXXFLAGS) $(TESTCXXFLAGS) -o $(TESTEXE) $^
+
+$(TESTDIR)/%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(TESTCXXFLAGS) -o $@ $<
+
+#
+# Other rules
+#
+prep:
+	@mkdir -p $(DBGDIR) $(RELDIR) $(TESTDIR)
+
+pch: $(PCHPATH)
+	$(CXX) -x c++-header $<
+
+remake: clean all
 
 # удалить всё компилируемое
 clean:
-	rm -f *.o *.a *.so *.out binary_static_lib binary_dynamic_lib test
+	rm -rf $(DBGEXE) $(DBGOBJS) $(DBGDIR) $(RELEXE) $(RELOBJS) $(RELDIR) $(TESTEXE) $(TESTOBJS) $(TESTDIR)

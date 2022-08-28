@@ -1,11 +1,6 @@
-#include <iostream>
-
-#include "weights_combinator_class_test.hpp"
+#include "weight_combinator_class.hpp"
 
 int main()
 {
-    WeightsCombinatorTest::test();
-
-    std::cout << std::endl;
-    return 0;
+    return WeightCombinatorTest::test();
 }
