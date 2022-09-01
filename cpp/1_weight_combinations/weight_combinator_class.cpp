@@ -119,13 +119,13 @@ bool WeightCombinatorTest::combine_zero_combination_in_result_test()
 
 bool WeightCombinatorTest::combine_max_combination_in_result_test()
 {
-    int target = 11200;
     WeightCombinator::Combinations expected = {
-        {target}
+        {100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000}
     };
     
     WeightCombinator::Weights weights = {100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000};
     WeightCombinator::Combinations result;
+    int target = 11200;
 
     WeightCombinator combinator;
     combinator.combine(target, result, weights);
