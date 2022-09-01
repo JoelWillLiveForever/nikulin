@@ -18,7 +18,7 @@ void WeightCombinator::combine(int target, WeightCombinator::Combinations &combi
     WeightCombinator::Weights::iterator iter = weights.begin();
 
     // проходимся по всем уникальным комбинациям, увеличивая combinator на 1
-    while (combinator <= all_combinations)
+    while (combinator < all_combinations)
     {
         int bit = 0; // номер проверяемого бита + по совместительству индекс гири
         int combinator_copy = combinator;
@@ -117,6 +117,23 @@ bool WeightCombinatorTest::combine_zero_combination_in_result_test()
     return result == expected;
 }
 
+bool WeightCombinatorTest::combine_max_combination_in_result_test()
+{
+    int target = 11200;
+    WeightCombinator::Combinations expected = {
+        {target}
+    };
+    
+    WeightCombinator::Weights weights = {100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000};
+    WeightCombinator::Combinations result;
+
+    WeightCombinator combinator;
+    combinator.combine(target, result, weights);
+
+    return result == expected;
+
+}
+
 bool WeightCombinatorTest::combine_all_weights_are_same_one_combination_in_result_test()
 {
     WeightCombinator::Combinations expected = {
@@ -152,39 +169,45 @@ bool WeightCombinatorTest::combine_all_weights_are_same_two_combination_in_resul
 
 int WeightCombinatorTest::test()
 {
-    if (!combine_basic_test())
+    if ( !combine_basic_test() )
     {
-        std::cout << "\n\t\"WeightCombinatorTest::combine_basic_test()\": FAIL\n";
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_basic_test()\"\n";
         return EXIT_FAILURE;
     }
     
-    if (!combine_empty_collection_test())
+    if ( !combine_empty_collection_test() )
     {
-        std::cout << "\n\tWeightCombinatorTest::combine_empty_combinations_test()\": FAIL\n";
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_empty_collection_test()\"\n";
         return EXIT_FAILURE;
     }
 
-    if (!combine_one_element_in_collection_test())
+    if ( !combine_one_element_in_collection_test() )
     {
-        std::cout << "\n\tWeightCombinatorTest::combine_one_element_in_combinations_test()\": FAIL\n";
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_one_element_in_collection_test()\"\n";
         return EXIT_FAILURE;
     }
 
-    if (!combine_zero_combination_in_result_test())
+    if ( !combine_zero_combination_in_result_test() )
     {
-        std::cout << "\n\tWeightCombinatorTest::combine_zero_combinations_test()\": FAIL\n";
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_zero_combination_in_result_test()\"\n";
         return EXIT_FAILURE;
     }
 
-    if (!combine_all_weights_are_same_one_combination_in_result_test())
+    if ( !combine_max_combination_in_result_test() )
     {
-        std::cout << "\n\tWeightCombinatorTest::combine_all_weights_are_same_one_combination_in_result_test()\": FAIL\n";
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_max_combination_in_result_test()\"\n";
         return EXIT_FAILURE;
     }
 
-    if (!combine_all_weights_are_same_two_combination_in_result_test())
+    if ( !combine_all_weights_are_same_one_combination_in_result_test() )
     {
-        std::cout << "\n\tWeightCombinatorTest::combine_all_weights_are_same_two_combination_in_result_test()\": FAIL\n";
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_all_weights_are_same_one_combination_in_result_test()\"\n";
+        return EXIT_FAILURE;
+    }
+
+    if ( !combine_all_weights_are_same_two_combination_in_result_test() )
+    {
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_all_weights_are_same_two_combination_in_result_test()\"\n";
         return EXIT_FAILURE;
     }
 
