@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     
     // номенклатура весов и целевой вес
     WeightCombinator::Weights nomenclature;
-    int target = -1;
+    int target = 0;
     
     // флаги для замера времени выполнения
     bool isMilliseconds  = false,
@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
                     if ( target != -1 )
                         target = -1;
 
-                    std::ifstream infile;                                           // создать объект ifstream    
-                    infile.open(optarg, std::ios::in);                              // открыть файл source.txt в режиме чтения
+                    std::ifstream infile;
+                    infile.open(optarg, std::ios::in);
 
                     if ( !infile )
                     {
@@ -272,46 +272,53 @@ int main(int argc, char *argv[])
         //return EXIT_FAILURE;
     }
 
-    if ( target != -1 && !nomenclature.empty() )
+    if (target)
     {
         // вектор для хранения найденных комбинаций
         WeightCombinator::Combinations combinations;
-
+    
         // создаём объект класса WeightsCombinator и ищем все комбинации
         WeightCombinator combinator;
         
-        auto start = std::chrono::high_resolution_clock::now();
-        combinator.combine(target, combinations, nomenclature);
-        auto stop = std::chrono::high_resolution_clock::now();
-
-        // выводим результат
-        unsigned int counter = 0;
-        std::cout << "Amount combinations: " << combinations.size() << '\n';
-        for (auto combination: combinations)
+        try
         {
-            std::cout << ++counter << ": ";
-            for (auto el: combination)
-                std::cout << el << ' ';
-            std::cout << '\n';
-        }
+            auto start = std::chrono::high_resolution_clock::now();
+            combinator.combine(target, combinations, nomenclature);
+            auto stop = std::chrono::high_resolution_clock::now();
+    
+            // выводим результат
+            unsigned int counter = 0;
+            std::cout << "Amount combinations: " << combinations.size() << '\n';
+            for (auto combination: combinations)
+            {
+                std::cout << ++counter << ": ";
+                for (auto el: combination)
+                    std::cout << el << ' ';
+                std::cout << '\n';
+            }
         
-        // выводим время выполнения, если были соотв. флаги
-        if ( isMilliseconds )
-        {
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-            std::cout << "Elapsed time: " << duration.count() << " ms" << std::endl;
+            // выводим время выполнения, если были соотв. флаги
+            if ( isMilliseconds )
+            {
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                std::cout << "Elapsed time: " << duration.count() << " ms" << std::endl;
+            }
+            else if ( isMicroseconds )
+            {
+                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+                std::cout << "Elapsed time: " << duration.count() << " us" << std::endl;
+            }
+            else if ( isNanoseconds )
+            {
+                auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+                std::cout << "Elapsed time: " << duration.count() << " ns" << std::endl;
+            }
         }
-        else if ( isMicroseconds )
+        catch ( std::invalid_argument const &ex )
         {
-            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-            std::cout << "Elapsed time: " << duration.count() << " us" << std::endl;
+            std::cerr << ex.what() << std::endl;
+            return EXIT_FAILURE;
         }
-        else if ( isNanoseconds )
-        {
-            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-            std::cout << "Elapsed time: " << duration.count() << " ns" << std::endl;
-        }
-
     }
 
     return EXIT_SUCCESS;

@@ -2,10 +2,14 @@
 
 void WeightCombinator::combine(int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
 {
-    // если номенклатуры весов не заданы (пустой вектор)
+    // если номенклатуры весов не заданы (пустой вектор), то кол-во вариантов точно == 0
     // или их кол-во больше числа битов в combinator (32)
-    if (weights.size() == 0 || weights.size() > static_cast<size_t>(allowed_bits))
-        throw std::invalid_argument("Error! Bad combinations size!");
+    if ( weights.size() == 0 || weights.size() > static_cast<size_t>(allowed_bits_) )
+        throw std::invalid_argument( "Error! The nomenclature list is empty or his size more than " + std::to_string(allowed_bits_) + "!" );
+
+    // проверка на отрицательный target
+    if ( target < 0 )
+        throw std::invalid_argument( "Error! Negative target weight!" );
 
     // число для проверки комбинаций гирь, с помощью битов числа
     unsigned int combinator = 1;
@@ -68,18 +72,59 @@ bool WeightCombinatorTest::combine_basic_test()
     return result == expected;
 }
 
+bool WeightCombinatorTest::combine_negative_target_test()
+{
+    try
+    {
+        WeightCombinator::Weights weights = {100, 200, 300};
+        WeightCombinator::Combinations result;
+        int target = -600;
+
+        WeightCombinator combinator;
+        combinator.combine(target, result, weights);
+    }
+    catch ( std::invalid_argument const & )         // expected
+    {
+        return true;
+    }
+
+    return false;
+}
+
 bool WeightCombinatorTest::combine_empty_collection_test()
 {
     try
     {
-        WeightCombinator::Weights weights;  // empty
+        WeightCombinator::Weights weights;          // empty
         WeightCombinator::Combinations result;
         int target = 123;
 
         WeightCombinator combinator;
         combinator.combine(target, result, weights);
     }
-    catch (std::invalid_argument const&) // expected
+    catch ( std::invalid_argument const & )         // expected
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool WeightCombinatorTest::combine_big_collection_test()
+{
+    try
+    {
+        WeightCombinator::Weights weights;
+        WeightCombinator::Combinations result;
+        int target = 123;
+
+        for (int i = 0; i < WeightCombinator::get_allowed_bits() * 10; i++)
+            weights.push_back(i);
+
+        WeightCombinator combinator;
+        combinator.combine(target, result, weights);
+    }
+    catch ( std::invalid_argument const & ) // expected
     {
         return true;
     }
@@ -175,9 +220,21 @@ int WeightCombinatorTest::test()
         return EXIT_FAILURE;
     }
     
+    if ( !combine_negative_target_test() )
+    {
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_negative_target_test()\"\n";
+        return EXIT_FAILURE;
+    }
+
     if ( !combine_empty_collection_test() )
     {
         std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_empty_collection_test()\"\n";
+        return EXIT_FAILURE;
+    }
+    
+    if ( !combine_big_collection_test() )
+    {
+        std::cout << "\n\tFAIL --- \"WeightCombinatorTest::combine_big_collection_test()\"\n";
         return EXIT_FAILURE;
     }
 
