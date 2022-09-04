@@ -30,3 +30,7 @@
 
 # Ignore all .csv files
 *.csv
+
+# Ignore all .png & .jpg files
+*.png
+*.jpg
