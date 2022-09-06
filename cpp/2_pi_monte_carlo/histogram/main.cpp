@@ -59,8 +59,14 @@ int main(int argc, char *argv[])
 
         double range_start = atof(argv[3]),
                range_end = atof(argv[4]);
-
+        
+        // засекаем время генерации выборки
+        auto start = std::chrono::high_resolution_clock::now();
         (*obj).print_sample_to_csv(total_nums, range_start, range_end);
+        auto stop = std::chrono::high_resolution_clock::now();
+
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        std::cout << "Elapsed time for generator: \"" << (*obj).whoami() << "\" --- " << duration.count() << " microseconds" << std::endl;
     }
     else
     {
