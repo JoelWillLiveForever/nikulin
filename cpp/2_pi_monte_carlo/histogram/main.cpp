@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         auto stop = std::chrono::high_resolution_clock::now();
 
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-        std::cout << "Elapsed time for generator: \"" << (*obj).whoami() << "\" --- " << duration.count() << " microseconds" << std::endl;
+        std::cout << "Elapsed time for generator: \"" << (*obj).whoami() << "\"; Total values: " << total_nums << "\t --- " << duration.count() << " microseconds" << std::endl;
     }
     else
     {
