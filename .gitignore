@@ -34,3 +34,6 @@
 # Ignore all .png & .jpg files
 *.png
 *.jpg
+
+# Ignore bin/ dir
+bin/
