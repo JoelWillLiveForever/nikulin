@@ -31,12 +31,12 @@ RELCXXFLAGS = -O3 -DNDEBUG
 .PHONY: all clean debug prep release remake
 
 # Default build
-all: prep release
+all: prep debug
 
 #
 # Debug rules
 # 
-debug: prep $(DBGEXE)
+debug: $(DBGEXE)
 
 $(DBGEXE): $(DBGOBJS)
 	$(CXX) $(CXXFLAGS) $(DBGCXXFLAGS) -o $(DBGEXE) $^
@@ -47,7 +47,7 @@ $(DBGDIR)/%.o: %.cpp
 #
 # Release rules
 # 
-release: $(RELEXE)
+release: prep $(RELEXE)
 
 $(RELEXE): $(RELOBJS)
 	$(CXX) $(CXXFLAGS) $(RELCXXFLAGS) -o $(RELEXE) $^
