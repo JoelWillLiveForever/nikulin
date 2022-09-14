@@ -1,4 +1,4 @@
-#include "weight_combinator_class.hpp"
+#include "../include/weight_combinator_class.hpp"
 
 void WeightCombinator::combine(int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
 {

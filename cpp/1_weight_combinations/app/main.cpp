@@ -2,8 +2,8 @@
  * Имеется 10 гирь весом 100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000 и 3000 г.
  * Сколькими способами гирями этого набора можно составить вес в V грамм? */ 
 
-#include "pch.hpp"
-#include "weight_combinator_class.hpp"
+#include "../include/pch.hpp"
+#include "../include/weight_combinator_class.hpp"
 
 // значения флагов для использования в аргументах main
 //const std::vector<std::string> flag_help            = {"-h", "--help"},

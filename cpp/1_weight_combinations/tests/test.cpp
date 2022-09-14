@@ -1,4 +1,4 @@
-#include "weight_combinator_class.hpp"
+#include "../include/weight_combinator_class.hpp"
 
 int main()
 {
