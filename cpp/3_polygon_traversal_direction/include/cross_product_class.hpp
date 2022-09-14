@@ -1,8 +1,7 @@
-#ifndef __CROSS_PRODUCT_CLASS_HPP__
-#define __CROSS_PRODUCT_CLASS_HPP__
+#pragma once
 
+#include "pch.hpp"
 #include "point_class.hpp"
-#include <vector>
 
 class CrossProduct
 {
@@ -30,5 +29,3 @@ public:
     double compute();
     double compute(Point p1, Point p2, Point p3);   // перегрузка метода compute()
 };
-
-#endif

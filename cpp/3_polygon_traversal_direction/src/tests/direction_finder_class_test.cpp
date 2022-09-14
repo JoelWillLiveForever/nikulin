@@ -1,6 +1,4 @@
-#include "direction_finder_class_test.hpp"
-
-#include <iostream>
+#include "../../include/tests/direction_finder_class_test.hpp"
 
 // невыпуклый многоугольник с координатами вершин заданными против часовой стрелки
 bool DirectionFinderTest::find_direction_test_non_convex_polygon_anti_clockwise_points()

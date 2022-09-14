@@ -1,7 +1,6 @@
-#ifndef __DIRECTION_FINDER_CLASS_HPP__
-#define __DIRECTION_FINDER_CLASS_HPP__
+#pragma once
 
-#include <vector>
+#include "pch.hpp"
 #include "point_class.hpp"
 
 class DirectionFinder
@@ -20,5 +19,3 @@ public:
 
     int find_direction();
 };
-
-#endif

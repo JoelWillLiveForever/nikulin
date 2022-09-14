@@ -1,6 +1,4 @@
-#include "cross_product_class_test.hpp"
-
-#include <iostream>
+#include "../../include/tests/cross_product_class_test.hpp"
 
 bool CrossProductTest::compute_test()
 {

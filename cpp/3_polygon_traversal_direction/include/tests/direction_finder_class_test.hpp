@@ -1,7 +1,7 @@
-#ifndef __DIRECTION_FINDER_CLASS_TEST__
-#define __DIRECTION_FINDER_CLASS_TEST__
+#pragma once
 
-#include "direction_finder_class.hpp"
+#include "../pch.hpp"
+#include "../direction_finder_class.hpp"
 
 class DirectionFinderTest
 {
@@ -15,5 +15,3 @@ public:
     static void test(); // тестируем весь класс
 
 };
-
-#endif

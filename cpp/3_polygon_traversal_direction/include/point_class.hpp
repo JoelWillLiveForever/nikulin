@@ -1,14 +1,13 @@
-#ifndef __POINT_CLASS_HPP__
-#define __POINT_CLASS_HPP__
+#pragma once
 
-#include <string>
+#include "pch.hpp"
 
 class Point
 {
-  private:
+private:
     double my_x, my_y;
 
-  public:
+public:
     Point(double x, double y);  // конструктор
     ~Point();                   // деструктор
 
@@ -20,5 +19,3 @@ class Point
     
     std::string to_string();    // если нужно вывести координаты точки на экран
 };
-
-#endif

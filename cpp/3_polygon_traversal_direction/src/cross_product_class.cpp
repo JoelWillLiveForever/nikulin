@@ -1,6 +1,4 @@
-#include "cross_product_class.hpp"
-
-#include <iostream>
+#include "../include/cross_product_class.hpp"
 
 CrossProduct::CrossProduct():
     p1_(0, 0), p2_(0, 0), p3_(0, 0)

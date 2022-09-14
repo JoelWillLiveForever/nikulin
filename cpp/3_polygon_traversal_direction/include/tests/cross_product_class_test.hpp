@@ -1,9 +1,7 @@
-#ifndef __CROSS_PRODUCT_CLASS_TEST__
-#define __CROSS_PRODUCT_CLASS_TEST__
+#pragma once
 
-#include <cmath>
-
-#include "cross_product_class.hpp"
+#include "../pch.hpp"
+#include "../cross_product_class.hpp"
 
 class CrossProductTest
 {
@@ -15,5 +13,3 @@ public:
     static void test(); // тестируем весь класс
 
 };
-
-#endif

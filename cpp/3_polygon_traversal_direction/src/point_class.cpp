@@ -1,5 +1,4 @@
-#include "point_class.hpp"
-// #include <iostream>
+#include "../include/point_class.hpp"
 
 Point::Point(double x, double y):
     my_x(x), my_y(y)
