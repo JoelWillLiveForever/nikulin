@@ -8,7 +8,7 @@ set(target_project_name "${project_name}-${target_suffix}")
 set(library_name "pmc")
 set(target_library_name "${library_name}-${target_suffix}")
 
-set(test_library_name "pmc-test")
+set(test_library_name "${library_name}-test")
 set(target_test_library_name "${test_library_name}-${target_suffix}")
 
 project(
