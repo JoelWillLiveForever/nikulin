@@ -35,5 +35,6 @@
 *.png
 *.jpg
 
-# Ignore bin/ dir
+# Ignore bin/ and old/ dirs
 bin/
+old/
