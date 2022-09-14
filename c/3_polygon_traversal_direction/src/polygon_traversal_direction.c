@@ -1,4 +1,4 @@
-#include "liberty.h"
+#include "../include/foo.h"
 
 #include <stdio.h>
 #include <limits.h>

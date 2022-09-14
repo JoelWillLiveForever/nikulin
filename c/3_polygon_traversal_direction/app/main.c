@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "liberty.h"
+#include "../include/foo.h"
 
 int main()
 {
