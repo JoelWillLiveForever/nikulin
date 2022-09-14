@@ -1,7 +1,7 @@
 /* Условие задачи 2:
  * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
 
-#include "../include/stdafx.hpp"
+#include "../include/pch.hpp"
 #include "../include/true_pi_selector_class.hpp"
 #include "../include/pi_convergence_check_class.hpp"
 
@@ -19,7 +19,6 @@ int main(int argc, char *argv[])
         {
             std::cout << "This is a Monte Carlo search engine for a PI number. Usage:\n"
                 << std::string(HELP_INDENT, ' ') << argv[0] <<" [options]\n"
-                << std::string(HELP_INDENT, ' ') << argv[0] << " eps_value\n"
                 << "\nOptions:\n"
                 << std::string(HELP_INDENT, ' ') << "-h, --help" << "\t\t\t\t\t\t\t\t\tShow program help info\n"
                 << std::string(HELP_INDENT, ' ') << "-v, --version" << "\t\t\t\t\t\t\t\tDisplay program version\n"
