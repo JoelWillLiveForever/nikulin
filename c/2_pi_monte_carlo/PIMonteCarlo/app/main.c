@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include "xor_shift.h"
+#include "../include/xor_shift.h"
 
 #define EPS 0.0001 // точность, c которой нужно найти число Пи
 

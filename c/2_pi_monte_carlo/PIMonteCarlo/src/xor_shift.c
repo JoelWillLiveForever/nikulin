@@ -1,4 +1,4 @@
-#include "xor_shift.h"
+#include "../include/xor_shift.h"
 
 static unsigned long prev_64;
 unsigned long xor_shift_64(unsigned long x)

@@ -1,3 +1,6 @@
+#ifndef __XOR_SHIFT_H__
+#define __XOR_SHIFT_H__
+
 #include <limits.h>
 #define XOR_SHIFT_RAND_MAX ULONG_MAX;
 
@@ -12,3 +15,5 @@ unsigned long xor_shift_1024();
 
 void seed_1024(unsigned long seed);
 unsigned long next_1024();
+
+#endif
