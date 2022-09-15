@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdafx.hpp"
+#include "pch.hpp"
 #include "random_generator__sample_abstract_class.hpp"
 
 class MT19937_Sample : public RandomGenerator_SampleAbstract

@@ -1,4 +1,4 @@
-#include "stdafx.hpp"
+#include "pch.hpp"
 
 #include "random_generator__sample_abstract_class.hpp"
 

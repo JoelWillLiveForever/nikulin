@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdafx.hpp"
+#include "pch.hpp"
 #include "xor_shift_64__generator_class.hpp"
 
 class XORShift1024_Generator
