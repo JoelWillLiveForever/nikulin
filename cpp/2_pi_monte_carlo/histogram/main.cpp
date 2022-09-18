@@ -1,10 +1,11 @@
 #include "pch.hpp"
 
-#include "random_generator__sample_abstract_class.hpp"
+#include "samples.hpp"
 
-#include "xor_shift_64__sample_class.hpp"
-#include "xor_shift_1024__sample_class.hpp"
-#include "mt19937__sample_class.hpp"
+extern "C" 
+{
+    #include "generators.h"
+}
 
 int main(int argc, char *argv[])
 {
@@ -16,11 +17,12 @@ int main(int argc, char *argv[])
                 << "Usage:\n"
                 << argv[0] <<" [options]\n"
                 << "\nOptions:\n"
-                "-h, --help" << "\tShow program help info\n"
-                "-v, --version" << "\tDisplay program version\n"
-                "--xs64 [total_points, range_start, range_end]" << "\tUse XORShift64 random generator\n"
-                "--xs1024 [total_points, range_start, range_end]" << "\tUse XORShift64 random generator\n"
-                "--mt19937 [total_points, range_start, range_end]" << "\tUse CPP STD MT19937 random generator\n"
+                "-h, --help" << "\t\t\tShow program help info\n"
+                "-v, --version" << "\t\t\tDisplay program version\n\n"
+                "--xs64    [total_points]" << "\tUse XORShift64 random generator\n"
+                "--xs1024  [total_points]" << "\tUse XORShift64 random generator\n"
+                "--mt19937 [total_points]" << "\tUse CPP STD MT19937 random generator\n"
+                "--rand    [total_points]" << "\tUse C stdlib.h random generator\n"
                 << std::endl;
         }
         else if ( std::string(argv[1]) == "-v" || std::string(argv[1]) == "--version" )
@@ -31,7 +33,7 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
     }
-    else if ( argc == 5 )
+    else if ( argc == 3 )
     {
         RandomGenerator_SampleAbstract *obj;
         std::string arg = argv[1];
@@ -42,6 +44,8 @@ int main(int argc, char *argv[])
             obj = new XORShift1024_Sample();
         else if ( arg == "--mt19937" )
             obj = new MT19937_Sample();
+        else if ( arg == "--rand" )
+            obj = new CSTDLibRand_Sample();
         else
         {
             std::cerr << "Bad arguments!\n";
@@ -56,13 +60,10 @@ int main(int argc, char *argv[])
             std::cerr << "Invalid number: " << argv[2] << '\n';
             return EXIT_FAILURE;
         }      
-
-        double range_start = atof(argv[3]),
-               range_end = atof(argv[4]);
         
         // засекаем время генерации выборки
         auto start = std::chrono::high_resolution_clock::now();
-        (*obj).print_sample_to_csv(total_nums, range_start, range_end);
+        (*obj).print_sample_to_csv(total_nums);
         auto stop = std::chrono::high_resolution_clock::now();
 
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);

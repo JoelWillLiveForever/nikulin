@@ -9,7 +9,7 @@ set(target_project_name "${project_name}-${target_suffix}") # с суффикс�
 project(
     ${project_name}
     VERSION 1.0.0.0
-    LANGUAGES CXX
+    LANGUAGES C CXX
 )
 
 
@@ -20,18 +20,12 @@ set(target_generators_library_name "${generators_library_name}-${target_suffix}"
 set(samples_library_name "samples")
 set(target_samples_library_name "${samples_library_name}-${target_suffix}") # с суффиксом
 
-set(lib_general_inc
-    pch.hpp
-)
 
 set(generators_lib_inc
-    ${lib_general_inc}
-    xor_shift_64__generator_class.hpp
-    xor_shift_1024__generator_class.hpp
+    generators.h
 )
 set(generators_lib_src
-    xor_shift_64__generator_class.cpp
-    xor_shift_1024__generator_class.cpp
+    generators.c
 )
 
 add_library(${target_generators_library_name} ${generators_lib_inc} ${generators_lib_src})
@@ -43,16 +37,11 @@ set_target_properties(
 
 
 set(samples_lib_inc
-    ${lib_general_inc}
-    random_generator__sample_abstract_class.hpp
-    mt19937__sample_class.hpp
-    xor_shift_64__sample_class.hpp
-    xor_shift_1024__sample_class.hpp
+    pch.hpp
+    samples.hpp
 )
 set(samples_lib_src
-    mt19937__sample_class.cpp
-    xor_shift_64__sample_class.cpp
-    xor_shift_1024__sample_class.cpp
+    samples.cpp
 )
 
 add_library(${target_samples_library_name} ${samples_lib_inc} ${samples_lib_src})
@@ -77,4 +66,3 @@ target_link_libraries(${target_project_name}
     ${target_samples_library_name}
     ${target_generators_library_name} 
 )
-configure_file(research_generators.ipynb research_generators.ipynb COPYONLY)
