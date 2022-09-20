@@ -38,3 +38,7 @@
 # Ignore bin/ and old/ dirs
 bin/
 old/
+bad/
+
+#Ignore all .gch files
+*.gch
