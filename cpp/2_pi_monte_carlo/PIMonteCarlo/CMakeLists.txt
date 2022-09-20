@@ -46,8 +46,12 @@ set_target_properties(
         OUTPUT_NAME ${project_name}
 )
 
+# Include boost
+find_package( Boost 1.76.0 COMPONENTS program_options REQUIRED )
+target_include_directories( ${target_project_name} PRIVATE ${Boost_INCLUDE_DIR} )
+
 # слинковать библиотеку и бинарник
-target_link_libraries(${target_project_name} ${target_library_name})
+target_link_libraries( ${target_project_name} ${Boost_LIBRARIES} ${target_library_name} )
 
 #
 #set(res_dir res)
