@@ -2,7 +2,6 @@
  * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
 
 #include "pch.h"
-#include "xor_shift.h"
 
 # if 0
 #define EPS 0.0001 // точность, c которой нужно найти число Пи
@@ -59,10 +58,10 @@ void print_help_message(char *argv[])
             " %-40s Show program help info\n"
             " %-40s Show program version\n"
             " %-40s Measure the speed of program execution in given unit\n"
-            " %-40s Valid arguments: [milliseconds | microseconds | nanoseconds] or\n"
-            " %-40s                  [msec | usec | nsec] or\n"
-            " %-40s                  [ms | us | ns ] or\n"
-            " %-40s                  [m | u | n ]\n\n"
+            " %-40s Valid arguments: [seconds | milliseconds | microseconds | nanoseconds] or\n"
+            " %-40s                  [sec | msec | usec | nsec] or\n"
+            " %-40s                  [ds | ms | us | ns ] or\n"
+            " %-40s                  [s | m | u | n ]\n\n"
 
             " %-40s Use all CPU cores for calculating (multi-core processing)\n"
             " %-40s Use GPU (OpenCL) for calculating (GPU processing)\n\n"
@@ -131,7 +130,8 @@ int main(int argc, char *argv[])
     int opt;
     
     // флаги для замера времени выполнения
-    bool isMilliseconds = false,
+    bool isSeconds      = false,
+         isMilliseconds = false,
          isMicroseconds = false,
          isNanoseconds  = false,
 
@@ -200,9 +200,9 @@ int main(int argc, char *argv[])
                 errno = 0;
                 eps = strtod(optarg, &temp);
 
-                printf("eps: %g\n"
-                        "temp: %s\n",
-                        eps, temp);
+//                printf("eps: %g\n"
+//                        "temp: %s\n",
+//                        eps, temp);
         
                 if ( temp == optarg || *temp != '\0' ||
                         ((eps == DBL_MIN || eps == DBL_MAX) && errno == ERANGE) )
@@ -272,15 +272,18 @@ int main(int argc, char *argv[])
                break;
 
             case 'u':
-                // milli, micro, nano seconds to check algorithm speed
+                // default, milli, micro, nano seconds to check algorithm speed
 
-                if ( optarg == "m" || optarg == "ms" || optarg == "msec" || optarg == "milliseconds" )
+                if ( !strcmp(optarg, "s") || !strcmp(optarg, "ds") || !strcmp(optarg, "sec") || !strcmp(optarg, "seconds") )
+                    isSeconds = true;
+
+                else if ( !strcmp(optarg, "m") || !strcmp(optarg, "ms") || !strcmp(optarg, "msec") || !strcmp(optarg, "milliseconds") )
                     isMilliseconds = true;
 
-                else if ( optarg == "u" || optarg == "us" || optarg == "usec" || optarg == "microseconds" )
+                else if ( !strcmp(optarg, "u") || !strcmp(optarg, "us") || !strcmp(optarg, "usec") || !strcmp(optarg, "microseconds") )
                     isMicroseconds = true;
 
-                else if ( optarg == "n" || optarg == "ns" || optarg == "nsec" || optarg == "nanoseconds" )
+                else if ( !strcmp(optarg, "n") || !strcmp(optarg, "ns") || !strcmp(optarg, "nsec") || !strcmp(optarg, "nanoseconds") )
                     isNanoseconds = true;
 
                 break;
@@ -378,7 +381,19 @@ int main(int argc, char *argv[])
 //            "max_points: %u\n", 
 //
 //            number_of_counters, start, multiplier, max_points);
-    
+
+    double pi = 0;
+    struct timeval begin, end;
+
+    if (!isMultithread && !isOpenCL)
+    {
+        // вариант рассчёта Пи последовательно в одном потоке
+
+        gettimeofday(&begin, 0);
+        double pi = get_pi_single_thread(number_of_counters, start, multiplier);
+        gettimeofday(&end, 0);
+    }
+
     // получить число ядер (потоков) ЦП
     // https://stackoverflow.com/questions/4586405/how-to-get-the-number-of-cpus-in-linux-using-c
     long number_of_processors;
@@ -393,7 +408,23 @@ int main(int argc, char *argv[])
 
         printf("\nAvailable CPUs: %ld\n", number_of_processors);
     }
+
+    printf("PI: %f\n", pi);
+
+    long elapsed = ((end.tv_sec - begin.tv_sec) * 1000000000) + (end.tv_usec - begin.tv_usec);
+
+    if (isSeconds)
+        printf("Elapsed time: %ld seconds\n", (elapsed / 1000000000));
+
+    if (isMilliseconds)
+        printf("Elapsed time: %ld milliseconds\n", (elapsed / 1000000));
     
+    if (isMicroseconds)
+        printf("Elapsed time: %ld microseconds\n", (elapsed / 1000));
+    
+    if (isNanoseconds)
+        printf("Elapsed time: %ld nanoseconds\n", elapsed);
+
     return EXIT_SUCCESS;
 }
 

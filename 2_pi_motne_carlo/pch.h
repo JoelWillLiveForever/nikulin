@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 #include <math.h>
 #include <limits.h>
 
@@ -25,5 +25,9 @@
 #else
 #include <CL/cl.h>
 #endif
+
+// user libraries
+#include "generators.h"
+#include "counters.h"
 
 #endif
