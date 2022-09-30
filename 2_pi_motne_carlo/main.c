@@ -98,11 +98,11 @@ static int verbose_flag;
 
 int main(int argc, char *argv[])
 {
-    if ( argc == 1 )
-    {
-        fprintf(stderr, "Error! No arguments!\n");
-        return EXIT_FAILURE;
-    }
+//    if ( argc == 1 )
+//    {
+//        fprintf(stderr, "Error! No arguments!\n");
+//        return EXIT_FAILURE;
+//    }
 
     // checked options
     const char* const short_options = "toe:s:n:m:p:u:vh";
@@ -292,13 +292,13 @@ int main(int argc, char *argv[])
                 // show program version
                 
                 printf("1.0.0.0\n");
-                break;
+                return EXIT_SUCCESS;
 
             case 'h':
                 // show help msg when --help
                 
                 print_help_message(argv);
-                break;
+                return EXIT_SUCCESS;
 
             case '?':
             default:
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
 
                 printf("\n");
                 print_help_message(argv);
-                break;
+                return EXIT_FAILURE;
         }
     }
 
@@ -390,16 +390,15 @@ int main(int argc, char *argv[])
         // вариант рассчёта Пи последовательно в одном потоке
 
         gettimeofday(&begin, 0);
-        double pi = get_pi_single_thread(number_of_counters, start, multiplier);
+        pi = get_pi_single_thread(number_of_counters, start, multiplier, eps);
         gettimeofday(&end, 0);
     }
 
     // получить число ядер (потоков) ЦП
     // https://stackoverflow.com/questions/4586405/how-to-get-the-number-of-cpus-in-linux-using-c
-    long number_of_processors;
     if (isMultithread)
     {
-        number_of_processors =  sysconf(_SC_NPROCESSORS_ONLN);
+        long number_of_processors =  sysconf(_SC_NPROCESSORS_ONLN);
         if (number_of_processors < 1)
         {
             fprintf(stderr, "Could not determine number of CPUs online:\n%s\n", strerror(errno));

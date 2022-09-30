@@ -5,7 +5,8 @@
 
 double get_pi_single_thread(uint8_t number_of_counters, 
         uint32_t start, 
-        uint32_t multiplier);
+        uint32_t multiplier,
+        double eps);
 
 //double get_pi_multithread(uint8_t number_of_counters, 
 //        uint32_t start, 
