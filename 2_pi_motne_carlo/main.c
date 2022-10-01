@@ -61,7 +61,11 @@ void print_help_message(char *argv[])
             " %-40s Valid arguments: [seconds | milliseconds | microseconds | nanoseconds] or\n"
             " %-40s                  [sec | msec | usec | nsec] or\n"
             " %-40s                  [ds | ms | us | ns ] or\n"
-            " %-40s                  [s | m | u | n ]\n\n"
+            " %-40s                  [s | m | u | n ]\n"
+            " %-40s Set random generator\n"
+            " %-40s Valid arguments: [xor-shift-64 | xor-shift-1024] or\n"
+            " %-40s                  [xs64 | xs1024] or\n"
+            " %-40s                  [6 | 1]\n\n"
 
             " %-40s Use all CPU cores for calculating (multi-core processing)\n"
             " %-40s Use GPU (OpenCL) for calculating (GPU processing)\n\n"
@@ -74,10 +78,17 @@ void print_help_message(char *argv[])
             " %-40s Set maximum number of points AND RUN program in PI convergence check mode\n",
             
             argv[0], 
-            "-h, --help", "-v, --version", "-u, --unit Arg (off)", " ", " ", " ", " ",
-            "-t, --multithread (off)", "-o, --opencl (off)",
+            "-h, --help", 
+            "-v, --version", 
+            "-u, --unit Arg (off)", " ", " ", " ", " ", 
+            "-g, --generator Arg (xor-shift-64)", " ", " ", " ",
+            "-t, --multithread (off)", 
+            "-o, --opencl (off)",
             "-n, --number-of-counters Arg (10)",
-            "-e, --eps Arg (0.001)", "-s, --start Arg (1000)", "-m, --multiplier Arg (2)", "-p, --max-points Arg (10 000 000)");
+            "-e, --eps Arg (0.001)", 
+            "-s, --start Arg (1000)", 
+            "-m, --multiplier Arg (2)", 
+            "-p, --max-points Arg (10 000 000)");
      
     char example1[40],
          example2[40],
@@ -105,7 +116,7 @@ int main(int argc, char *argv[])
 //    }
 
     // checked options
-    const char* const short_options = "toe:s:n:m:p:u:vh";
+    const char* const short_options = "toe:s:n:m:p:u:g:vh";
     const struct option long_options[] = {
         {"verbose",             no_argument,        &verbose_flag, 1},
         {"brief",               no_argument,        &verbose_flag, 0},
@@ -121,6 +132,7 @@ int main(int argc, char *argv[])
         {"max-points",          required_argument,  NULL, 'p'},
 
         {"unit",                required_argument,  NULL, 'u'},
+        {"generator",           required_argument,  NULL, 'g'},
         {"version",             no_argument,        NULL, 'v'},
         {"help",                no_argument,        NULL, 'h'},
         {NULL,                  no_argument,        NULL, 0}
@@ -136,7 +148,9 @@ int main(int argc, char *argv[])
          isNanoseconds  = false,
 
          isMultithread  = false,
-         isOpenCL       = false;
+         isOpenCL       = false,
+
+         use_xs1024     = false;
 
     // дефолтные значения аргементов main
     uint8_t number_of_counters = 10;
@@ -288,6 +302,17 @@ int main(int argc, char *argv[])
 
                 break;
 
+            case 'g':
+                // выбор генератора рандомных чисел
+
+                if ( !strcmp(optarg, "6") || !strcmp(optarg, "xs64") || !strcmp(optarg, "xor-shift-64") )
+                    use_xs1024 = false;
+
+                else if ( !strcmp(optarg, "1") || !strcmp(optarg, "xs1024") || !strcmp(optarg, "xor-shift-1024") )
+                    use_xs1024 = true;
+
+                break;
+
             case 'v':
                 // show program version
                 
@@ -390,7 +415,7 @@ int main(int argc, char *argv[])
         // вариант рассчёта Пи последовательно в одном потоке
 
         gettimeofday(&begin, 0);
-        pi = get_pi_single_thread(number_of_counters, start, multiplier, eps);
+        pi = get_pi_single_thread(number_of_counters, start, multiplier, eps, use_xs1024);
         gettimeofday(&end, 0);
     }
 
@@ -406,6 +431,10 @@ int main(int argc, char *argv[])
         }
 
         printf("\nAvailable CPUs: %ld\n", number_of_processors);
+
+        gettimeofday(&begin, 0);
+        pi = get_pi_multithread(number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024);
+        gettimeofday(&end, 0);
     }
 
     printf("PI: %f\n", pi);
