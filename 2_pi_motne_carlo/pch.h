@@ -20,7 +20,12 @@
 #include <getopt.h>
 
 // include OpenCL
-#ifdef __APPLE__
+
+#ifndef CL_TARGET_OPENCL_VERSION
+#define CL_TARGET_OPENCL_VERSION 120
+#endif
+
+#if defined (__APPLE__) || defined (__MACOSX)
 #include <OpenCL/opencl.h>
 #else
 #include <CL/cl.h>

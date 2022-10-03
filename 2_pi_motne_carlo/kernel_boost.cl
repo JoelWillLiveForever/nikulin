@@ -1,38 +1,32 @@
 /* Условие задачи 2:
  * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
 
-__kernel void boost(__global const uint *points, __global const uint *randoms, __global uint *good_points)
-{    
-    int id = get_global_id(0);
-    good_points[id] = 0;
+#define ULONG_MAX 0xffffffffffffffffUL
 
-    uint rnd = id + points[id] + randoms[id];
-    float x, y, length;
+unsigned long xs64_gen(unsigned long seed)
+{
+    seed ^= (seed >> 12);
+    seed ^= (seed << 25);
+    seed ^= (seed >> 27);
 
-    for (int i = 1; i <= points[id]; i++)
-    { 
-        // генерация рандомных точек (их координат) в пределах 1/4 единичной окружности
-        //rnd = (rnd * 73129 + 95121) % 100000;
-       
-        rnd ^= rnd << 13; // ещё немного рандома
-        rnd ^= rnd >> 7;
-        rnd ^= rnd << 17;
-        
-        x = (float) rnd / (float) UINT_MAX;
+    return seed * ULONG_MAX;
+}
 
-        rnd ^= rnd << 5;
-        rnd ^= rnd >> 15;
-        rnd ^= rnd << 21;
+__kernel void boost( __global const double *randoms, __global int *points )
+{
+    int i = get_global_id(0);
+    points[i] = 0;
 
-        y = (float) rnd / (float) UINT_MAX;
+    unsigned long seed = randoms[i] * ULONG_MAX;
+    
+    seed = xs64_gen(seed);
+    double x = (double) seed / (double) ULONG_MAX;
+    
+    seed = xs64_gen(seed);
+    double y = (double) seed / (double) ULONG_MAX;
 
-        length = sqrt(x*x + y*y); // расстояние от центра окружности до сгенерированной точки, если > 1, значит не принадлежит ей
+    double len = x*x + y*y;
 
-        if (length <= 1.0)
-            good_points[id]++;
-
-        //good_points[id] = (float) rnd / (float) UINT_MAX;
-    }
-
-    //good_points[id] = 1000;    
+    if (len <= 1)
+        points[i] = 1;
 }

@@ -89,20 +89,23 @@ void print_help_message(char *argv[])
             "-s, --start Arg (1000)", 
             "-m, --multiplier Arg (2)", 
             "-p, --max-points Arg (10 000 000)");
-     
+
     char example1[40],
          example2[40],
-         example3[40];
+         example3[40],
+         example4[40];    
 
-    snprintf(example1, sizeof example1, "%s%s", argv[0], " -t -o");
-    snprintf(example2, sizeof example2, "%s%s", argv[0], " -u ms -e 0.0001");
-    snprintf(example3, sizeof example3, "%s%s", argv[0], " -s 500 -m 3 -p 20000000");
+    snprintf(example1, sizeof example1, "%s%s", argv[0], " -t");
+    snprintf(example2, sizeof example2, "%s%s", argv[0], " -o -e 0.01 -s 1000000");
+    snprintf(example3, sizeof example3, "%s%s", argv[0], " -u ms -e 0.0001");
+    snprintf(example4, sizeof example4, "%s%s", argv[0], " -s 500 -m 3 -p 20000000");
 
     printf("\nExamples:\n\n"
-            " %-40s Run PI calculation using all CPU cores and GPU\n"
+            " %-40s Run PI calculation using all CPU cores\n"
+            " %-40s Run PI calculation using GPU (OpenCL)\n"
             " %-40s Run PI calc with precision 0.0001 and output program elapsed time\n"
             " %-40s Run PI convergence check with start points 500, points multiplier 3 and maximum points 20 000 000\n\n",
-            example1, example2, example3);
+            example1, example2, example3, example4);
 }
 
 static int verbose_flag;
@@ -186,10 +189,12 @@ int main(int argc, char *argv[])
                 break;
 
             case 't':
+                isOpenCL = false;
                 isMultithread = true;
                 break;
 
             case 'o':
+                isMultithread = false;
                 isOpenCL = true;
                 break;
 
@@ -434,6 +439,13 @@ int main(int argc, char *argv[])
 
         gettimeofday(&begin, 0);
         pi = get_pi_multithread(number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024);
+        gettimeofday(&end, 0);
+    }
+
+    if (isOpenCL)
+    {
+        gettimeofday(&begin, 0);
+        pi = get_pi_opencl(number_of_counters, start, multiplier, eps, use_xs1024);
         gettimeofday(&end, 0);
     }
 

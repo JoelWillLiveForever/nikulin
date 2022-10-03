@@ -177,10 +177,9 @@ double get_pi_multithread(unsigned number_of_counters,
 //            "use_xs_1024: %b\n",
 //            
 //            number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024);    
-    
     struct PIPoints *pi_points_arr = (struct PIPoints *) calloc(number_of_counters, sizeof(struct PIPoints));
     double pi;
-
+    
     // разбить pi_points_arr на части и распределить эти части между потоками
     struct ThreadArgs *thread_args = (struct ThreadArgs *) calloc(number_of_processors, sizeof(struct ThreadArgs));
     for (int i = 0; i < number_of_processors; i++)
@@ -263,6 +262,170 @@ double get_pi_multithread(unsigned number_of_counters,
         for ( int i = 0; i < number_of_processors; i++ )
             thread_args[i].how_much_points_to_gen = start;
     }
+
+    return pi;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+// реализация версии OpenCL
+
+const unsigned int MAX_SOURCE_SIZE = 0xFFFFFF;
+
+double get_pi_opencl(uint8_t number_of_counters,
+        uint32_t start,
+        uint32_t multiplier,
+        double eps,
+        bool use_xs1024)
+{
+    // Load the kernel source code into the array source_str
+    FILE *fp;
+    char *source_str;
+    size_t source_size;
+ 
+    fp = fopen("kernel_boost.cl", "r");
+    if (!fp) {
+        fprintf(stderr, "Failed to load OpenCL kernel\n");
+        exit(EXIT_FAILURE);
+    }
+
+    source_str = (char*) malloc(MAX_SOURCE_SIZE);
+    source_size = fread(source_str, 1, MAX_SOURCE_SIZE, fp);
+    fclose(fp);
+    
+    // Get platform and device information
+    cl_platform_id platform_id = NULL;
+    cl_device_id device_id = NULL;   
+    cl_uint ret_num_devices;
+    cl_uint ret_num_platforms;
+    cl_int ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
+   
+    ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices);
+
+    // Create an OpenCL context
+    cl_context context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
+
+    // Create a command queue
+    cl_command_queue command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
+
+    size_t local_item_size = 64;
+
+    struct PIPoints *pi_points_arr = (struct PIPoints *) malloc( number_of_counters * sizeof(struct PIPoints) );
+    memset(pi_points_arr, 0, number_of_counters * sizeof(struct PIPoints));
+
+    unsigned long points_size;
+
+    double *randoms; 
+    int *points;
+
+    double pi;
+
+    while (1)
+    {
+        points_size = start * number_of_counters;
+
+        randoms = (double *) malloc( points_size * sizeof(double) );
+        points = (int *) calloc( points_size, sizeof(int) );
+        
+        // разрадать по сиду каждому kernel
+        for (int i = 0; i < points_size; i++)
+        {
+            if ( use_xs1024 )
+                randoms[i] = next(0, 1);
+            else
+                randoms[i] = next(0, 0);
+        }
+
+        // обработка с OpenCL
+        // Create memory buffers on the device for each vector 
+        cl_mem randoms_mem_obj  = clCreateBuffer(context, CL_MEM_READ_ONLY, points_size * sizeof(double), NULL, &ret);
+        cl_mem points_mem_obj  = clCreateBuffer(context, CL_MEM_WRITE_ONLY, points_size * sizeof(int), NULL, &ret);
+
+        // Copy the lists @points and @randoms to their respective memory buffers
+        ret = clEnqueueWriteBuffer(command_queue, randoms_mem_obj, CL_TRUE, 0, points_size * sizeof(double), randoms, 0, NULL, NULL); 
+        ret = clEnqueueWriteBuffer(command_queue, points_mem_obj, CL_TRUE, 0, points_size * sizeof(int), points, 0, NULL, NULL); 
+
+        // Create a program from the kernel source
+        cl_program program = clCreateProgramWithSource(context, 1, (const char **) &source_str, (const size_t *) &source_size, &ret);
+     
+        // Build the program
+        ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+    
+        // Create the OpenCL kernel
+        cl_kernel kernel = clCreateKernel(program, "boost", &ret);
+     
+        // Set the arguments of the kernel
+        ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &randoms_mem_obj);
+        ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *) &points_mem_obj);
+     
+        // Execute the OpenCL kernel on the list
+        size_t global_item_size = points_size;
+            
+        ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
+     
+        // Read the memory buffer @points on the device to the local variable @points
+        ret = clEnqueueReadBuffer(command_queue, points_mem_obj, CL_TRUE, 0, points_size * sizeof(int), points, 0, NULL, NULL);
+        
+        // показать points 
+//        for (int i = 0; i < points_size; i++)
+//            printf("points[%d]: %d\n", i, points[i]);
+        
+        // суммирование точек в pi_points_arr и поиск min max PI
+        double min_pi = DBL_MAX,
+               max_pi = DBL_MIN,
+               e;
+        
+        for (int i = 0; i < number_of_counters; i++)
+        {
+            pi_points_arr[i].all_points += start;
+
+            for (int j = i; j < points_size; j += number_of_counters)
+            {
+                if ( points[j] > 1 )
+                    points[j] = 1;
+
+                pi_points_arr[i].good_points += (unsigned long) points[j];
+            }
+
+            pi = 4.0 * (double) pi_points_arr[i].good_points / (double) pi_points_arr[i].all_points;
+
+            if (pi < min_pi)
+                min_pi = pi;
+
+            if (pi > max_pi)
+                max_pi = pi;
+        }
+
+//        printf("pi: %f\n",
+//                "min_pi: %f\n"
+//                "max_pi: %f\n", pi, min_pi, max_pi);
+
+        e = max_pi - min_pi;
+//        printf("e: %f\n", e);
+
+        if ( e < eps )
+            break;
+
+        start *= multiplier;
+
+        // Clean up
+        ret = clFlush(command_queue);
+        ret = clFinish(command_queue);
+    
+        ret = clReleaseKernel(kernel);
+        ret = clReleaseProgram(program);
+    
+        ret = clReleaseMemObject(randoms_mem_obj);
+        ret = clReleaseMemObject(points_mem_obj);
+    }
+
+    ret = clReleaseCommandQueue(command_queue);
+    ret = clReleaseContext(context);
+
+    free( randoms );
+    free( points );
 
     return pi;
 }
