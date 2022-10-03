@@ -101,7 +101,7 @@ void print_help_message(char *argv[])
     snprintf(example4, sizeof example4, "%s%s", argv[0], " -s 500 -m 3 -p 20000000");
 
     printf("\nExamples:\n\n"
-            " %-40s Run PI calculation using all CPU cores\n"
+            " %-40s Run PI calculation using all CPU cores (pthread)\n"
             " %-40s Run PI calculation using GPU (OpenCL)\n"
             " %-40s Run PI calc with precision 0.0001 and output program elapsed time\n"
             " %-40s Run PI convergence check with start points 500, points multiplier 3 and maximum points 20 000 000\n\n",

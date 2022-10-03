@@ -107,7 +107,7 @@ set_target_properties(
         OUTPUT_NAME "${project_name}-C"
 )
 
-find_package( OpenCL )
+find_package( OpenCL REQUIRED )
 target_include_directories( "${target_project_name}-C" PRIVATE ${OpenCL_INCLUDE_DIR} )
 
 target_link_libraries("${target_project_name}-C" ${OpenCL_LIBRARIES} ${target_c_library_name})
