@@ -8,13 +8,11 @@ project(GlobalProject
 # Build all projects
 # C:
 add_subdirectory(c/1_weight_combinations)
-
-add_subdirectory(c/2_pi_monte_carlo/PIMonteCarlo)
-add_subdirectory(c/2_pi_monte_carlo/PIMonteCarlo-OpenCL)
-
 add_subdirectory(c/3_polygon_traversal_direction)
 
 # CPP:
 add_subdirectory(cpp/1_weight_combinations)
-add_subdirectory(cpp/2_pi_monte_carlo/PIMonteCarlo)
 add_subdirectory(cpp/3_polygon_traversal_direction)
+
+# C & CPP:
+add_subdirectory(2_pi_monte_carlo)
