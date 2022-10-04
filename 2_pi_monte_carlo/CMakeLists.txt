@@ -11,6 +11,10 @@ project(
     LANGUAGES C CXX
 )
 
+set( TODAY "" )
+string( TIMESTAMP TODAY "%d%m%Y" )
+message("Today: ${TODAY}")
+
 configure_file(version.h.in version.h)
 
 # CPP LIBS

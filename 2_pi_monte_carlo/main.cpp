@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
             std::cout << VERSION_MAJOR << "." 
                       << VERSION_MINOR << "." 
                       << VERSION_PATCH << "." 
-                      << VERSION_TWEAK 
+                      << VERSION_TWEAK << "-" 
+                      << BUILD_DATE 
                       << std::endl;
         else
         {

@@ -322,12 +322,14 @@ int main(int argc, char *argv[])
             case 'v':
                 // show program version
                 
-                printf("%u.%u.%u.%u\n", 
+                printf("%u.%u.%u.%u-%s\n",
                         
                         VERSION_MAJOR,
                         VERSION_MINOR,
                         VERSION_PATCH,
-                        VERSION_TWEAK);
+                        VERSION_TWEAK,
+                        
+                        BUILD_DATE);
 
                 return EXIT_SUCCESS;
 
