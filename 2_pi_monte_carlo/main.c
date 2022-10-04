@@ -363,62 +363,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-//    if (target)
-//    {
-//        // вектор для хранения найденных комбинаций
-//        WeightCombinator::Combinations combinations;
-//    
-//        // создаём объект класса WeightsCombinator и ищем все комбинации
-//        WeightCombinator combinator;
-//        
-//        try
-//        {
-//            auto start = std::chrono::high_resolution_clock::now();
-//            combinator.combine(target, combinations, nomenclature);
-//            auto stop = std::chrono::high_resolution_clock::now();
-//    
-//            // выводим результат
-//            unsigned int counter = 0;
-//            std::cout << "Amount combinations: " << combinations.size() << '\n';
-//            for (auto combination: combinations)
-//            {
-//                std::cout << ++counter << ": ";
-//                for (auto el: combination)
-//                    std::cout << el << ' ';
-//                std::cout << '\n';
-//            }
-//        
-//            // выводим время выполнения, если были соотв. флаги
-//            if ( isMilliseconds )
-//            {
-//                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-//                std::cout << "Elapsed time: " << duration.count() << " ms" << std::endl;
-//            }
-//            else if ( isMicroseconds )
-//            {
-//                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-//                std::cout << "Elapsed time: " << duration.count() << " us" << std::endl;
-//            }
-//            else if ( isNanoseconds )
-//            {
-//                auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-//                std::cout << "Elapsed time: " << duration.count() << " ns" << std::endl;
-//            }
-//        }
-//        catch ( std::invalid_argument const &ex )
-//        {
-//            std::cerr << ex.what() << std::endl;
-//            return EXIT_FAILURE;
-//        }
-//    }
-    
-//    printf("number-of-counters: %u\n"
-//            "start: %u\n"
-//            "multiplier: %u\n"
-//            "max_points: %u\n", 
-//
-//            number_of_counters, start, multiplier, max_points);
-
     double pi = 0;
     struct timeval begin, end;
 
