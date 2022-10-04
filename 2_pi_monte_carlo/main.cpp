@@ -5,6 +5,7 @@
 extern "C" 
 {
     #include "generators.h"
+    #include "version.h"
 }
 
 int main(int argc, char *argv[])
@@ -26,7 +27,11 @@ int main(int argc, char *argv[])
                 << std::endl;
         }
         else if ( std::string(argv[1]) == "-v" || std::string(argv[1]) == "--version" )
-            std::cout << "1.0.0.0" << std::endl;
+            std::cout << VERSION_MAJOR << "." 
+                      << VERSION_MINOR << "." 
+                      << VERSION_PATCH << "." 
+                      << VERSION_TWEAK 
+                      << std::endl;
         else
         {
             std::cerr << "Bad arguments!\n";

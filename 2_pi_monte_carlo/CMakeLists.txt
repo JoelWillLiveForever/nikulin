@@ -7,9 +7,11 @@ set(target_project_name "${project_name}-${target_suffix}")
 
 project(
     ${project_name}
-    VERSION 1.0.0.0
+    VERSION 1.1.0.0
     LANGUAGES C CXX
 )
+
+configure_file(version.h.in version.h)
 
 # CPP LIBS
 set(cpp_library_name "pimc_cpp")
@@ -85,6 +87,9 @@ set_target_properties(
         OUTPUT_NAME "${project_name}-CPP"
 )
 
+# include version.h
+target_include_directories("${target_project_name}-CPP" PUBLIC ${PROJECT_BINARY_DIR})
+
 find_package( Boost 1.76.0 COMPONENTS program_options REQUIRED )
 target_include_directories( "${target_project_name}-CPP" PRIVATE ${Boost_INCLUDE_DIR} )
 
@@ -97,6 +102,7 @@ set_target_properties(
     PROPERTIES
         OUTPUT_NAME "${project_name}-CPP-TEST"
 )
+
 target_link_libraries("${target_project_name}-CPP-TEST" ${target_cpp_test_library_name} ${target_cpp_library_name})
 
 # MAIN.C
@@ -106,6 +112,9 @@ set_target_properties(
     PROPERTIES
         OUTPUT_NAME "${project_name}-C"
 )
+
+# include version.h
+target_include_directories("${target_project_name}-C" PUBLIC ${PROJECT_BINARY_DIR})
 
 find_package( OpenCL REQUIRED )
 target_include_directories( "${target_project_name}-C" PRIVATE ${OpenCL_INCLUDE_DIR} )

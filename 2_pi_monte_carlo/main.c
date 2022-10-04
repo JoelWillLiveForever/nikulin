@@ -2,6 +2,7 @@
  * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
 
 #include "pch.h"
+#include "version.h"
 
 # if 0
 #define EPS 0.0001 // точность, c которой нужно найти число Пи
@@ -321,7 +322,13 @@ int main(int argc, char *argv[])
             case 'v':
                 // show program version
                 
-                printf("1.0.0.0\n");
+                printf("%u.%u.%u.%u\n", 
+                        
+                        VERSION_MAJOR,
+                        VERSION_MINOR,
+                        VERSION_PATCH,
+                        VERSION_TWEAK);
+
                 return EXIT_SUCCESS;
 
             case 'h':
