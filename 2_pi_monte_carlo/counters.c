@@ -204,7 +204,7 @@ double get_pi_multithread(unsigned number_of_counters,
     }
 
     // создаём массив потоков
-    pthread_t threads[number_of_processors];
+    pthread_t *threads = malloc(number_of_processors * sizeof(pthread_t));
     int err;
 
     // находимся в цикле, пока Пи не достигнет заданной точности

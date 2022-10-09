@@ -3,6 +3,7 @@
 
 #include "pch.h"
 #include "version.h"
+#include "counters.h"
 
 # if 0
 #define EPS 0.0001 // точность, c которой нужно найти число Пи
@@ -239,7 +240,7 @@ int main(int argc, char *argv[])
 
                     return EXIT_FAILURE;
                 } 
-//                else if ( isnan(eps) )
+//                else if ( isnan(eps))
 //                {
 //                    fprintf(stderr, "Could not convert '%s' to double. Bad value (NaN)\n",
 //                            optarg);
@@ -366,22 +367,39 @@ int main(int argc, char *argv[])
     }
 
     double pi = 0;
-    struct timeval begin, end;
 
+#ifdef _WIN32
+    unsigned long long begin, end;
+#else
+    struct timeval begin, end;
+#endif
+
+    // вариант рассчёта Пи последовательно в одном потоке
     if (!isMultithread && !isOpenCL)
     {
-        // вариант рассчёта Пи последовательно в одном потоке
-
+#ifdef _WIN32
+        begin = GetTickCount64();
+        pi = get_pi_single_thread(number_of_counters, start, multiplier, eps, use_xs1024);
+        end = GetTickCount64();
+#else
         gettimeofday(&begin, 0);
         pi = get_pi_single_thread(number_of_counters, start, multiplier, eps, use_xs1024);
         gettimeofday(&end, 0);
+#endif
     }
 
     // получить число ядер (потоков) ЦП
     // https://stackoverflow.com/questions/4586405/how-to-get-the-number-of-cpus-in-linux-using-c
     if (isMultithread)
     {
-        long number_of_processors =  sysconf(_SC_NPROCESSORS_ONLN);
+#ifdef _WIN32
+        SYSTEM_INFO sysInfo;
+        GetSystemInfo(&sysInfo);
+        long number_of_processors = sysInfo.dwNumberOfProcessors; 
+#else
+        long number_of_processors = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+
         if (number_of_processors < 1)
         {
             fprintf(stderr, "Could not determine number of CPUs online:\n%s\n", strerror(errno));
@@ -389,34 +407,50 @@ int main(int argc, char *argv[])
         }
 
         printf("\nAvailable CPUs: %ld\n", number_of_processors);
-
+        
+#ifdef _WIN32
+        begin = GetTickCount64();
+        pi = get_pi_multithread(number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024);
+        end = GetTickCount64();
+#else
         gettimeofday(&begin, 0);
         pi = get_pi_multithread(number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024);
         gettimeofday(&end, 0);
+#endif
     }
 
     if (isOpenCL)
     {
+#ifdef _WIN32
+        begin = GetTickCount64();
+        pi = get_pi_opencl(number_of_counters, start, multiplier, eps, use_xs1024);
+        end = GetTickCount64();
+#else
         gettimeofday(&begin, 0);
         pi = get_pi_opencl(number_of_counters, start, multiplier, eps, use_xs1024);
         gettimeofday(&end, 0);
+#endif
     }
 
     printf("PI: %f\n", pi);
-
-    long elapsed = ((end.tv_sec - begin.tv_sec) * 1000000000) + (end.tv_usec - begin.tv_usec);
+    
+#ifdef _WIN32
+    unsigned long long elapsed = (end - begin) * 1000000; // milliseconds * 1000000 = nanoseconds
+#else
+    unsigned long long elapsed = ((end.tv_sec - begin.tv_sec) * 1000000000) + (end.tv_usec - begin.tv_usec);
+#endif
 
     if (isSeconds)
-        printf("Elapsed time: %ld seconds\n", (elapsed / 1000000000));
+        printf("Elapsed time: %lld seconds\n", (elapsed / 1000000000));
 
     if (isMilliseconds)
-        printf("Elapsed time: %ld milliseconds\n", (elapsed / 1000000));
+        printf("Elapsed time: %lld milliseconds\n", (elapsed / 1000000));
     
     if (isMicroseconds)
-        printf("Elapsed time: %ld microseconds\n", (elapsed / 1000));
+        printf("Elapsed time: %lld microseconds\n", (elapsed / 1000));
     
     if (isNanoseconds)
-        printf("Elapsed time: %ld nanoseconds\n", elapsed);
+        printf("Elapsed time: %lld nanoseconds\n", elapsed);
 
     return EXIT_SUCCESS;
 }

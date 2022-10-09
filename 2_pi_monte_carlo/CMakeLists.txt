@@ -1,128 +1,135 @@
-cmake_minimum_required(VERSION 3.12)
-
-set(target_suffix "CPP_C_PI_MONTE_CARLO")
-
-set(project_name "PIMonteCarlo")
-set(target_project_name "${project_name}-${target_suffix}")
+cmake_minimum_required(VERSION 3.16)
 
 project(
-    ${project_name}
-    VERSION 1.1.0.0
+    PIMonteCarlo
+    VERSION 1.1.0.0 
     LANGUAGES C CXX
 )
 
-set( TODAY "" )
-string( TIMESTAMP TODAY "%d%m%Y" )
-message("Today: ${TODAY}")
+# check, is it a subproject?
+get_directory_property(IS_SUBPROJECT PARENT_DIRECTORY)
 
+# C17 & CPP20 use
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# define _CRT_SECURE_NO_WARNING
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+
+# search for required libraries (vcpkg)
+#find_package(GTest REQUIRED)
+if (WIN32)
+    find_package(Boost 1.76.0 COMPONENTS program_options REQUIRED)
+    find_package(OpenCL REQUIRED)
+    find_package(pthreads REQUIRED)
+
+    find_path(getopt_INCLUDE_DIR getopt.h)
+    include_directories(${getopt_INCLUDE_DIR})
+    find_library(getopt_LIBRARIES getopt)
+endif()
+
+# preprocessing version.h.in to version.h
+string(TIMESTAMP TODAY "%d%m%Y")
 configure_file(version.h.in version.h)
 
-# CPP LIBS
-set(cpp_library_name "pimc_cpp")
-set(target_cpp_library_name "${cpp_library_name}-${target_suffix}")
-
-set(cpp_test_library_name "${cpp_library_name}-test")
-set(target_cpp_test_library_name "${cpp_test_library_name}-${target_suffix}")
-
-# C LIBS
-set(c_library_name "pimc_c")
-set(target_c_library_name "${c_library_name}-${target_suffix}")
-
-# CPP LIBRARY
-file(GLOB cpp_inc CONFIGURE_DEPENDS 
-    pch.hpp
-    generators.h 
-    samples.hpp 
-    pi_convergence_check_class.hpp 
-    pi_monte_carlo_points_generator_class.hpp
-    true_pi_selector_class.hpp )
-
-file(GLOB cpp_src CONFIGURE_DEPENDS
-    samples.cpp
-    generators.c
-    pi_convergence_check_class.cpp
-    pi_monte_carlo_points_generator_class.cpp
-    true_pi_selector_class.cpp)
-
-add_library(${target_cpp_library_name} ${cpp_inc} ${cpp_src})
-set_target_properties(
-    ${target_cpp_library_name}
-    PROPERTIES
-        OUTPUT_NAME ${cpp_library_name}
+add_custom_target(PrecompiledHeaders SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/pch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/pch.hpp
 )
 
-# CPP TEST LIBRARY
-file(GLOB cpp_test_inc CONFIGURE_DEPENDS 
-    pch.hpp
-    true_pi_selector_class_test.hpp)
-
-file(GLOB cpp_test_src CONFIGURE_DEPENDS
-    true_pi_selector_class_test.cpp)
-
-add_library(${target_cpp_test_library_name} ${cpp_test_inc} ${cpp_test_src})
-set_target_properties(
-    ${target_cpp_test_library_name}
-    PROPERTIES
-        OUTPUT_NAME ${cpp_test_library_name}
-)
-
-# C LIBRARY
-file(GLOB c_inc CONFIGURE_DEPENDS
-    pch.h
+# C:
+add_library(generators STATIC
     generators.h
-    counters.h)
-
-file(GLOB c_src CONFIGURE_DEPENDS
     generators.c
-    counters.c)
-
-add_library(${target_c_library_name} ${c_inc} ${c_src})
-set_target_properties(
-    ${target_c_library_name}
-    PROPERTIES
-        OUTPUT_NAME ${c_library_name}
 )
 
-# MAIN.CPP
-add_executable("${target_project_name}-CPP" main.cpp)
-set_target_properties(
-    "${target_project_name}-CPP"
-    PROPERTIES
-        OUTPUT_NAME "${project_name}-CPP"
+add_library(counters STATIC
+    counters.h
+    counters.c
 )
 
-# include version.h
-target_include_directories("${target_project_name}-CPP" PUBLIC ${PROJECT_BINARY_DIR})
+add_executable("${CMAKE_PROJECT_NAME}-C" main.c)
+if (WIN32)
+    target_include_directories("${CMAKE_PROJECT_NAME}-C" PUBLIC
+        ${PROJECT_BINARY_DIR}
+        ${pthreads_INCLUDE_DIR}
+        ${OpenCL_INCLUDE_DIR}
+        ${getopt_INCLUDE_DIR}
+    )
+    target_link_libraries("${CMAKE_PROJECT_NAME}-C" PUBLIC
+        ${pthreads_LIBRARIES}
+        ${OpenCL_LIBRARIES}
+        ${getopt_LIBRARIES}
+        generators
+        counters
+    )
+else()
+    target_include_directories("${CMAKE_PROJECT_NAME}-C" PUBLIC
+        ${PROJECT_BINARY_DIR}
+    )
+    target_link_libraries("${CMAKE_PROJECT_NAME}-C" PUBLIC
+        counters
+        generators
+        OpenCL
+        pthread
+    )
+endif()
+target_precompile_headers("${CMAKE_PROJECT_NAME}-C" PUBLIC pch.h)
 
-find_package( Boost 1.76.0 COMPONENTS program_options REQUIRED )
-target_include_directories( "${target_project_name}-CPP" PRIVATE ${Boost_INCLUDE_DIR} )
-
-target_link_libraries("${target_project_name}-CPP" ${Boost_LIBRARIES} ${target_cpp_library_name})
-
-# TEST.CPP
-add_executable("${target_project_name}-CPP-TEST" test.cpp)
-set_target_properties(
-    "${target_project_name}-CPP-TEST"
-    PROPERTIES
-        OUTPUT_NAME "${project_name}-CPP-TEST"
+# copy kernel_boost.cl to .exe dir
+add_custom_command(TARGET "${CMAKE_PROJECT_NAME}-C" POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/kernel_boost.cl
+        $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}-C>
 )
 
-target_link_libraries("${target_project_name}-CPP-TEST" ${target_cpp_test_library_name} ${target_cpp_library_name})
-
-# MAIN.C
-add_executable("${target_project_name}-C" main.c)
-set_target_properties(
-    "${target_project_name}-C"
-    PROPERTIES
-        OUTPUT_NAME "${project_name}-C"
+# CPP:
+add_library(classes STATIC
+    pi_monte_carlo_points_generator_class.hpp 
+    pi_monte_carlo_points_generator_class.cpp
+    true_pi_selector_class.hpp
+    true_pi_selector_class.cpp
+    pi_convergence_check_class.hpp
+    pi_convergence_check_class.cpp
+    samples.hpp
+    samples.cpp
 )
 
-# include version.h
-target_include_directories("${target_project_name}-C" PUBLIC ${PROJECT_BINARY_DIR})
+add_executable("${CMAKE_PROJECT_NAME}-CPP" main.cpp)
+if (WIN32)
+    target_include_directories("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
+        ${PROJECT_BINARY_DIR}
+        ${Boost_INCLUDE_DIR}
+    )
+    target_link_libraries("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
+        ${Boost_LIBRARIES}
+        generators
+        classes
+    )
+else()
+    target_include_directories("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
+        ${PROJECT_BINARY_DIR}
+    )
+    target_link_libraries("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
+        classes
+        generators
+        boost_program_options
+    )
+endif()
+target_precompile_headers("${CMAKE_PROJECT_NAME}-CPP" PUBLIC pch.hpp)
 
-find_package( OpenCL REQUIRED )
-target_include_directories( "${target_project_name}-C" PRIVATE ${OpenCL_INCLUDE_DIR} )
+# CPP TESTS:
+add_library(tests STATIC
+    true_pi_selector_class_test.hpp
+    true_pi_selector_class_test.cpp
+)
 
-target_link_libraries("${target_project_name}-C" ${OpenCL_LIBRARIES} ${target_c_library_name})
-
-configure_file(kernel_boost.cl kernel_boost.cl COPYONLY)
+add_executable("${CMAKE_PROJECT_NAME}-CPP-TESTS" tests.cpp)
+target_link_libraries("${CMAKE_PROJECT_NAME}-CPP-TESTS" PUBLIC 
+    tests
+    classes
+)
+target_precompile_headers("${CMAKE_PROJECT_NAME}-CPP-TESTS" PUBLIC pch.hpp)

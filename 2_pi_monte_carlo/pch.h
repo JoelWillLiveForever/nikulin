@@ -3,7 +3,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <sysinfoapi.h>
+
+//#include <time.h>
+//#include <io.h>
+//#include <windows.h>
+#else
 #include <sys/time.h>
+#include <unistd.h>
+#endif
+
 #include <math.h>
 #include <limits.h>
 
@@ -14,9 +26,8 @@
 #include <stdint.h>
 #include <errno.h>
 
+// vcpkg
 #include <pthread.h>
-#include <unistd.h>
-
 #include <getopt.h>
 
 // include OpenCL
@@ -33,6 +44,5 @@
 
 // user libraries
 #include "generators.h"
-#include "counters.h"
 
 #endif
