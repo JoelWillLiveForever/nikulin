@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 project(
     PIMonteCarlo
@@ -23,17 +23,26 @@ add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 #find_package(GTest REQUIRED)
 if (WIN32)
     find_package(Boost 1.76.0 COMPONENTS program_options REQUIRED)
+    include_directories(${Boost_INCLUDE_DIR})
+
     find_package(OpenCL REQUIRED)
+    include_directories(${OpenCL_INCLUDE_DIR})
+
     find_package(pthreads REQUIRED)
+    include_directories(${pthreads_INCLUDE_DIR})
 
     find_path(getopt_INCLUDE_DIR getopt.h)
     include_directories(${getopt_INCLUDE_DIR})
     find_library(getopt_LIBRARIES getopt)
 endif()
 
+#find_package(CUDA)
+#include_directories(${CUDA_INCLUDE_DIR})
+
 # preprocessing version.h.in to version.h
 string(TIMESTAMP TODAY "%d%m%Y")
 configure_file(version.h.in version.h)
+include_directories(${PROJECT_BINARY_DIR})
 
 add_custom_target(PrecompiledHeaders SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pch.h
@@ -53,23 +62,14 @@ add_library(counters STATIC
 
 add_executable("${CMAKE_PROJECT_NAME}-C" main.c)
 if (WIN32)
-    target_include_directories("${CMAKE_PROJECT_NAME}-C" PUBLIC
-        ${PROJECT_BINARY_DIR}
-        ${pthreads_INCLUDE_DIR}
-        ${OpenCL_INCLUDE_DIR}
-        ${getopt_INCLUDE_DIR}
-    )
     target_link_libraries("${CMAKE_PROJECT_NAME}-C" PUBLIC
         ${pthreads_LIBRARIES}
-        ${OpenCL_LIBRARIES}
         ${getopt_LIBRARIES}
+        ${OpenCL_LIBRARIES}
         generators
         counters
     )
 else()
-    target_include_directories("${CMAKE_PROJECT_NAME}-C" PUBLIC
-        ${PROJECT_BINARY_DIR}
-    )
     target_link_libraries("${CMAKE_PROJECT_NAME}-C" PUBLIC
         counters
         generators
@@ -100,19 +100,12 @@ add_library(classes STATIC
 
 add_executable("${CMAKE_PROJECT_NAME}-CPP" main.cpp)
 if (WIN32)
-    target_include_directories("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
-        ${PROJECT_BINARY_DIR}
-        ${Boost_INCLUDE_DIR}
-    )
     target_link_libraries("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
         ${Boost_LIBRARIES}
         generators
         classes
     )
 else()
-    target_include_directories("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
-        ${PROJECT_BINARY_DIR}
-    )
     target_link_libraries("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
         classes
         generators
@@ -133,3 +126,7 @@ target_link_libraries("${CMAKE_PROJECT_NAME}-CPP-TESTS" PUBLIC
     classes
 )
 target_precompile_headers("${CMAKE_PROJECT_NAME}-CPP-TESTS" PUBLIC pch.hpp)
+
+# CUDA:
+#add_executable("${CMAKE_PROJECT_NAME}-CUDA" cuda.cu)
+#target_link_libraries("${CMAKE_PROJECT_NAME}-CUDA" PUBLIC ${CUDA_LIBRARIES})
