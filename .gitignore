@@ -28,6 +28,9 @@
 # Ignore .vscode dir
 *.vscode/
 
+# Ignore .vs dir
+*.vs/
+
 # Ignore all .csv files
 *.csv
 
