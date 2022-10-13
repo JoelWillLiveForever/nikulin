@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16)
 
 project(
     PIMonteCarlo
@@ -20,21 +20,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 
 # search for required libraries (vcpkg)
-#find_package(GTest REQUIRED)
-if (WIN32)
-    find_package(Boost 1.76.0 COMPONENTS program_options REQUIRED)
-    include_directories(${Boost_INCLUDE_DIR})
+find_package(Boost 1.76.0 COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
 
-    find_package(OpenCL REQUIRED)
-    include_directories(${OpenCL_INCLUDE_DIR})
+find_package(OpenCL REQUIRED)
+include_directories(${OpenCL_INCLUDE_DIR})
 
-    find_package(pthreads REQUIRED)
-    include_directories(${pthreads_INCLUDE_DIR})
+find_package(pthreads REQUIRED)
+include_directories(${pthreads_INCLUDE_DIR})
 
-    find_path(getopt_INCLUDE_DIR getopt.h)
-    include_directories(${getopt_INCLUDE_DIR})
-    find_library(getopt_LIBRARIES getopt)
-endif()
+find_path(getopt_INCLUDE_DIR getopt.h)
+include_directories(${getopt_INCLUDE_DIR})
+find_library(getopt_LIBRARIES getopt)
 
 #find_package(CUDA)
 #include_directories(${CUDA_INCLUDE_DIR})
@@ -44,50 +41,51 @@ string(TIMESTAMP TODAY "%d%m%Y")
 configure_file(version.h.in version.h)
 include_directories(${PROJECT_BINARY_DIR})
 
-add_custom_target(PrecompiledHeaders SOURCES
+add_custom_target("${PROJECT_NAME}-PrecompiledHeaders" SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pch.h
     ${CMAKE_CURRENT_SOURCE_DIR}/pch.hpp
 )
 
 # C:
-add_library(generators STATIC
+add_library("${PROJECT_NAME}-generators" STATIC
     generators.h
     generators.c
 )
+set_target_properties(
+    "${PROJECT_NAME}-generators"
+    PROPERTIES
+        OUTPUT_NAME "generators"
+)
 
-add_library(counters STATIC
+add_library("${PROJECT_NAME}-counters" STATIC
     counters.h
     counters.c
 )
+set_target_properties(
+    "${PROJECT_NAME}-counters"
+    PROPERTIES
+        OUTPUT_NAME "counters"
+)
 
-add_executable("${CMAKE_PROJECT_NAME}-C" main.c)
-if (WIN32)
-    target_link_libraries("${CMAKE_PROJECT_NAME}-C" PUBLIC
-        ${pthreads_LIBRARIES}
-        ${getopt_LIBRARIES}
-        ${OpenCL_LIBRARIES}
-        generators
-        counters
-    )
-else()
-    target_link_libraries("${CMAKE_PROJECT_NAME}-C" PUBLIC
-        counters
-        generators
-        OpenCL
-        pthread
-    )
-endif()
-target_precompile_headers("${CMAKE_PROJECT_NAME}-C" PUBLIC pch.h)
+add_executable("${PROJECT_NAME}-C" main.c)
+target_link_libraries("${PROJECT_NAME}-C" PUBLIC
+    ${pthreads_LIBRARIES}
+    ${getopt_LIBRARIES}
+    ${OpenCL_LIBRARIES}
+    "${PROJECT_NAME}-generators"
+    "${PROJECT_NAME}-counters"
+)
+target_precompile_headers("${PROJECT_NAME}-C" PUBLIC pch.h)
 
 # copy kernel_boost.cl to .exe dir
-add_custom_command(TARGET "${CMAKE_PROJECT_NAME}-C" POST_BUILD
+add_custom_command(TARGET "${PROJECT_NAME}-C" POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_boost.cl
-        $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}-C>
+        $<TARGET_FILE_DIR:${PROJECT_NAME}-C>
 )
 
 # CPP:
-add_library(classes STATIC
+add_library("${PROJECT_NAME}-classes" STATIC
     pi_monte_carlo_points_generator_class.hpp 
     pi_monte_carlo_points_generator_class.cpp
     true_pi_selector_class.hpp
@@ -97,36 +95,38 @@ add_library(classes STATIC
     samples.hpp
     samples.cpp
 )
+set_target_properties(
+    "${PROJECT_NAME}-classes"
+    PROPERTIES
+        OUTPUT_NAME "classes"
+)
 
-add_executable("${CMAKE_PROJECT_NAME}-CPP" main.cpp)
-if (WIN32)
-    target_link_libraries("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
-        ${Boost_LIBRARIES}
-        generators
-        classes
-    )
-else()
-    target_link_libraries("${CMAKE_PROJECT_NAME}-CPP" PUBLIC
-        classes
-        generators
-        boost_program_options
-    )
-endif()
-target_precompile_headers("${CMAKE_PROJECT_NAME}-CPP" PUBLIC pch.hpp)
+add_executable("${PROJECT_NAME}-CPP" main.cpp)
+target_link_libraries("${PROJECT_NAME}-CPP" PUBLIC
+    ${Boost_LIBRARIES}
+    "${PROJECT_NAME}-generators"
+    "${PROJECT_NAME}-classes"
+)
+target_precompile_headers("${PROJECT_NAME}-CPP" PUBLIC pch.hpp)
 
 # CPP TESTS:
-add_library(tests STATIC
+add_library("${PROJECT_NAME}-tests" STATIC
     true_pi_selector_class_test.hpp
     true_pi_selector_class_test.cpp
 )
-
-add_executable("${CMAKE_PROJECT_NAME}-CPP-TESTS" tests.cpp)
-target_link_libraries("${CMAKE_PROJECT_NAME}-CPP-TESTS" PUBLIC 
-    tests
-    classes
+set_target_properties(
+    "${PROJECT_NAME}-tests"
+    PROPERTIES
+        OUTPUT_NAME "tests"
 )
-target_precompile_headers("${CMAKE_PROJECT_NAME}-CPP-TESTS" PUBLIC pch.hpp)
+
+add_executable("${PROJECT_NAME}-CPP-TESTS" tests.cpp)
+target_link_libraries("${PROJECT_NAME}-CPP-TESTS" PUBLIC 
+    "${PROJECT_NAME}-tests"
+    "${PROJECT_NAME}-classes"
+)
+target_precompile_headers("${PROJECT_NAME}-CPP-TESTS" PUBLIC pch.hpp)
 
 # CUDA:
-#add_executable("${CMAKE_PROJECT_NAME}-CUDA" cuda.cu)
-#target_link_libraries("${CMAKE_PROJECT_NAME}-CUDA" PUBLIC ${CUDA_LIBRARIES})
+#add_executable("${PROJECT_NAME}-CUDA" cuda.cu)
+#target_link_libraries("${PROJECT_NAME}-CUDA" PUBLIC ${CUDA_LIBRARIES})
