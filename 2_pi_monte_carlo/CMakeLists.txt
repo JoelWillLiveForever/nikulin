@@ -27,10 +27,10 @@ include_directories(${Boost_INCLUDE_DIR})
 find_package(OpenCL REQUIRED)
 include_directories(${OpenCL_INCLUDE_DIR})
 
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-
 if (WIN32)
+    find_package(PThreads4W REQUIRED)
+    include_directories(${PThreads4W_INCLUDE_DIR})
+
     find_path(GETOPT_INCLUDE_DIR getopt.h)
     include_directories(${GETOPT_INCLUDE_DIR})
     find_library(GETOPT_LIBRARY getopt)
@@ -78,14 +78,12 @@ set_target_properties(
 )
 
 add_executable("${PROJECT_NAME}-C" main.c)
-target_link_libraries("${PROJECT_NAME}-C"
-    PRIVATE 
-    Threads::Threads
-    PUBLIC
-    ${OpenCL_LIBRARIES}
-    ${GETOPT_LIBRARY}
+target_link_libraries("${PROJECT_NAME}-C" PUBLIC
     "${PROJECT_NAME}-counters"
     "${PROJECT_NAME}-generators"
+    ${GETOPT_LIBRARY}
+    ${OpenCL_LIBRARIES}
+    ${PThreads4W_LIBRARIES}
 )
 target_precompile_headers("${PROJECT_NAME}-C" PUBLIC pch.h)
 
@@ -115,9 +113,9 @@ set_target_properties(
 
 add_executable("${PROJECT_NAME}-CPP" main.cpp)
 target_link_libraries("${PROJECT_NAME}-CPP" PUBLIC
-    ${Boost_LIBRARIES}
     "${PROJECT_NAME}-classes"
     "${PROJECT_NAME}-generators"
+    ${Boost_LIBRARIES}
 )
 target_precompile_headers("${PROJECT_NAME}-CPP" PUBLIC pch.hpp)
 
