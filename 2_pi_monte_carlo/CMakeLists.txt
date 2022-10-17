@@ -20,18 +20,28 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 
 # search for required libraries (vcpkg)
+set(Boost_NO_WARN_NEW_VERSIONS ON)
 find_package(Boost 1.76.0 COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 find_package(OpenCL REQUIRED)
 include_directories(${OpenCL_INCLUDE_DIR})
 
-find_package(pthreads REQUIRED)
-include_directories(${pthreads_INCLUDE_DIR})
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
-find_path(getopt_INCLUDE_DIR getopt.h)
-include_directories(${getopt_INCLUDE_DIR})
-find_library(getopt_LIBRARIES getopt)
+if (WIN32)
+    find_path(GETOPT_INCLUDE_DIR getopt.h)
+    include_directories(${GETOPT_INCLUDE_DIR})
+    find_library(GETOPT_LIBRARY getopt)
+    
+    message("-- GETOPT_INCLUDE_DIR: ${GETOPT_INCLUDE_DIR}")
+    message("-- GETOPT_LIBRARY: ${GETOPT_LIBRARY}")
+endif()
+
+#find_package(Cargs CONFIG REQUIRED)
+#include_directories(${GETOPT_INCLUDE_PATH})
+#find_library(GETOPT_LIBRARY getopt)
 
 #find_package(CUDA)
 #include_directories(${CUDA_INCLUDE_DIR})
@@ -68,12 +78,14 @@ set_target_properties(
 )
 
 add_executable("${PROJECT_NAME}-C" main.c)
-target_link_libraries("${PROJECT_NAME}-C" PUBLIC
-    ${pthreads_LIBRARIES}
-    ${getopt_LIBRARIES}
+target_link_libraries("${PROJECT_NAME}-C"
+    PRIVATE 
+    Threads::Threads
+    PUBLIC
     ${OpenCL_LIBRARIES}
-    "${PROJECT_NAME}-generators"
+    ${GETOPT_LIBRARY}
     "${PROJECT_NAME}-counters"
+    "${PROJECT_NAME}-generators"
 )
 target_precompile_headers("${PROJECT_NAME}-C" PUBLIC pch.h)
 
@@ -104,8 +116,8 @@ set_target_properties(
 add_executable("${PROJECT_NAME}-CPP" main.cpp)
 target_link_libraries("${PROJECT_NAME}-CPP" PUBLIC
     ${Boost_LIBRARIES}
-    "${PROJECT_NAME}-generators"
     "${PROJECT_NAME}-classes"
+    "${PROJECT_NAME}-generators"
 )
 target_precompile_headers("${PROJECT_NAME}-CPP" PUBLIC pch.hpp)
 
