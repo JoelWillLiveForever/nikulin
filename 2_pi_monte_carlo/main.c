@@ -1,7 +1,7 @@
 /* Условие задачи 2:
  * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
 
-#include "pch.h"
+#include "../pch.h"
 #include "version.h"
 #include "counters.h"
 

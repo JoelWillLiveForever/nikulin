@@ -1,5 +1,7 @@
 #pragma once
 
+#include "weight_combinator_class.hpp"
+
 class WeightCombinatorTest
 {
 private:

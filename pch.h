@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <malloc.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -16,9 +17,12 @@
 #include <unistd.h>
 #endif
 
+#include <time.h>
+
 #include <math.h>
 #include <limits.h>
 
+#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <float.h>
@@ -44,6 +48,6 @@
 #endif
 
 // user libraries
-#include "generators.h"
+#include "2_pi_monte_carlo/generators.h"
 
 #endif

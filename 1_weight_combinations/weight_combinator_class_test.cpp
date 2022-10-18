@@ -1,5 +1,4 @@
 #include "weight_combinator_class_test.hpp"
-#include "weight_combinator_class.hpp"
 
 bool WeightCombinatorTest::combine_basic_test()
 {

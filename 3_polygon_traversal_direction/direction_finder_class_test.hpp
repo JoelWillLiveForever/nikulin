@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pch.hpp"
+#include "../pch.hpp"
 #include "direction_finder_class.hpp"
 
 class DirectionFinderTest

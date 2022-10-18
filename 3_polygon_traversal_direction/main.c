@@ -4,8 +4,7 @@
  * Определить направление обхода.
  * Выполнить то же самое, но только в случае невыпуклого многоугольника. */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "../pch.h"
 #include "foo.h"
 
 int main()

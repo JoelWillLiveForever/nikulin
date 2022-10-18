@@ -1,11 +1,16 @@
 #pragma once
 
-#include "pch.hpp"
+#include "../pch.hpp"
 
 extern "C"
 {
     #include "generators.h"
+
+    #if 1
+    #include "../pch.h"
+    #else
     #include "stdlib.h"
+    #endif
 }
 
 class RandomGenerator_SampleAbstract

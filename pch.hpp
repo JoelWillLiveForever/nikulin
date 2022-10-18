@@ -2,6 +2,7 @@
 
 // Precompiled headers
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <random>
@@ -11,9 +12,10 @@
 #include <cmath>
 #include <stdlib.h>
 #include <chrono>
-#include <fstream>
 #include <random>
 #include <climits>
 #include <string>
+#include <algorithm>
+#include <stdexcept>
 
 #include <boost/program_options.hpp>

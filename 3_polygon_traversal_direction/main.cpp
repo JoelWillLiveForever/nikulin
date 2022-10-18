@@ -4,7 +4,7 @@
 * Определить направление обхода.
 * Выполнить то же самое, но только в случае невыпуклого многоугольника. */
 
-#include "pch.hpp"
+#include "../pch.hpp"
 
 #include "direction_finder_class.hpp"
 #include "point_class.hpp"
@@ -14,7 +14,7 @@ int main()
     int amount_of_points;                                           // количество точек
 
     std::ifstream infile;                                           // создать объект ifstream    
-    infile.open("source.txt", std::ios::in);                        // открыть файл source.txt в режиме чтения
+    infile.open("polygon_traversal_direction_source.txt", std::ios::in);                        // открыть файл source.txt в режиме чтения
 
     if ( !infile )
     {

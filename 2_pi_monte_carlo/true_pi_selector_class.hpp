@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pch.hpp"
+#include "../pch.hpp"
 #include "pi_monte_carlo_points_generator_class.hpp"
 
 class TruePISelector
