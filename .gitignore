@@ -42,6 +42,7 @@
 bin/
 old/
 bad/
+build/
 
 #Ignore all .gch files
 *.gch
