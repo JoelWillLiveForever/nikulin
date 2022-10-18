@@ -45,6 +45,8 @@ if (WIN32)
     message("-- GETOPT_LIBRARY: ${GETOPT_LIBRARY}")
 endif()
 
+find_package(GTest CONFIG REQUIRED)
+
 # preprocessing version.h.in to version.h
 string(TIMESTAMP TODAY "%d%m%Y")
 configure_file(
@@ -94,18 +96,18 @@ add_library(classes STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class.cpp
 )
 
-add_library(tests STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class_test.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class_test.cpp
+# add_library(tests STATIC
+#     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class_test.hpp
+#     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class_test.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/true_pi_selector_class_test.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/true_pi_selector_class_test.cpp
+#     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/true_pi_selector_class_test.hpp
+#     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/true_pi_selector_class_test.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/cross_product_class_test.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/cross_product_class_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class_test.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class_test.cpp
-)
+#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/cross_product_class_test.hpp
+#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/cross_product_class_test.cpp
+#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class_test.hpp
+#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class_test.cpp
+# )
 
 # add executables
 # Weight Combinations
@@ -137,14 +139,18 @@ add_custom_command(TARGET WeightCombinations-CPP POST_BUILD
         $<TARGET_FILE_DIR:WeightCombinations-CPP>/source_weight_combinations.txt
 )
 
-# add_executable(WeightCombinations-CPP-TESTS
-#     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/tests.cpp
-# )
-# target_link_libraries(WeightCombinations-CPP-TESTS PUBLIC
-#     tests
-#     classes
-# )
-# target_precompile_headers(WeightCombinations-CPP-TESTS REUSE_FROM WeightCombinations-CPP)
+add_executable(WeightCombinations-CPP-TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/tests.cpp
+)
+target_link_libraries(WeightCombinations-CPP-TESTS PUBLIC
+    # tests
+    classes
+    GTest::gmock
+    GTest::gtest 
+    GTest::gmock_main
+    GTest::gtest_main
+)
+target_precompile_headers(WeightCombinations-CPP-TESTS REUSE_FROM WeightCombinations-CPP)
 
 # PI Monte Carlo
 add_executable(PIMonteCarlo-C 

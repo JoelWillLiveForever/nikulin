@@ -9,7 +9,7 @@ void WeightCombinator::combine(int target, WeightCombinator::Combinations &combi
 
     // проверка на отрицательный target
     if ( target < 0 )
-        throw std::invalid_argument( "Error! Negative target weight!" );
+        throw std::invalid_argument( "Negative target weight" );
 
     // число для проверки комбинаций гирь, с помощью битов числа
     unsigned int combinator = 1;
