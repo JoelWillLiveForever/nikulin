@@ -47,8 +47,21 @@ endif()
 
 find_package(GTest CONFIG REQUIRED)
 
-# preprocessing version.h.in to version.h
+# Get the current working branch
+execute_process(
+    #COMMAND git log -1 --format=%h
+    
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message("-- GIT_COMMIT_HASH: ${GIT_COMMIT_HASH}")
+
+# Get current date
 string(TIMESTAMP TODAY "%d%m%Y")
+
+# preprocessing version.h.in to version.h
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in 
     ${CMAKE_CURRENT_BINARY_DIR}/version.h

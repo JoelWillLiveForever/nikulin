@@ -322,16 +322,20 @@ int main(int argc, char *argv[])
 
             case 'v':
                 // show program version
-                
-                printf("%u.%u.%u.%u-%s\n",
-                        
-                        VERSION_MAJOR,
-                        VERSION_MINOR,
-                        VERSION_PATCH,
-                        VERSION_TWEAK,
-                        
-                        BUILD_DATE);
-
+                #if defined(__VERSION_H__)
+                    printf("%u.%u.%u.%u-%s\n",
+                            
+                            VERSION_MAJOR,
+                            VERSION_MINOR,
+                            VERSION_PATCH,
+                            VERSION_TWEAK,
+                            
+                            BUILD_DATE);
+                #elif defined(__GIT_VERSION_H__)
+                    printf("%s\n", GIT_COMMIT_HASH);
+                #else
+                    printf("%s\n", "?");
+                #endif
                 return EXIT_SUCCESS;
 
             case 'h':

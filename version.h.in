@@ -1,11 +1,16 @@
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#if 0
+    #ifndef __VERSION_H__
+    #define __VERSION_H__
+        #define VERSION_MAJOR ${@PROJECT_NAME@_VERSION_MAJOR}
+        #define VERSION_MINOR ${@PROJECT_NAME@_VERSION_MINOR}
+        #define VERSION_PATCH ${@PROJECT_NAME@_VERSION_PATCH}
+        #define VERSION_TWEAK ${@PROJECT_NAME@_VERSION_TWEAK}
 
-#define VERSION_MAJOR ${@PROJECT_NAME@_VERSION_MAJOR}
-#define VERSION_MINOR ${@PROJECT_NAME@_VERSION_MINOR}
-#define VERSION_PATCH ${@PROJECT_NAME@_VERSION_PATCH}
-#define VERSION_TWEAK ${@PROJECT_NAME@_VERSION_TWEAK}
-
-#define BUILD_DATE "${TODAY}"
-
+        #define BUILD_DATE "${TODAY}"
+    #endif
+#else
+    #ifndef __GIT_VERSION_H__
+    #define __GIT_VERSION_H__
+        extern const char *GIT_COMMIT_HASH = "@GIT_COMMIT_HASH@";
+    #endif
 #endif

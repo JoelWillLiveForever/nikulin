@@ -3,6 +3,7 @@
  * Сколькими способами гирями этого набора можно составить вес в V грамм? */ 
 
 #include "../pch.hpp"
+#include "version.h"
 #include "weight_combinator_class.hpp"
 
 extern "C"
@@ -197,10 +198,19 @@ int main(int argc, char *argv[])
             case 'v':
                 {
                     // show program version
-                
-                    std::cout 
-                        << "1.0.0.0" 
-                        << std::endl;
+                    #if defined(__VERSION_H__)
+                        std::cout << VERSION_MAJOR << "." 
+                                << VERSION_MINOR << "." 
+                                << VERSION_PATCH << "." 
+                                << VERSION_TWEAK << "-" 
+                                << BUILD_DATE 
+                                << std::endl;
+                    #elif defined(__GIT_VERSION_H__)
+                        std::string hash = GIT_COMMIT_HASH;
+                        std::cout << hash << std::endl;
+                    #else
+                        std::cout << "?" << std::endl;
+                    #endif
                 }
                 break;
 
