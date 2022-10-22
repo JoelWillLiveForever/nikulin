@@ -38,11 +38,15 @@
 *.png
 *.jpg
 
-# Ignore bin/ and old/ dirs
+# Ignore my binary output dirs
 bin/
 old/
 bad/
+out/
 build/
 
-#Ignore all .gch files
+# Ignore all .gch files
 *.gch
+
+# Ignore all CMakeSettings.json files
+CMakeSettings.json
