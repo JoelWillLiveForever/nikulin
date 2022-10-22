@@ -12,6 +12,6 @@
     // https://jonathanhamberg.com/post/cmake-embedding-git-hash/
     #ifndef __GIT_VERSION_H__
     #define __GIT_VERSION_H__
-        extern const char *GIT_COMMIT_HASH = "@GIT_COMMIT_HASH@";
+        const char *GIT_COMMIT_HASH = "@GIT_COMMIT_HASH@";
     #endif
 #endif
