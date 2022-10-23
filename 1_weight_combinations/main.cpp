@@ -4,6 +4,8 @@
 
 #include "../pch.hpp"
 #include "version.h"
+
+#if 0
 #include "weight_combinator_class.hpp"
 
 extern "C"
@@ -338,3 +340,201 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
+#else
+
+namespace po = boost::program_options;
+
+static std::string program_name = "?";
+
+// https://evileg.com/en/post/430/
+enum TimeUnit
+{
+    OFF,
+    SECONDS,
+    MILLISECONDS,
+    MICROSECONDS,
+    NANOSECONDS
+};
+
+inline std::istream& operator>>(std::istream& in, TimeUnit& unit)
+{
+    std::string token;
+    in >> token;
+
+    transform(token.begin(), token.end(), token.begin(), ::tolower);
+
+    if (token == "off" || token == "0")
+        unit = TimeUnit::OFF;
+    else if (token == "seconds" || token == "ss" || token == "1")
+        unit = TimeUnit::SECONDS;
+    else if (token == "milliseconds" || token == "ms" || token == "2")
+        unit = TimeUnit::MILLISECONDS;
+    else if (token == "microseconds" || token == "us" || token == "3")
+        unit = TimeUnit::MICROSECONDS;
+    else if (token == "nanoseconds" || token == "ns" || token == "4")
+        unit = TimeUnit::NANOSECONDS;
+    else
+        in.setstate(std::ios_base::failbit);
+
+    return in;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const TimeUnit& unit)
+{
+    std::string value;
+
+    switch (unit)
+    {
+    case TimeUnit::SECONDS:
+        value = "seconds";
+        break;
+    case TimeUnit::MILLISECONDS:
+        value = "milliseconds";
+        break;
+    case TimeUnit::MICROSECONDS:
+        value = "microseconds";
+        break;
+    case TimeUnit::NANOSECONDS:
+        value = "nanoseconds";
+        break;
+    default:
+        value = "off";
+        break;
+    }
+
+    out << value;
+    return out;
+}
+
+using Nomenclature = std::vector<unsigned int>;
+inline std::ostream& operator<<(std::ostream& out, const Nomenclature& v) {
+    if (!v.empty())
+    {
+        out << "[";
+        for (Nomenclature::const_iterator it = v.begin(); it != v.end(); ++it)
+        {
+            (v.end() - it) != 1
+                ? out << *it << ", "
+                : out << *it;
+        }
+        out << "]";
+    }
+
+    return out;
+}
+
+int main(int argc, char** argv)
+{
+    // вытягиваем имя проги из argv[0]
+    program_name = std::string(argv[0]);
+    program_name = program_name.substr(program_name.find_last_of("/\\") + 1);
+
+    // Инициализация логгера
+    std::shared_ptr<spdlog::logger> logger;
+    try
+    {
+        // Create basic file logger (not rotated)
+        //logger = spdlog::basic_logger_mt("main.cpp", "logs/basic.txt");
+
+        // create a file rotating logger with 5mb size max and 3 rotated files
+        logger = spdlog::rotating_logger_mt("main.cpp", "logs/" + program_name + ".txt", 1024 * 1024 * 5, 3);
+    }
+    catch (const spdlog::spdlog_ex& ex)
+    {
+        std::cout << "Log initialization failed: " << ex.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    logger->info("Logger init");
+
+    // Общие опции
+    po::options_description generic("Generic options");
+    generic.add_options()
+        ("help,h", "Get help message")
+        ("version,v", "Get program version")
+        ("time-unit,u", po::value<TimeUnit>()->default_value(TimeUnit::OFF, "off"), 
+            "Set units for measuring execution time \nTime units: \noff | (0) \nseconds | ss | (1) \nmilliseconds | ms | (2) \nmicroseconds | us | (3) \nnanoseconds | ns | (4)")
+        ;
+
+    // Опции для управления значениями аргументов, которые подаются программе на вход
+    po::options_description config("Argument management options");
+    config.add_options()
+        ("target,t", po::value<unsigned int>()->default_value(11200), "Set target weight")
+        ("nomenclature,n", po::value<Nomenclature>()
+            ->multitoken()
+            ->default_value( 
+                Nomenclature { 100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000 },
+                "100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000"
+            ), 
+            "Set weights nomenclature")
+        ;
+
+    po::options_description desc;
+    desc.add(generic).add(config);
+
+    po::variables_map vm;
+    //po::store(po::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
+    //po::notify(vm);
+    try
+    {
+        po::store(po::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
+        po::notify(vm);
+    } 
+    catch (const po::validation_error& ex)
+    {
+        std::cerr << ex.what() << std::endl;
+
+        logger->error(ex.what());
+
+        return EXIT_FAILURE;
+    }
+
+    // Вывод help
+    if (vm.count("help"))
+    {
+        std::cout << desc << '\n';
+
+        logger->info("Print help message");
+
+        return EXIT_SUCCESS;
+    }
+
+    // Вывод версии
+    if (vm.count("version"))
+    {
+        std::string version = "?";
+        #if defined(__VERSION_H__)
+            version = VERSION_MAJOR + "."
+                + VERSION_MINOR + "."
+                + VERSION_PATCH + "."
+                + VERSION_TWEAK + "-"
+                + BUILD_DATE;
+        #elif defined(__GIT_VERSION_H__)
+            version = GIT_COMMIT_HASH;
+        #endif
+        std::cout << version << std::endl;
+
+        logger->info("Print program version: {}", version);
+
+        return EXIT_SUCCESS;
+    }
+
+    // Запись полученных аргументов в соответствующие переменные
+    TimeUnit time_unit = vm["time-unit"].as<TimeUnit>();
+
+    unsigned int target = vm["target"].as<unsigned int>();
+
+    Nomenclature nomenclature = vm["nomenclature"].as<Nomenclature>();
+
+    //TODO: make it better if you can
+    std::ostringstream time_unit_out;
+    time_unit_out << time_unit;
+
+    logger->info("Command line arguments: \ntime-unit: {} \ntarget: {} \nnomenclature: {}",
+        time_unit_out.str(), target, nomenclature);
+
+
+
+    return EXIT_SUCCESS;
+}
+
+#endif

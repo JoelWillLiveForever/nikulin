@@ -26,7 +26,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 # search and load required libraries
 set(Boost_NO_WARN_NEW_VERSIONS ON)
 find_package(Boost 1.76.0 COMPONENTS program_options REQUIRED)
-include_directories(${Boost_INCLUDE_DIR})
+#include_directories(${Boost_INCLUDE_DIR})
 
 find_package(OpenCL REQUIRED)
 include_directories(${OpenCL_INCLUDE_DIR})
@@ -47,6 +47,7 @@ endif()
 
 find_package(GTest CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 
 # Get the current working branch
 execute_process(
@@ -142,7 +143,10 @@ add_executable(WeightCombinations-CPP
 )
 target_link_libraries(WeightCombinations-CPP PUBLIC
     classes
-    ${GETOPT_LIBRARY}   # empty if build in linux
+    #${GETOPT_LIBRARY}   # empty if build in linux
+    spdlog::spdlog
+    spdlog::spdlog_header_only
+    Boost::program_options
 )
 target_precompile_headers(WeightCombinations-CPP PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/pch.hpp
@@ -185,9 +189,9 @@ add_executable(PIMonteCarlo-CPP
 target_link_libraries(PIMonteCarlo-CPP PUBLIC
     classes
     generators
-    ${Boost_LIBRARIES}
     spdlog::spdlog
     spdlog::spdlog_header_only
+    Boost::program_options
 )
 target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM WeightCombinations-CPP)
 
