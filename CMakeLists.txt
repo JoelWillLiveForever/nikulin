@@ -46,6 +46,7 @@ if (WIN32)
 endif()
 
 find_package(GTest CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 # Get the current working branch
 execute_process(
@@ -185,6 +186,8 @@ target_link_libraries(PIMonteCarlo-CPP PUBLIC
     classes
     generators
     ${Boost_LIBRARIES}
+    spdlog::spdlog
+    spdlog::spdlog_header_only
 )
 target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM WeightCombinations-CPP)
 

@@ -7,6 +7,8 @@ void TruePISelector::thread_task(std::vector<PIMonteCarloPointsGenerator>::itera
 
 double TruePISelector::select_pi()
 {
+    logger->info("select_pi() start");
+
     std::vector<std::thread> threads(total_pi_);
     std::vector<PIMonteCarloPointsGenerator> generators(total_pi_, PIMonteCarloPointsGenerator { points_start_ });
 
@@ -54,6 +56,8 @@ double TruePISelector::select_pi()
         if (e < eps_)
             break;
     }
+
+    logger->info("select_pi() end");
 
     return (*generators_iter).get_pi();
 }

@@ -2,8 +2,14 @@
  * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */
 
 #include "../pch.hpp"
+#include "version.h"
+
 #include "true_pi_selector_class.hpp"
 #include "pi_convergence_check_class.hpp"
+
+//#include "spdlog/spdlog.h"
+//#include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
+//#include "spdlog/sinks/rotating_file_sink.h" // support for rotating file logging
 
 #if 0
 
@@ -217,9 +223,29 @@ int main(int argc, char *argv[])
 //}
 
 namespace po = boost::program_options;
+std::string program_name = "?";
 
 int main(int argc, char **argv)
 {
+    program_name = std::string(argv[0]);
+    program_name = program_name.substr(program_name.find_last_of("/\\") + 1);   // вытягиваем имя проги из argv[0]
+
+    std::shared_ptr<spdlog::logger> logger;
+    try
+    {
+        // Create basic file logger (not rotated)
+        //logger = spdlog::basic_logger_mt("main.cpp", "logs/basic.txt");
+
+        // create a file rotating logger with 5mb size max and 3 rotated files
+        logger = spdlog::rotating_logger_mt("main.cpp", "logs/" + program_name + ".txt", 1024 * 1024 * 5, 3);
+    }
+    catch (const spdlog::spdlog_ex& ex)
+    {
+        std::cout << "Log initialization failed: " << ex.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    logger->info("Logger init");
+
     po::options_description generic( "Generic options" );
     generic.add_options()
         ( "help,h",     "Get help message" )
@@ -249,27 +275,47 @@ int main(int argc, char **argv)
     if ( vm.count( "help" ) )
     {
         std::cout << desc << '\n';
+
+        logger->info("Print help message");
+
         return EXIT_SUCCESS;
     }
 
     if ( vm.count( "version" ) )
     {
-        std::cout << "1.0.0.0" << '\n';
+        std::string version = "?";
+        #if defined(__VERSION_H__)
+        version = VERSION_MAJOR + "."
+            + VERSION_MINOR + "."
+            + VERSION_PATCH + "."
+            + VERSION_TWEAK + "-"
+            + BUILD_DATE;
+        #elif defined(__GIT_VERSION_H__)
+        version = GIT_COMMIT_HASH;
+        #endif
+        std::cout << version << std::endl;
+
+        logger->info("Print program version: {}", version);
+
         return EXIT_SUCCESS;
     }
     
     unsigned int total_pi       = vm["total"].as<unsigned int>(),
-                 points_start   = vm["start"].as<unsigned int>();
+                 points_start   = vm["start"].as<unsigned int>(),
+                 max_points     = vm["max-points"].as<unsigned int>();
 
     double points_multiplier    = vm["multiplier"].as<double>(),
            eps                  = vm["eps"].as<double>();
 
-    unsigned int max_points;
-    if ( vm.count("max-points") && (max_points = vm["max-points"].as<unsigned int>()) != 0)
+    logger->info("Command line arguments:\ntotal_pi: {}\npoints_start: {}\nmax_points: {}\npoints_multiplier: {}\neps: {}\n", 
+        total_pi, points_start, max_points, points_multiplier, eps);
+
+    if ( vm.count("max-points") && max_points )
     {
         // запустить в режиме проверки сходимости
  
         std::cout << "...Checking\n";
+        logger->info("...Checking");
 
         PIConvergenceCheck checker(total_pi, points_start, points_multiplier, max_points, eps);
         
@@ -292,6 +338,7 @@ int main(int argc, char **argv)
 //        << "Max points " << max_points << '\n';
 
     std::cout << "...Processing\n";
+    logger->info("...Processing");
         
     TruePISelector selector(total_pi, points_start, points_multiplier, eps);
 
@@ -304,6 +351,9 @@ int main(int argc, char **argv)
 
     std::cout << "PI is " << pi << '\n';
     std::cout << "Elapsed time: " << duration.count() << " ms" << std::endl;
+
+    logger->info("Result:\npi: {}\nelapsed time: {}\n",
+        pi, duration.count());
 
 //    if ( vm.count( "select" ) )
 //    {
