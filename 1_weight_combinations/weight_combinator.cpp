@@ -1,6 +1,6 @@
-#include "weight_combinator_class.hpp"
+#include "weight_combinator.hpp"
 
-void WeightCombinator::combine(int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
+void WeightCombinator::combine(unsigned int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
 {
     // если номенклатуры весов не заданы (пустой вектор), то кол-во вариантов точно == 0
     // или их кол-во больше числа битов в combinator (32)
@@ -24,17 +24,17 @@ void WeightCombinator::combine(int target, WeightCombinator::Combinations &combi
     // проходимся по всем уникальным комбинациям, увеличивая combinator на 1
     while (combinator < all_combinations)
     {
-        int bit = 0; // номер проверяемого бита + по совместительству индекс гири
-        int combinator_copy = combinator;
-        int local_target = 0;
+        unsigned int bit = 0; // номер проверяемого бита + по совместительству индекс гири
+        unsigned int combinator_copy = combinator;
+        unsigned int local_target = 0;
 
-        std::vector<int> curr_combination;
+        std::vector<unsigned int> curr_combination;
         while (combinator_copy != 0)
         {
             if (combinator_copy & 1)
             {
                 // получить размер гири из массива гирь, если бит равен 1
-                int weight = *(iter + bit);
+                unsigned int weight = *(iter + bit);
                 
                 local_target += weight;
                 curr_combination.push_back(weight);
@@ -53,3 +53,23 @@ void WeightCombinator::combine(int target, WeightCombinator::Combinations &combi
     
     combinations.erase(unique(combinations.begin(), combinations.end()), combinations.end());   // удалить дубликаты
 }
+
+//TODO: try fix it
+//inline std::ostream& operator<<(std::ostream& out, const WeightCombinator::Combinations& data)
+//{
+//    // вывод в стандартный поток
+//    for (auto combination : data)
+//    {
+//        for (auto el : combination)
+//            out << el << ' ';
+//        out << '\n';
+//    }
+//
+//    return out;
+//}
+
+//inline std::ostream& operator<<(std::ostream& out, const WeightCombinator& obj)
+//{
+//    out << std::string("test");
+//    return out;
+//}

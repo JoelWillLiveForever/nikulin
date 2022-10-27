@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "weight_combinator_class.hpp"
+#include "weight_combinator.hpp"
 
 /* 
 тест на правильность работы класса
@@ -222,28 +222,28 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_resu
 усложнение предыдущего теста
 вместо одной одинаковый гири -> несколько одинаковых
 */
-// TEST(WeightCombinatorClass, combine_all_weights_are_same_some_combination_in_result_test)
-// {
-//     WeightCombinator::Combinations expected = {
-//         {100, 100, 100, 100, 100},
-//         {100, 100, 100, 200},
-//         {100, 200, 200},
-//         // {100, 100, 100, 200},
-//         // {100, 200, 200},
-//         {250, 250},
-//         {100, 400},
-//         {500}
-//     };
+ TEST(WeightCombinatorClass, combine_all_weights_are_same_some_combination_in_result_test)
+ {
+     WeightCombinator::Combinations expected = {
+         {100, 100, 100, 100, 100},
+         {100, 100, 100, 200},
+         {100, 200, 200},
+         // {100, 100, 100, 200},
+         // {100, 200, 200},
+         {250, 250},
+         {100, 400},
+         {500}
+     };
     
-//     WeightCombinator::Weights weights = {100, 100, 100, 100, 100, 200, 200, 200, 250, 250, 400, 400, 500};
-//     WeightCombinator::Combinations result;
-//     int target = 500;
+     WeightCombinator::Weights weights = {100, 100, 100, 100, 100, 200, 200, 200, 250, 250, 400, 400, 500};
+     WeightCombinator::Combinations result;
+     int target = 500;
 
-//     WeightCombinator combinator;
-//     combinator.combine(target, result, weights);
+     WeightCombinator combinator;
+     combinator.combine(target, result, weights);
 
-//     ASSERT_THAT(result, expected);
-// }
+     ASSERT_THAT(result, expected);
+ }
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

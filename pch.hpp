@@ -22,15 +22,11 @@
 
 #include <boost/program_options.hpp>
 #include <boost/program_options/errors.hpp>
-
-#include <stdio.h>
-#include <iostream>  
-#include <fstream>
-#include <string.h>  
+#include <boost/filesystem.hpp>
 
 #include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/fmt/ranges.h>
-#include <spdlog/fmt/ostr.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+//#include <spdlog/fmt/ostr.h>

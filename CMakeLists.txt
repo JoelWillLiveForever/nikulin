@@ -25,7 +25,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 # search and load required libraries
 set(Boost_NO_WARN_NEW_VERSIONS ON)
-find_package(Boost 1.76.0 COMPONENTS program_options REQUIRED)
+find_package(Boost 1.76.0 COMPONENTS program_options filesystem REQUIRED)
 #include_directories(${Boost_INCLUDE_DIR})
 
 find_package(OpenCL REQUIRED)
@@ -47,7 +47,7 @@ endif()
 
 find_package(GTest CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
+#find_package(fmt CONFIG REQUIRED)
 
 # Get the current working branch
 execute_process(
@@ -91,8 +91,11 @@ add_library(modules STATIC
 )
 
 add_library(classes STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_io.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_io.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/pi_monte_carlo_points_generator_class.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/pi_monte_carlo_points_generator_class.cpp
@@ -147,6 +150,7 @@ target_link_libraries(WeightCombinations-CPP PUBLIC
     spdlog::spdlog
     spdlog::spdlog_header_only
     Boost::program_options
+    Boost::filesystem
 )
 target_precompile_headers(WeightCombinations-CPP PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/pch.hpp
@@ -183,17 +187,18 @@ target_link_libraries(PIMonteCarlo-C PUBLIC
 )
 target_precompile_headers(PIMonteCarlo-C REUSE_FROM WeightCombinations-C)
 
-add_executable(PIMonteCarlo-CPP
-    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/main.cpp
-)
-target_link_libraries(PIMonteCarlo-CPP PUBLIC
-    classes
-    generators
-    spdlog::spdlog
-    spdlog::spdlog_header_only
-    Boost::program_options
-)
-target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM WeightCombinations-CPP)
+# Disabled
+#add_executable(PIMonteCarlo-CPP
+#    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/main.cpp
+#)
+#target_link_libraries(PIMonteCarlo-CPP PUBLIC
+#    classes
+#    generators
+#    spdlog::spdlog
+#    spdlog::spdlog_header_only
+#    Boost::program_options
+#)
+#target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM WeightCombinations-CPP)
 
 # add_executable(PIMonteCarlo-CPP-TESTS
 #     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/tests.cpp
@@ -213,18 +218,19 @@ target_link_libraries(PolygonTraversalDirection-C PUBLIC
 )
 target_precompile_headers(PolygonTraversalDirection-C REUSE_FROM WeightCombinations-C)
 
-add_executable(PolygonTraversalDirection-CPP
-    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/main.cpp
-)
-target_link_libraries(PolygonTraversalDirection-CPP PUBLIC
-    classes
-)
-target_precompile_headers(PolygonTraversalDirection-CPP REUSE_FROM WeightCombinations-CPP)
-add_custom_command(TARGET PolygonTraversalDirection-CPP POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/source.txt
-        $<TARGET_FILE_DIR:PolygonTraversalDirection-CPP>/source_polygon_traversal_direction.txt
-)
+# Disabled
+#add_executable(PolygonTraversalDirection-CPP
+#    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/main.cpp
+#)
+#target_link_libraries(PolygonTraversalDirection-CPP PUBLIC
+#    classes
+#)
+#target_precompile_headers(PolygonTraversalDirection-CPP REUSE_FROM WeightCombinations-CPP)
+#add_custom_command(TARGET PolygonTraversalDirection-CPP POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#        ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/source.txt
+#        $<TARGET_FILE_DIR:PolygonTraversalDirection-CPP>/source_polygon_traversal_direction.txt
+#)
 
 # add_executable(PolygonTraversalDirection-CPP-TESTS
 #     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/tests.cpp
