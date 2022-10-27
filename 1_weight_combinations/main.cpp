@@ -110,8 +110,8 @@ int main(int argc, char** argv)
         ("log-filename", po::value<std::string>()->default_value(program_name + ".txt"), "Set filename for logfile")
         ("log-max-file-size", po::value<unsigned int>()->default_value(1024), "Set max size for logfile")
         ("log-max-files", po::value<unsigned int>()->default_value(3), "Set max files for logs")
-        ("log-enable", po::value<bool>()->default_value(true), "Enable or disable logging")
-        ("log-show-in-console", po::value<bool>()->default_value(false), "Duplicates logs to console")
+        ("log-enable", po::value<bool>()->default_value(true), "Enable or disable logging to file")
+        ("log-enable-in-console", po::value<bool>()->default_value(false), "Enable or disable logging to console")
         ;
 
     // Опции для управления значениями аргументов, которые подаются программе на вход
@@ -137,7 +137,7 @@ int main(int argc, char** argv)
         po::notify(vm);
 
         bool log_enable = vm["log-enable"].as<bool>();
-        bool log_show_in_console = vm["log-show-in-console"].as<bool>();
+        bool log_enable_in_console = vm["log-enable-in-console"].as<bool>();
 
         // Инициализация логгера
         std::string log_filename = vm["log-filename"].as<std::string>();
@@ -146,16 +146,20 @@ int main(int argc, char** argv)
         unsigned int log_max_files = vm["log-max-files"].as<unsigned int>();
 
         auto logger = spdlog::rotating_logger_mt("MAIN", "logs/" + log_filename, log_max_file_size, log_max_files);     // логгер на вывод в файл
-
-        spdlog::set_default_logger(logger);
         spdlog::flush_on(spdlog::level::err);
 
-        if (log_enable)
-            spdlog::set_level(spdlog::level::trace);
-        else
-            spdlog::set_level(spdlog::level::off);
+        log_enable
+            ? spdlog::set_level(spdlog::level::trace)
+            : spdlog::set_level(spdlog::level::off);
 
         auto console_logger = spdlog::stdout_color_mt("MAIN-CONSOLE", spdlog::color_mode::automatic);    // логгер на вывод в терминал
+        console_logger->flush_on(spdlog::level::err);
+
+        log_enable_in_console
+            ? console_logger->set_level(spdlog::level::trace)
+            : console_logger->set_level(spdlog::level::off);
+
+        spdlog::set_default_logger(logger);
 
         // Вывод help
         if (vm.count("help"))
@@ -163,9 +167,7 @@ int main(int argc, char** argv)
             std::cout << desc << '\n';
 
             spdlog::info("Exit {}", EXIT_SUCCESS);
-
-            if (log_show_in_console)
-                console_logger->info("Exit {}", EXIT_SUCCESS);
+            console_logger->info("Exit {}", EXIT_SUCCESS);
 
             return EXIT_SUCCESS;
         }
@@ -186,9 +188,7 @@ int main(int argc, char** argv)
             std::cout << version << std::endl;
 
             spdlog::info("Exit {}", EXIT_SUCCESS);
-
-            if (log_show_in_console)
-                console_logger->info("Exit {}", EXIT_SUCCESS);
+            console_logger->info("Exit {}", EXIT_SUCCESS);
 
             return EXIT_SUCCESS;
         }
@@ -206,10 +206,8 @@ int main(int argc, char** argv)
 
         spdlog::debug("Command line arguments: \nlog-filename: {} \nlog-max-file-size: {} \nlog-max-files {} \ntime-unit: {} \ntarget: {} \nnomenclature: {}",
             log_filename, log_max_file_size, log_max_files, time_unit_out.str(), target, nomenclature);
-
-        if (log_show_in_console)
-            console_logger->debug("Command line arguments: \nlog-filename: {} \nlog-max-file-size: {} \nlog-max-files {} \ntime-unit: {} \ntarget: {} \nnomenclature: {}",
-                log_filename, log_max_file_size, log_max_files, time_unit_out.str(), target, nomenclature);
+        console_logger->debug("Command line arguments: \nlog-filename: {} \nlog-max-file-size: {} \nlog-max-files {} \ntime-unit: {} \ntarget: {} \nnomenclature: {}",
+            log_filename, log_max_file_size, log_max_files, time_unit_out.str(), target, nomenclature);
 
         WeightCombinator::Combinations combinations;
         WeightCombinator combinator;
@@ -263,11 +261,8 @@ int main(int argc, char** argv)
         spdlog::info(result.str());
         spdlog::info("Exit {}", EXIT_SUCCESS);
 
-        if (log_show_in_console)
-        {
-            console_logger->info(result.str());
-            console_logger->info("Exit {}", EXIT_SUCCESS);
-        }
+        console_logger->info(result.str());
+        console_logger->info("Exit {}", EXIT_SUCCESS);
 
         std::cout << result.str() << std::endl;
 
