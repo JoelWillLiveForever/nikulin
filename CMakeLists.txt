@@ -77,8 +77,10 @@ add_custom_target(PrecompiledHeaders SOURCES
 
 # add libraries
 add_library(generators STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/generators.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/generators.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/generators/xor_shift.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/generators/xor_shift.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/generators/xor_shift_thread_safe.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/generators/xor_shift_thread_safe.c
 )
 
 add_library(modules STATIC

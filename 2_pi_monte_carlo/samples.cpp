@@ -31,7 +31,10 @@ std::vector<double> XORShift64_Sample::get_random_vector(unsigned long total_num
     std::vector<double> sample;
     
     while (total_nums-- > 0)
-        sample.push_back( next(0, 0) );
+    {
+        double random = next_xs64(0) / static_cast<double>(RANDOM_MAX);
+        sample.push_back(random);
+    }
 
     return sample;
 }
@@ -53,7 +56,10 @@ std::vector<double> XORShift1024_Sample::get_random_vector(unsigned long total_n
     std::vector<double> sample;
 
     while (total_nums-- > 0)
-        sample.push_back( next(0, 1) );
+    {
+        double random = next_xs1024(0) / static_cast<double>(RANDOM_MAX);
+        sample.push_back(random);
+    }
 
     return sample;
 }

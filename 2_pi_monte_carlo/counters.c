@@ -26,13 +26,13 @@ void generate_points(struct PIPoints *pi_points_arr,
     {
         if ( use_xs_1024 )
         {
-            x = next(0, 1);
-            y = next(0, 1);
+            x = next_xs1024(0) / (double)RANDOM_MAX;
+            y = next_xs1024(0) / (double)RANDOM_MAX;
         }
         else
         {
-            x = next(0, 0);
-            y = next(0, 0);
+            x = next_xs64(0) / (double)RANDOM_MAX;
+            y = next_xs64(0) / (double)RANDOM_MAX;
         }
 
         len = x*x + y*y;
@@ -81,8 +81,6 @@ double get_pi_single_thread(uint8_t number_of_counters,
 
         start *= multiplier;
     }
-
-    printf("All generated points: %llu\n", pi_points_arr->all_points);
     return pi;
 }
 
@@ -145,13 +143,13 @@ void *generate_points_in_thread(void *thread_args)
         {
             if ( use_xs1024 )
             {
-                x = next_thread_safe(0, 1, pointer_to_xs64_value, bank_numbers, pointer_to_bank_index);
-                y = next_thread_safe(0, 1, pointer_to_xs64_value, bank_numbers, pointer_to_bank_index);
+                x = next_xs1024_thread_safe(0, pointer_to_xs64_value, bank_numbers, pointer_to_bank_index) / (double)RANDOM_MAX;
+                y = next_xs1024_thread_safe(0, pointer_to_xs64_value, bank_numbers, pointer_to_bank_index) / (double)RANDOM_MAX;
             }
             else
             {
-                x = next_thread_safe(0, 0, pointer_to_xs64_value, bank_numbers, pointer_to_bank_index);
-                y = next_thread_safe(0, 0, pointer_to_xs64_value, bank_numbers, pointer_to_bank_index);
+                x = next_xs64_thread_safe(0, pointer_to_xs64_value) / (double)RANDOM_MAX;
+                y = next_xs64_thread_safe(0, pointer_to_xs64_value) / (double)RANDOM_MAX;
             }
     
             len = x*x + y*y;
@@ -333,9 +331,9 @@ double get_pi_opencl(uint8_t number_of_counters,
         for (int i = 0; i < points_size; i++)
         {
             if ( use_xs1024 )
-                randoms[i] = next(0, 1);
+                randoms[i] = next_xs1024(0) / (double)RANDOM_MAX;
             else
-                randoms[i] = next(0, 0);
+                randoms[i] = next_xs64(0) / (double)RANDOM_MAX;
         }
 
         // обработка с OpenCL

@@ -48,6 +48,7 @@
 #endif
 
 // user libraries
-#include "2_pi_monte_carlo/generators.h"
+#include "generators/xor_shift.h"
+#include "generators/xor_shift_thread_safe.h"
 
 #endif
