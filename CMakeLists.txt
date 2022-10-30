@@ -15,6 +15,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # define _CRT_SECURE_NO_WARNING
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 
+# all warnings as errors
+# https://stackoverflow.com/questions/2368811/how-to-set-warning-level-in-cmake
+# https://cmake.org/cmake/help/latest/command/add_compile_options.html
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/W4 /WX)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+endif()
+
 # control where the static and shared libraries are built so that on windows
 # we don't need to tinker with the path to run the executable
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
