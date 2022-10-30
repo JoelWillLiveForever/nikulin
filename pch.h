@@ -1,6 +1,9 @@
 #ifndef __PRECOMPILED_HEADERS_H__
 #define __PRECOMPILED_HEADERS_H__
 
+#pragma warning(disable: 4193)	// warning из winbase.h
+#pragma warning(disable: 5105)	// warning из cl_platform.h
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>

@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
          use_xs1024     = false;
 
     // дефолтные значения аргементов main
-    uint8_t number_of_counters = 10;
+    long number_of_counters = 10;
 
     double eps = 0.001;
 
@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
     double pi = 0;
 
 #ifdef _WIN32
-    unsigned long long begin, end;
+    unsigned long long begin = 0, end = 0;
 #else
     struct timeval begin, end;
 #endif

@@ -19,10 +19,10 @@ add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 # https://stackoverflow.com/questions/2368811/how-to-set-warning-level-in-cmake
 # https://cmake.org/cmake/help/latest/command/add_compile_options.html
 if (MSVC)
-    # warning level 4 and all warnings as errors
+   # warning level 4 and all warnings as errors
     add_compile_options(/W4 /WX)
 else()
-    # lots of warnings and all warnings as errors
+   # lots of warnings and all warnings as errors
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
@@ -199,6 +199,12 @@ target_link_libraries(PIMonteCarlo-C PUBLIC
     ${PThreads4W_LIBRARIES}     # empty if build in linux
 )
 target_precompile_headers(PIMonteCarlo-C REUSE_FROM WeightCombinations-C)
+#target_compile_options(PIMonteCarlo-C PRIVATE
+#    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+#        -Wall -Wextra -Wpedantic -Werror>
+#    $<$<CXX_COMPILER_ID:MSVC>:
+#        /W4 /WX>
+#)
 
 # Disabled
 #add_executable(PIMonteCarlo-CPP
