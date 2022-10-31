@@ -26,13 +26,13 @@ TEST(WeightCombinatorClass, combine_basic_test)
     ASSERT_THAT(result, expected);
 }
 
-/* 
+/*
 тест метода combinator.combine(target, result, weights)
 должен выдать ошибку при отрицательном значении target
 */
 TEST(WeightCombinatorClass, combine_negative_target_test)
 {
-    bool result = false;
+    bool code = false;
     try
     {
         WeightCombinator::Weights weights = {100, 200, 300};
@@ -44,20 +44,20 @@ TEST(WeightCombinatorClass, combine_negative_target_test)
     }
     catch ( std::invalid_argument const & )         // expected
     {
-        result = true;
+        code = true;
     }
 
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(code);
 }
 
-/* 
+/*
 тест метода combinator.combine(target, result, weights)
 при пустой номенклатуре весов
 должна быть выдана ошибка плохого аргумента
 */
 TEST(WeightCombinatorClass, combine_empty_collection_test)
 {
-    bool result = true;
+    bool code = true;
     try
     {
         WeightCombinator::Weights weights;          // empty
@@ -69,13 +69,13 @@ TEST(WeightCombinatorClass, combine_empty_collection_test)
     }
     catch ( std::invalid_argument const & )         // expected
     {
-        result = false;
+        code = false;
     }
 
-    ASSERT_FALSE(result);
+    ASSERT_FALSE(code);
 }
 
-/* 
+/*
 тест метода combinator.combine(target, result, weights)
 если номенклатура больше, чем количество бит в переменной combinator (> 32)
 (биты отвечают за кол-во возможных вариантов наборов гирь)
@@ -83,7 +83,7 @@ TEST(WeightCombinatorClass, combine_empty_collection_test)
 */
 TEST(WeightCombinatorClass, combine_big_collection_test)
 {
-    bool result = false;
+    bool code = false;
     try
     {
         WeightCombinator::Weights weights;
@@ -98,18 +98,18 @@ TEST(WeightCombinatorClass, combine_big_collection_test)
     }
     catch ( std::invalid_argument const & ) // expected
     {
-        result = true;
+        code = true;
     }
 
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(code);
 }
 
-/* 
-тест поведения при одном элементе в номенклатуре весов 
+/*
+тест поведения при одном элементе в номенклатуре весов
 ожидается возврат одной комбинации при совпадении target и weights[0]
 */
 TEST(WeightCombinatorClass, combine_one_element_in_collection_test)
-{    
+{
     WeightCombinator::Weights weights = {100};
     WeightCombinator::Combinations result;
     int target = 100;
@@ -120,12 +120,12 @@ TEST(WeightCombinatorClass, combine_one_element_in_collection_test)
     ASSERT_THAT(result, WeightCombinator::Combinations{ {100} });
 }
 
-/* 
-тест противоположный предыдущему 
+/*
+тест противоположный предыдущему
 ожидается возврат 0 при различных target и weights[0]
 */
 TEST(WeightCombinatorClass, combine_one_element_in_collection_bad_target_value_test)
-{    
+{
     WeightCombinator::Weights weights = {100};
     WeightCombinator::Combinations result;
     int target = 200;
@@ -136,7 +136,7 @@ TEST(WeightCombinatorClass, combine_one_element_in_collection_bad_target_value_t
     ASSERT_THAT(result, WeightCombinator::Combinations());
 }
 
-/* 
+/*
 ожидается возврат 0 при различных target = 2637 при несоответствующей номенклатуре весов
 */
 TEST(WeightCombinatorClass, combine_zero_combination_in_result_test)
@@ -153,7 +153,7 @@ TEST(WeightCombinatorClass, combine_zero_combination_in_result_test)
     ASSERT_THAT(result, expected);
 }
 
-/* 
+/*
 ожидается возврат 1, максимальный вес "поддерживаемый" номенклатурой == сумме всех весов из номенклатуры
 это одна комбинация всегда
 */
@@ -173,7 +173,7 @@ TEST(WeightCombinatorClass, combine_max_combination_in_result_test)
     ASSERT_THAT(result, expected);
 }
 
-/* 
+/*
 программа должна работать, даже если номенклатура имеет одинаковые веса
 при номенклатуре {100, 100, 100, 100, 100, 100, 100}, т.е. 7 гирь
 заданный вес target = 700 -> сумма всех семи гирь из номенклатуры даёт комбинацию
@@ -194,7 +194,7 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_one_combination_in_resu
     ASSERT_THAT(result, expected);
 }
 
-/* 
+/*
 усложнение предыдущего теста
 вместо одной одинаковый гири -> две одинаковые
 */
@@ -218,7 +218,7 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_resu
 // TODO
 // FIXME
 // TEST NOT WORK
-/* 
+/*
 усложнение предыдущего теста
 вместо одной одинаковый гири -> несколько одинаковых
 */
@@ -249,5 +249,5 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-	return RUN_ALL_TESTS();
+    return RUN_ALL_TESTS();
 }

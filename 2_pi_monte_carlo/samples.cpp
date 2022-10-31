@@ -78,7 +78,7 @@ void XORShift1024_Sample::print_sample_to_csv(unsigned long total_nums)
 
 std::vector<double> CSTDLibRand_Sample::get_random_vector(unsigned long total_nums)
 {
-    srand( time(0) );
+    ::srand( (unsigned int)::time(nullptr) );
     std::vector<double> sample;
 
     while (total_nums-- > 0)

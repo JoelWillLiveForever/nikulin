@@ -154,6 +154,8 @@ add_executable(WeightCombinations-C-DETAILED
 )
 target_precompile_headers(WeightCombinations-C-DETAILED REUSE_FROM WeightCombinations-C)
 
+target_precompile_headers(modules REUSE_FROM WeightCombinations-C)
+
 add_executable(WeightCombinations-CPP
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/main.cpp
 )
@@ -180,6 +182,8 @@ add_executable(WeightCombinations-CPP-TESTS
 target_link_libraries(WeightCombinations-CPP-TESTS PUBLIC
     # tests
     classes
+    spdlog::spdlog
+    spdlog::spdlog_header_only
     GTest::gmock
     GTest::gtest 
     GTest::gmock_main

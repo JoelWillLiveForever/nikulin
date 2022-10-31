@@ -1,12 +1,5 @@
 #include "foo.h"
 
-#if 1
-#include "../pch.h"
-#else
-#include <stdio.h>
-#include <limits.h>
-#endif
-
 int get_traversal_direction(float *x_source, float *y_source, int size)
 {
     int i, min_index = 0;

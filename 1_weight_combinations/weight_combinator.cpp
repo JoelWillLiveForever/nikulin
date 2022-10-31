@@ -18,7 +18,7 @@ void WeightCombinator::combine(unsigned int target, WeightCombinator::Combinatio
     std::sort(weights.begin(), weights.end());
 
     // максиммальное число комбинаций и итератор на номенклатуру весов
-    unsigned int all_combinations = pow(2, weights.size());
+    unsigned int all_combinations = (unsigned int)::pow(2, weights.size());
     WeightCombinator::Weights::iterator iter = weights.begin();
 
     // проходимся по всем уникальным комбинациям, увеличивая combinator на 1
