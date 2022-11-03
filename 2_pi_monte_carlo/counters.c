@@ -1,3 +1,5 @@
+#include "../stable.h"  // C precompiled headers
+
 #include "counters.h"
 
 struct PIPoints
@@ -17,7 +19,7 @@ void generate_points(struct PIPoints *pi_points_arr,
         exit(EXIT_FAILURE);
     }
 
-    pi_points_arr[index].all_points += how_much_to_gen;
+    (pi_points_arr + index)->all_points += how_much_to_gen;
 
     double x, y;
     uint8_t len;
@@ -36,7 +38,7 @@ void generate_points(struct PIPoints *pi_points_arr,
         }
 
         len = (uint8_t)(x*x + y*y);
-        pi_points_arr[index].good_points += (!len);
+        (pi_points_arr + index)->good_points += (!len);
     }
 
     //return 4.0 * (double)(*pi_points).good_points / (double)(*pi_points).all_points;
@@ -59,12 +61,12 @@ double get_pi_single_thread(long number_of_counters,
         {
             min_pi = DBL_MAX;
             max_pi = DBL_MIN;
-            pi = 4.0;
+            pi = -1;
 
             for (i = 0; i < number_of_counters; i++)
             {
                 generate_points(pi_points_arr, i, start, use_xs1024);
-                pi *= (pi_points_arr + i)->good_points / (double)(pi_points_arr + i)->all_points;
+                pi = 4.0 * (pi_points_arr + i)->good_points / (double)(pi_points_arr + i)->all_points;
 
                 /* pi = 4.0 * pi_points_arr[i].good_points / (double)pi_points_arr[i].all_points;*/
 
@@ -116,58 +118,56 @@ struct ThreadArgs
 
 void *generate_points_in_thread(void *thread_args)
 {
-    struct ThreadArgs *args = (struct ThreadArgs *) thread_args;
-    
-    if ( !args )
+    struct ThreadArgs* args = (struct ThreadArgs*)thread_args;
+
+    if (!args)
         return NULL;
 
-    struct PIPoints *pi_points_arr = (struct PIPoints *) args->pi_points_arr;
-    
-    unsigned *indexes = (unsigned *) args->indexes;
-    unsigned indexes_size = (unsigned) args->indexes_size;
+    struct PIPoints* pi_points_arr = (struct PIPoints*)args->pi_points_arr;
 
-    unsigned how_much_to_gen = (unsigned) args->how_much_points_to_gen;
+    unsigned* indexes = (unsigned*)args->indexes;
+    unsigned indexes_size = (unsigned)args->indexes_size;
 
-    bool use_xs1024 = (bool) args->use_xs1024;
+    unsigned how_much_to_gen = (unsigned)args->how_much_points_to_gen;
 
-    uint64_t *bank_numbers = (uint64_t *) calloc(16, sizeof(uint64_t));
-    
+    bool use_xs1024 = (bool)args->use_xs1024;
+
+    uint64_t* bank_numbers = (uint64_t*)calloc(16, sizeof(uint64_t));
+
     uint32_t bank_index = 0;
-    uint32_t *pointer_to_bank_index = &bank_index;
-
     uint64_t xs64_value = 0;
-    uint64_t *pointer_to_xs64_value = &xs64_value;
 
-    for ( unsigned i = 0; i < indexes_size; i++ )
+    for (unsigned i = 0; i < indexes_size; i++)
     {
         unsigned index = indexes[i];
 
         pi_points_arr[index].all_points += how_much_to_gen;
-    
+
         double x, y;
         uint8_t len;
-        
+
         unsigned counter = how_much_to_gen;
 
         while (counter--)
         {
-            if ( use_xs1024 )
+            if (use_xs1024)
             {
-                x = next_xs1024_thread_safe(0, pointer_to_xs64_value, bank_numbers, pointer_to_bank_index) / (double)RANDOM_MAX;
-                y = next_xs1024_thread_safe(0, pointer_to_xs64_value, bank_numbers, pointer_to_bank_index) / (double)RANDOM_MAX;
+                x = next_xs1024_thread_safe(0, &xs64_value, bank_numbers, &bank_index) / (double)RANDOM_MAX;
+                y = next_xs1024_thread_safe(0, &xs64_value, bank_numbers, &bank_index) / (double)RANDOM_MAX;
             }
             else
             {
-                x = next_xs64_thread_safe(0, pointer_to_xs64_value) / (double)RANDOM_MAX;
-                y = next_xs64_thread_safe(0, pointer_to_xs64_value) / (double)RANDOM_MAX;
+                x = next_xs64_thread_safe(0, &xs64_value) / (double)RANDOM_MAX;
+                y = next_xs64_thread_safe(0, &xs64_value) / (double)RANDOM_MAX;
             }
-    
+
             len = (uint8_t)(x*x + y*y);
             pi_points_arr[index].good_points += (!len);
         }
     }
 
     return NULL;
+
 }
 
 double get_pi_multithread(long number_of_counters,
@@ -177,6 +177,7 @@ double get_pi_multithread(long number_of_counters,
         unsigned number_of_processors,
         bool use_xs1024)
 {
+#if 0
 //    printf("number_of_counters: %u\n"
 //            "start: %u\n"
 //            "multiplier: %u\n"
@@ -287,6 +288,109 @@ double get_pi_multithread(long number_of_counters,
     {
         return -1;
     }
+#else
+//    printf("number_of_counters: %u\n"
+//            "start: %u\n"
+//            "multiplier: %u\n"
+//            "eps: %f\n"
+//            "number_of_processors: %u\n"
+//            "use_xs_1024: %b\n",
+//            
+//            number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024);    
+struct PIPoints* pi_points_arr = (struct PIPoints*)calloc(number_of_counters, sizeof(struct PIPoints));
+double pi = -1;
+
+// разбить pi_points_arr на части и распределить эти части между потоками
+struct ThreadArgs* thread_args = (struct ThreadArgs*)calloc(number_of_processors, sizeof(struct ThreadArgs));
+for (unsigned i = 0; i < number_of_processors; i++)
+{
+    thread_args[i].how_much_points_to_gen = start;  // установить кол-во точек для генерации
+
+    thread_args[i].pi_points_arr = pi_points_arr;
+    unsigned len = 0;
+
+    for (int j = i; j < number_of_counters; j += number_of_processors)
+    {
+        if (thread_args[i].indexes)
+        {
+            unsigned* temp = (unsigned*)realloc(thread_args[i].indexes, (++len) * sizeof(unsigned)); // расширяем динамический массив
+            if (temp)
+                thread_args[i].indexes = temp;
+        }
+        else
+            thread_args[i].indexes = (unsigned*)calloc(++len, sizeof(unsigned));
+
+        (*(thread_args[i].indexes + len - 1)) = j;
+    }
+
+    thread_args[i].indexes_size = len;
+    thread_args[i].use_xs1024 = use_xs1024;
+}
+
+// создаём массив потоков
+pthread_t* threads = malloc(number_of_processors * sizeof(pthread_t));
+int err = 0;
+
+// находимся в цикле, пока Пи не достигнет заданной точности
+while (1)
+{
+    // запускаем потоки на выполнение
+    for (unsigned i = 0; i < number_of_processors; i++)
+    {
+        //printf("Creating thread: %d\n", i);
+        if (threads)
+            err = pthread_create(&threads[i], NULL, generate_points_in_thread, (void*)&thread_args[i]);
+
+        if (err)
+        {
+            fprintf(stderr, "Error! Unable to create thread: %d\n", i);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // ожидаем пока потоки закончат выполнение
+    if (threads)
+        for (unsigned i = 0; i < number_of_processors; i++)
+            pthread_join(threads[i], NULL);
+
+    // вычисление Пи, поиск Min Max и рассчёт eps
+    double min_pi = DBL_MAX,
+        max_pi = DBL_MIN;
+
+    for (int i = 0; i < number_of_counters; i++)
+    {
+        pi = 4.0 * (double)pi_points_arr[i].good_points / (double)pi_points_arr[i].all_points;
+
+        if (min_pi > pi)
+            min_pi = pi;
+
+        if (max_pi < pi)
+            max_pi = pi;
+
+        //            printf("\npi_points_arr[%u].good_points: %u\n"
+        //                    "pi_points_arr[%u].all_points: %u\n"
+        //                    "pi_points_arr[%u].pi: %f\n",
+        //                     
+        //                    i, pi_points_arr[i].good_points, i, pi_points_arr[i].all_points, i, pi);
+    }
+
+    double e = max_pi - min_pi;
+
+    //        printf("\n\npi: %f\n", pi);
+    //        printf("e: %f\n\n", e);
+
+    if (e < eps)
+        break;
+
+    start *= multiplier;
+
+    // обновляем how_much_to_gen у всех потоков
+    for (unsigned i = 0; i < number_of_processors; i++)
+        thread_args[i].how_much_points_to_gen = start;
+}
+
+return pi;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

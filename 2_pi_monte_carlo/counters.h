@@ -1,8 +1,6 @@
 #ifndef __COUNTERS_H__
 #define __COUNTERS_H__
 
-#include "../pch.h"
-
 double get_pi_single_thread(long number_of_counters, 
         uint32_t start, 
         uint32_t multiplier,

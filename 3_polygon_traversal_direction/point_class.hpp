@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../pch.hpp"
-
 class Point
 {
 private:

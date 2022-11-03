@@ -1,3 +1,4 @@
+#include "point_class.hpp"
 #include "cross_product_class.hpp"
 
 CrossProduct::CrossProduct():

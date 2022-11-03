@@ -19,7 +19,8 @@ add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 # https://stackoverflow.com/questions/2368811/how-to-set-warning-level-in-cmake
 # https://cmake.org/cmake/help/latest/command/add_compile_options.html
 if (MSVC)
-   # warning level 4 and all warnings as errors
+   # warning all warnings as errors
+    # add_compile_options(/Wall /WX)
     add_compile_options(/W4 /WX)
 else()
    # lots of warnings and all warnings as errors
@@ -82,18 +83,18 @@ configure_file(
 include_directories(${PROJECT_BINARY_DIR})
 
 add_custom_target(PrecompiledHeaders SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pch.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/pch.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/stable.h
 )
 
 # add libraries
 add_library(generators STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/generators/xor_shift.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/generators/xor_shift.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/generators/xor_shift_thread_safe.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/generators/xor_shift_thread_safe.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/generators/src/xor_shift.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/generators/src/xor_shift.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/generators/src/xor_shift_thread_safe.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/generators/src/xor_shift_thread_safe.c
 )
 
+# C libraries
 add_library(modules STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/counters.h
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/counters.c
@@ -102,7 +103,9 @@ add_library(modules STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/cross_product.c
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/polygon_traversal_direction.c
 )
+target_precompile_headers(modules PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/stable.h)
 
+# CPP libraries
 add_library(classes STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator.cpp
@@ -126,6 +129,7 @@ add_library(classes STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class.cpp
 )
+target_precompile_headers(classes PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/stable.h)
 
 # add_library(tests STATIC
 #     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class_test.hpp
@@ -145,16 +149,12 @@ add_library(classes STATIC
 add_executable(WeightCombinations-C
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinations.c
 )
-target_precompile_headers(WeightCombinations-C PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/pch.h
-)
+target_precompile_headers(WeightCombinations-C REUSE_FROM modules)
 
 add_executable(WeightCombinations-C-DETAILED
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinations_detail.c
 )
-target_precompile_headers(WeightCombinations-C-DETAILED REUSE_FROM WeightCombinations-C)
-
-target_precompile_headers(modules REUSE_FROM WeightCombinations-C)
+target_precompile_headers(WeightCombinations-C-DETAILED REUSE_FROM modules)
 
 add_executable(WeightCombinations-CPP
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/main.cpp
@@ -167,9 +167,7 @@ target_link_libraries(WeightCombinations-CPP PUBLIC
     Boost::program_options
     Boost::filesystem
 )
-target_precompile_headers(WeightCombinations-CPP PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/pch.hpp
-)
+target_precompile_headers(WeightCombinations-CPP REUSE_FROM classes)
 add_custom_command(TARGET WeightCombinations-CPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/source.txt
@@ -189,9 +187,9 @@ target_link_libraries(WeightCombinations-CPP-TESTS PUBLIC
     GTest::gmock_main
     GTest::gtest_main
 )
-target_precompile_headers(WeightCombinations-CPP-TESTS REUSE_FROM WeightCombinations-CPP)
+target_precompile_headers(WeightCombinations-CPP-TESTS REUSE_FROM classes)
 
-# PI Monte Carlo
+# # PI Monte Carlo
 add_executable(PIMonteCarlo-C 
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/main.c
 )
@@ -202,35 +200,34 @@ target_link_libraries(PIMonteCarlo-C PUBLIC
     ${OpenCL_LIBRARIES}
     ${PThreads4W_LIBRARIES}     # empty if build in linux
 )
-target_precompile_headers(PIMonteCarlo-C REUSE_FROM WeightCombinations-C)
-#target_compile_options(PIMonteCarlo-C PRIVATE
-#    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-#        -Wall -Wextra -Wpedantic -Werror>
-#    $<$<CXX_COMPILER_ID:MSVC>:
-#        /W4 /WX>
-#)
+target_precompile_headers(PIMonteCarlo-C REUSE_FROM modules)
+# #target_compile_options(PIMonteCarlo-C PRIVATE
+# #    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+# #        -Wall -Wextra -Wpedantic -Werror>
+# #    $<$<CXX_COMPILER_ID:MSVC>:
+# #        /W4 /WX>
+# #)
 
-# Disabled
-#add_executable(PIMonteCarlo-CPP
-#    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/main.cpp
-#)
-#target_link_libraries(PIMonteCarlo-CPP PUBLIC
-#    classes
-#    generators
-#    spdlog::spdlog
-#    spdlog::spdlog_header_only
-#    Boost::program_options
-#)
-#target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM WeightCombinations-CPP)
+add_executable(PIMonteCarlo-CPP
+   ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/main.cpp
+)
+target_link_libraries(PIMonteCarlo-CPP PUBLIC
+   classes
+   generators
+   spdlog::spdlog
+   spdlog::spdlog_header_only
+   Boost::program_options
+)
+target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM classes)
 
-# add_executable(PIMonteCarlo-CPP-TESTS
-#     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/tests.cpp
-# )
-# target_link_libraries(PIMonteCarlo-CPP-TESTS PUBLIC
-#     tests
-#     classes
-# )
-# target_precompile_headers(PIMonteCarlo-CPP-TESTS REUSE_FROM WeightCombinations-CPP)
+# # add_executable(PIMonteCarlo-CPP-TESTS
+# #     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/tests.cpp
+# # )
+# # target_link_libraries(PIMonteCarlo-CPP-TESTS PUBLIC
+# #     tests
+# #     classes
+# # )
+# # target_precompile_headers(PIMonteCarlo-CPP-TESTS REUSE_FROM WeightCombinations-CPP)
 
 # Polygon Traversal Direction
 add_executable(PolygonTraversalDirection-C
@@ -239,27 +236,26 @@ add_executable(PolygonTraversalDirection-C
 target_link_libraries(PolygonTraversalDirection-C PUBLIC
     modules
 )
-target_precompile_headers(PolygonTraversalDirection-C REUSE_FROM WeightCombinations-C)
+target_precompile_headers(PolygonTraversalDirection-C REUSE_FROM modules)
 
-# Disabled
-#add_executable(PolygonTraversalDirection-CPP
-#    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/main.cpp
-#)
-#target_link_libraries(PolygonTraversalDirection-CPP PUBLIC
-#    classes
-#)
-#target_precompile_headers(PolygonTraversalDirection-CPP REUSE_FROM WeightCombinations-CPP)
-#add_custom_command(TARGET PolygonTraversalDirection-CPP POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#        ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/source.txt
-#        $<TARGET_FILE_DIR:PolygonTraversalDirection-CPP>/source_polygon_traversal_direction.txt
-#)
+add_executable(PolygonTraversalDirection-CPP
+   ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/main.cpp
+)
+target_link_libraries(PolygonTraversalDirection-CPP PUBLIC
+   classes
+)
+target_precompile_headers(PolygonTraversalDirection-CPP REUSE_FROM classes)
+add_custom_command(TARGET PolygonTraversalDirection-CPP POST_BUILD
+   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+       ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/source.txt
+       $<TARGET_FILE_DIR:PolygonTraversalDirection-CPP>/source_polygon_traversal_direction.txt
+)
 
-# add_executable(PolygonTraversalDirection-CPP-TESTS
-#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/tests.cpp
-# )
-# target_link_libraries(PolygonTraversalDirection-CPP-TESTS PUBLIC
-#     tests
-#     classes
-# )
-# target_precompile_headers(PolygonTraversalDirection-CPP-TESTS REUSE_FROM WeightCombinations-CPP)
+# # add_executable(PolygonTraversalDirection-CPP-TESTS
+# #     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/tests.cpp
+# # )
+# # target_link_libraries(PolygonTraversalDirection-CPP-TESTS PUBLIC
+# #     tests
+# #     classes
+# # )
+# # target_precompile_headers(PolygonTraversalDirection-CPP-TESTS REUSE_FROM WeightCombinations-CPP)

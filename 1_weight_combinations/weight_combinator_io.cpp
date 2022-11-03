@@ -1,4 +1,5 @@
-﻿#include "weight_combinator_io.hpp"
+﻿#include "weight_combinator.hpp"
+#include "weight_combinator_io.hpp"
 
 std::ostream& operator<< (std::ostream& out, WeightCombinator::Combinations const& data)
 {

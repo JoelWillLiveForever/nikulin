@@ -1,5 +1,3 @@
-#include "../pch.hpp"
-
 #include "cross_product_class_test.hpp"
 #include "direction_finder_class_test.hpp"
 

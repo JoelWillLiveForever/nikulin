@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../pch.hpp"
 #include "point_class.hpp"
 
 class CrossProduct

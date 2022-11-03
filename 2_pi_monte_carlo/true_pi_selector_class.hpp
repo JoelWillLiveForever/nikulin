@@ -1,11 +1,6 @@
 #pragma once
 
-#include "../pch.hpp"
 #include "pi_monte_carlo_points_generator_class.hpp"
-
-//#include "spdlog/spdlog.h"
-//#include "spdlog/sinks/basic_file_sink.h"
-//#include "spdlog/sinks/rotating_file_sink.h"
 
 class TruePISelector
 {

@@ -4,8 +4,6 @@
 * Определить направление обхода.
 * Выполнить то же самое, но только в случае невыпуклого многоугольника. */
 
-#include "../pch.hpp"
-
 #include "direction_finder_class.hpp"
 #include "point_class.hpp"
 
@@ -26,7 +24,7 @@ int main()
     std::vector<Point> points;                                      // объявляем вектор для точек
 
     // читаем координаты точек из файла
-    double x, y;
+    double x = 0, y = 0;
     int i;
 
     for (i = 0; i < amount_of_points * 2; i++)

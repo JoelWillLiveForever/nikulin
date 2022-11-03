@@ -1,3 +1,4 @@
+#include "pi_monte_carlo_points_generator_class.hpp"
 #include "true_pi_selector_class.hpp"
 
 void TruePISelector::thread_task(std::vector<PIMonteCarloPointsGenerator>::iterator generators_iter)

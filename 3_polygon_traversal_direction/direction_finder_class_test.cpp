@@ -1,3 +1,4 @@
+#include "direction_finder_class.hpp"
 #include "direction_finder_class_test.hpp"
 
 // невыпуклый многоугольник с координатами вершин заданными против часовой стрелки

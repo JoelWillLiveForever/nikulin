@@ -1,5 +1,6 @@
-#include "direction_finder_class.hpp"
+#include "point_class.hpp"
 #include "cross_product_class.hpp"
+#include "direction_finder_class.hpp"
 
 DirectionFinder::DirectionFinder(std::vector<Point> points):
     points_(points)

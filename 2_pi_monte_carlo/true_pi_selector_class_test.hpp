@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../pch.hpp"
 #include "true_pi_selector_class.hpp"
 
 class TruePISelectorTest

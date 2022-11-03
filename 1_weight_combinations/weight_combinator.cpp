@@ -1,3 +1,5 @@
+#include "../stable.h"  // CPP precompiled headers
+
 #include "weight_combinator.hpp"
 
 void WeightCombinator::combine(unsigned int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
