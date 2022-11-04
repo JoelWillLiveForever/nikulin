@@ -30,24 +30,27 @@ TEST(WeightCombinatorClass, combine_basic_test)
 тест метода combinator.combine(target, result, weights)
 должен выдать ошибку при отрицательном значении target
 */
-TEST(WeightCombinatorClass, combine_negative_target_test)
+TEST(WeightCombinatorClass, combine_zero_target_test)
 {
-    bool code = false;
     try
     {
         WeightCombinator::Weights weights = {100, 200, 300};
         WeightCombinator::Combinations result;
-        int target = -600;
+        int target = 0;
 
         WeightCombinator combinator;
         combinator.combine(target, result, weights);
-    }
-    catch ( std::invalid_argument const & )         // expected
-    {
-        code = true;
-    }
 
-    ASSERT_TRUE(code);
+        FAIL() << "Expected invalid argument exception";
+    }
+    catch ( std::exception const &e )         // expected
+    {
+        EXPECT_EQ(e.what(), std::string("Zero target weight"));
+    }
+    catch (...)
+    {
+        FAIL() << "Expected invalid argument exception";
+    }
 }
 
 /*
@@ -57,7 +60,6 @@ TEST(WeightCombinatorClass, combine_negative_target_test)
 */
 TEST(WeightCombinatorClass, combine_empty_collection_test)
 {
-    bool code = true;
     try
     {
         WeightCombinator::Weights weights;          // empty
@@ -66,13 +68,17 @@ TEST(WeightCombinatorClass, combine_empty_collection_test)
 
         WeightCombinator combinator;
         combinator.combine(target, result, weights);
-    }
-    catch ( std::invalid_argument const & )         // expected
-    {
-        code = false;
-    }
 
-    ASSERT_FALSE(code);
+        FAIL() << "Expected invalid argument exception";
+    }
+    catch (std::exception const& e)         // expected
+    {
+        EXPECT_EQ(e.what(), std::string("Invalid weights size"));
+    }
+    catch (...)
+    {
+        FAIL() << "Expected invalid argument exception";
+    }
 }
 
 /*
@@ -83,25 +89,25 @@ TEST(WeightCombinatorClass, combine_empty_collection_test)
 */
 TEST(WeightCombinatorClass, combine_big_collection_test)
 {
-    bool code = false;
     try
     {
-        WeightCombinator::Weights weights;
+        WeightCombinator::Weights weights(100);
         WeightCombinator::Combinations result;
         int target = 123;
 
-        for (int i = 0; i < WeightCombinator::get_allowed_bits() * 10; i++)
-            weights.push_back(i);
-
         WeightCombinator combinator;
         combinator.combine(target, result, weights);
-    }
-    catch ( std::invalid_argument const & ) // expected
-    {
-        code = true;
-    }
 
-    ASSERT_TRUE(code);
+        FAIL() << "Expected invalid argument exception";
+    }
+    catch (std::exception const& e) // expected
+    {
+        EXPECT_EQ(e.what(), std::string("Invalid weights size"));
+    }
+    catch (...)
+    {
+        FAIL() << "Expected invalid argument exception";
+    }
 }
 
 /*
