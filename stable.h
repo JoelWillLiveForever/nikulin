@@ -5,8 +5,8 @@
 #endif
 
 // generators library
-#include "generators/src/xor_shift.h"
-#include "generators/src/xor_shift_thread_safe.h"
+#include "random/src/xor_shift.h"
+#include "random/src/xor_shift_thread_safe.h"
 
 #ifdef __cplusplus
 	#include <iostream>

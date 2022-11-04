@@ -88,10 +88,10 @@ add_custom_target(PrecompiledHeaders SOURCES
 
 # add libraries
 add_library(generators STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/generators/src/xor_shift.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/generators/src/xor_shift.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/generators/src/xor_shift_thread_safe.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/generators/src/xor_shift_thread_safe.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/random/src/xor_shift.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/random/src/xor_shift.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/random/src/xor_shift_thread_safe.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/random/src/xor_shift_thread_safe.c
 )
 
 # C libraries
