@@ -31,6 +31,10 @@
 # Ignore .vs dir
 *.vs/
 
+# Ignore all CLion dirs
+*.idea/
+cmake-build-debug/
+
 # Ignore all .csv files
 *.csv
 
