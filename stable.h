@@ -39,43 +39,43 @@
 	#include <spdlog/sinks/stdout_color_sinks.h>
 
 	//#include <spdlog/fmt/ostr.h
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <malloc.h>
+
+#ifdef _WIN32
+	#include <windows.h>
+	#include <sysinfoapi.h>
 #else
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <malloc.h>
+	#include <sys/time.h>
+	#include <unistd.h>
+#endif
 
-	#ifdef _WIN32
-		#include <windows.h>
-		#include <sysinfoapi.h>
-	#else
-		#include <sys/time.h>
-		#include <unistd.h>
-	#endif
+#include <time.h>
+#include <math.h>
+#include <limits.h>
 
-	#include <time.h>
-	#include <math.h>
-	#include <limits.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <float.h>
 
-	#include <stdint.h>
-	#include <stdbool.h>
-	#include <string.h>
-	#include <float.h>
+#include <stdint.h>
+#include <errno.h>
 
-	#include <stdint.h>
-	#include <errno.h>
+// vcpkg
+#include <pthread.h>
+#include <getopt.h>
 
-	// vcpkg
-	#include <pthread.h>
-	#include <getopt.h>
+// include OpenCL
+#ifndef CL_TARGET_OPENCL_VERSION
+	#define CL_TARGET_OPENCL_VERSION 120
+#endif
 
-	// include OpenCL
-	#ifndef CL_TARGET_OPENCL_VERSION
-		#define CL_TARGET_OPENCL_VERSION 120
-	#endif
-
-	#if defined (__APPLE__) || defined (__MACH__)
-		#include <OpenCL/opencl.h>
-	#else
-		#include <CL/cl.h>
-	#endif
+#if defined (__APPLE__) || defined (__MACH__)
+	#include <OpenCL/opencl.h>
+#else
+	#include <CL/cl.h>
 #endif

@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <boost/process.hpp>
+
 // протестим CPP проги
 #include "pi_monte_carlo_points_generator_class.hpp"
 #include "pi_convergence_check_class.hpp"
@@ -11,7 +13,9 @@
 extern "C"
 {
     #include "counters.h"
-}
+};
+
+namespace bp = boost::process;
 
 TEST(TruePISelectorClass, basic_usage_test)
 {
@@ -25,44 +29,78 @@ TEST(TruePISelectorClass, basic_usage_test)
 
 TEST(TruePISelectorClass, zero_total_pi_test)
 {
-    try
-    {
-        TruePISelector selector(0, 1000, 2, 0.01);
-
-        double pi = 0;
-        pi = selector.select_pi();
-
-        FAIL() << "Expected zero total_pi exception";
-    }
-    catch (std::exception const& e)
-    {
-        EXPECT_EQ(e.what(), std::string("Zero total_pi"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected zero total_pi exception";
-    }
+    EXPECT_THROW({
+        try
+        {
+            TruePISelector selector(0, 1000, 2, 0.01);
+            
+            double pi = 0;
+            pi = selector.select_pi();
+        }
+        catch (std::exception const& e)
+        {
+            EXPECT_STREQ("Zero total_pi", e.what());
+            throw;
+        }
+    }, std::exception);
 }
 
-TEST(TruePISelectorClass, big_points_start_test)
+// TODO
+//void run_subprocess()
+//{
+//    bp::ipstream pipe_stream;
+//
+//#ifdef _WIN32
+//    bp::child c("PIMonteCarlo-CPP.exe -t -1", bp::std_out > pipe_stream);
+//#else
+//    bp::child c("PIMonteCarlo-CPP -t -1", bp::std_out > pipe_stream);
+//#endif
+//
+//    std::string line;
+//    std::ostringstream out;
+//
+//    while (pipe_stream && std::getline(pipe_stream, line) && !line.empty())
+//        out << line;
+//    c.wait();
+//}
+//
+//TEST(Main, negative_total_test)
+//{
+//    try
+//    {
+//        run_subprocess();
+//    }
+//    catch (...)
+//    {
+//        SUCCEED();
+//    }
+//
+//    FAIL() << "Fail";
+//    //EXPECT_THROW(run_subprocess());
+//}
+
+TEST(counters_module, pi_single_thread_basic_usage_test)
 {
-    try
-    {
-        TruePISelector selector(6, UINT_MAX + 1, 2, 0.01);
+    double pi = 0;
+    pi = get_pi_single_thread(6, 1000, 2, 0.01, false);
 
-        double pi = 0;
-        pi = selector.select_pi();
+    ASSERT_NEAR(pi, 3.14, 0.01);
+}
 
-        FAIL() << "Expected zero total_pi exception";
-    }
-    catch (std::overflow_error const& e)
-    {
-        SUCCEED() << e.what();
-    }
-    catch (...)
-    {
-        FAIL() << "Expected zero total_pi exception";
-    }
+TEST(counters_module, pi_multithread_basic_usage_test)
+{
+    double pi = 0;
+    pi = get_pi_multithread(36, 1000, 2, 0.01, 6, false);
+
+    ASSERT_NEAR(pi, 3.14, 0.01);
+}
+
+TEST(counters_module, pi_opencl_basic_usage_test)
+{
+    double pi = 0;
+    pi = get_pi_opencl(10, 1000, 2, 0.01, false);
+
+    ASSERT_NEAR(pi, 3.14, 0.01);
 }
 
 int main(int argc, char** argv) {

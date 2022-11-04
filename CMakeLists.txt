@@ -131,19 +131,6 @@ add_library(classes STATIC
 )
 target_precompile_headers(classes PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/stable.h)
 
-# add_library(tests STATIC
-#     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class_test.hpp
-#     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinator_class_test.cpp
-
-#     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/true_pi_selector_class_test.hpp
-#     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/true_pi_selector_class_test.cpp
-
-#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/cross_product_class_test.hpp
-#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/cross_product_class_test.cpp
-#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class_test.hpp
-#     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class_test.cpp
-# )
-
 # add executables
 # Weight Combinations
 add_executable(WeightCombinations-C
@@ -161,7 +148,6 @@ add_executable(WeightCombinations-CPP
 )
 target_link_libraries(WeightCombinations-CPP PUBLIC
     classes
-    #${GETOPT_LIBRARY}   # empty if build in linux
     spdlog::spdlog
     spdlog::spdlog_header_only
     Boost::program_options
@@ -178,7 +164,6 @@ add_executable(WeightCombinations-CPP-TESTS
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/tests.cpp
 )
 target_link_libraries(WeightCombinations-CPP-TESTS PUBLIC
-    # tests
     classes
     spdlog::spdlog
     spdlog::spdlog_header_only
@@ -202,6 +187,11 @@ target_link_libraries(PIMonteCarlo-C PUBLIC
     ${PThreads4W_LIBRARIES}     # empty if build in linux
 )
 target_precompile_headers(PIMonteCarlo-C REUSE_FROM modules)
+add_custom_command(TARGET PIMonteCarlo-C POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
+        $<TARGET_FILE_DIR:PIMonteCarlo-C>/kernel_boost.cl
+)
 # #target_compile_options(PIMonteCarlo-C PRIVATE
 # #    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
 # #        -Wall -Wextra -Wpedantic -Werror>
@@ -221,11 +211,15 @@ target_link_libraries(PIMonteCarlo-CPP PUBLIC
 )
 target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM classes)
 
-add_executable(PIMonteCarlo-CPP-TESTS
+add_executable(PIMonteCarlo-TESTS
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/tests.cpp
 )
-target_link_libraries(PIMonteCarlo-CPP-TESTS PUBLIC
-    # tests
+target_link_libraries(PIMonteCarlo-TESTS PUBLIC
+    modules
+    generators
+    ${GETOPT_LIBRARY}           # empty if build in linux
+    ${OpenCL_LIBRARIES}
+    ${PThreads4W_LIBRARIES}     # empty if build in linux
     classes
     spdlog::spdlog
     spdlog::spdlog_header_only
@@ -233,8 +227,14 @@ target_link_libraries(PIMonteCarlo-CPP-TESTS PUBLIC
     GTest::gtest 
     GTest::gmock_main
     GTest::gtest_main
+    Boost::filesystem
 )
-target_precompile_headers(PIMonteCarlo-CPP-TESTS REUSE_FROM classes)
+target_precompile_headers(PIMonteCarlo-TESTS REUSE_FROM classes)
+add_custom_command(TARGET PIMonteCarlo-TESTS POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
+        $<TARGET_FILE_DIR:PIMonteCarlo-TESTS>/kernel_boost.cl
+)
 
 # Polygon Traversal Direction
 add_executable(PolygonTraversalDirection-C
@@ -258,11 +258,17 @@ add_custom_command(TARGET PolygonTraversalDirection-CPP POST_BUILD
        $<TARGET_FILE_DIR:PolygonTraversalDirection-CPP>/source_polygon_traversal_direction.txt
 )
 
-# # add_executable(PolygonTraversalDirection-CPP-TESTS
-# #     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/tests.cpp
-# # )
-# # target_link_libraries(PolygonTraversalDirection-CPP-TESTS PUBLIC
-# #     tests
-# #     classes
-# # )
-# # target_precompile_headers(PolygonTraversalDirection-CPP-TESTS REUSE_FROM WeightCombinations-CPP)
+add_executable(PolygonTraversalDirection-CPP-TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/tests.cpp
+)
+target_link_libraries(PolygonTraversalDirection-CPP-TESTS PUBLIC
+    classes
+    spdlog::spdlog
+    spdlog::spdlog_header_only
+    GTest::gmock
+    GTest::gtest 
+    GTest::gmock_main
+    GTest::gtest_main
+    Boost::filesystem
+)
+target_precompile_headers(PolygonTraversalDirection-CPP-TESTS REUSE_FROM classes)
