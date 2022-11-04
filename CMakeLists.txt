@@ -186,6 +186,7 @@ target_link_libraries(WeightCombinations-CPP-TESTS PUBLIC
     GTest::gtest 
     GTest::gmock_main
     GTest::gtest_main
+    Boost::filesystem
 )
 target_precompile_headers(WeightCombinations-CPP-TESTS REUSE_FROM classes)
 

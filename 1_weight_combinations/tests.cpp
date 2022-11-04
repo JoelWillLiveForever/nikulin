@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <boost/process.hpp>
+
 #include "weight_combinator.hpp"
 
 /* 
@@ -28,29 +30,41 @@ TEST(WeightCombinatorClass, combine_basic_test)
 
 /*
 тест метода combinator.combine(target, result, weights)
-должен выдать ошибку при отрицательном значении target
+должен выдать ошибку при нулевом значении target
 */
 TEST(WeightCombinatorClass, combine_zero_target_test)
 {
-    try
-    {
-        WeightCombinator::Weights weights = {100, 200, 300};
-        WeightCombinator::Combinations result;
-        int target = 0;
+    WeightCombinator::Weights weights = { 100, 200, 300 };
+    WeightCombinator::Combinations result;
+    int target = 0;
 
-        WeightCombinator combinator;
-        combinator.combine(target, result, weights);
+    EXPECT_THROW({
+        try
+        {
+            WeightCombinator combinator;
+            combinator.combine(target, result, weights);
+        }
+        catch(std::exception const& e)
+        {
+            EXPECT_STREQ("Zero target weight", e.what());
+            throw;
+        }
+    }, std::exception);
+}
 
-        FAIL() << "Expected invalid argument exception";
-    }
-    catch ( std::exception const &e )         // expected
-    {
-        EXPECT_EQ(e.what(), std::string("Zero target weight"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected invalid argument exception";
-    }
+/*
+сокращённый вариант предыдущего теста
+*/
+TEST(WeightCombinatorClass, combine_zero_target_test_2)
+{
+
+    WeightCombinator::Weights weights = {100, 200, 300};
+    WeightCombinator::Combinations result;
+    int target = 0;
+
+    WeightCombinator combinator;
+
+    EXPECT_THROW(combinator.combine(target, result, weights), std::exception);
 }
 
 /*
@@ -60,25 +74,22 @@ TEST(WeightCombinatorClass, combine_zero_target_test)
 */
 TEST(WeightCombinatorClass, combine_empty_collection_test)
 {
-    try
-    {
-        WeightCombinator::Weights weights;          // empty
-        WeightCombinator::Combinations result;
-        int target = 123;
+    WeightCombinator::Weights weights;          // empty
+    WeightCombinator::Combinations result;
+    int target = 123;
 
-        WeightCombinator combinator;
-        combinator.combine(target, result, weights);
-
-        FAIL() << "Expected invalid argument exception";
-    }
-    catch (std::exception const& e)         // expected
-    {
-        EXPECT_EQ(e.what(), std::string("Invalid weights size"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected invalid argument exception";
-    }
+    EXPECT_THROW({
+        try
+        {
+            WeightCombinator combinator;
+            combinator.combine(target, result, weights);
+        }
+        catch (std::exception const& e)
+        {
+            EXPECT_STREQ("Invalid weights size", e.what());
+            throw;
+        }
+    }, std::exception);
 }
 
 /*
@@ -89,25 +100,22 @@ TEST(WeightCombinatorClass, combine_empty_collection_test)
 */
 TEST(WeightCombinatorClass, combine_big_collection_test)
 {
-    try
-    {
-        WeightCombinator::Weights weights(100);
-        WeightCombinator::Combinations result;
-        int target = 123;
+    WeightCombinator::Weights weights(100);
+    WeightCombinator::Combinations result;
+    int target = 123;
 
-        WeightCombinator combinator;
-        combinator.combine(target, result, weights);
-
-        FAIL() << "Expected invalid argument exception";
-    }
-    catch (std::exception const& e) // expected
-    {
-        EXPECT_EQ(e.what(), std::string("Invalid weights size"));
-    }
-    catch (...)
-    {
-        FAIL() << "Expected invalid argument exception";
-    }
+    EXPECT_THROW({
+        try
+        {
+            WeightCombinator combinator;
+            combinator.combine(target, result, weights);
+        }
+        catch (std::exception const& e)
+        {
+            EXPECT_STREQ("Invalid weights size", e.what());
+            throw;
+        }
+    }, std::exception);
 }
 
 /*
@@ -228,28 +236,49 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_resu
 усложнение предыдущего теста
 вместо одной одинаковый гири -> несколько одинаковых
 */
- TEST(WeightCombinatorClass, combine_all_weights_are_same_some_combination_in_result_test)
- {
-     WeightCombinator::Combinations expected = {
-         {100, 100, 100, 100, 100},
-         {100, 100, 100, 200},
-         {100, 200, 200},
-         // {100, 100, 100, 200},
-         // {100, 200, 200},
-         {250, 250},
-         {100, 400},
-         {500}
-     };
-    
-     WeightCombinator::Weights weights = {100, 100, 100, 100, 100, 200, 200, 200, 250, 250, 400, 400, 500};
-     WeightCombinator::Combinations result;
-     int target = 500;
+TEST(WeightCombinatorClass, combine_all_weights_are_same_some_combination_in_result_test)
+{
+    WeightCombinator::Combinations expected = {
+        {100, 100, 100, 100, 100},
+        {100, 100, 100, 200},
+        {100, 200, 200},
+        // {100, 100, 100, 200},
+        // {100, 200, 200},
+        {250, 250},
+        {100, 400},
+        {500}
+    };
+   
+    WeightCombinator::Weights weights = {100, 100, 100, 100, 100, 200, 200, 200, 250, 250, 400, 400, 500};
+    WeightCombinator::Combinations result;
+    int target = 500;
 
-     WeightCombinator combinator;
-     combinator.combine(target, result, weights);
+    WeightCombinator combinator;
+    combinator.combine(target, result, weights);
 
-     ASSERT_THAT(result, expected);
- }
+    ASSERT_THAT(result, expected);
+}
+
+namespace bp = boost::process;
+TEST(Main, basic_usage_test)
+{
+    bp::ipstream pipe_stream;
+
+    #ifdef _WIN32
+        bp::child c("WeightCombinations-CPP.exe", bp::std_out > pipe_stream);
+    #else
+        bp::child c("WeightCombinations-CPP", bp::std_out > pipe_stream);
+    #endif
+
+    std::string line;
+    std::ostringstream out;
+
+    while (pipe_stream && std::getline(pipe_stream, line) && !line.empty())
+        out << line;
+    c.wait();
+
+    ASSERT_EQ(out.str(), "100 200 300 500 1000 1200 1400 1500 2000 3000 \r");
+}
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
