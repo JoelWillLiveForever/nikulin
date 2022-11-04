@@ -258,10 +258,11 @@ add_custom_command(TARGET PolygonTraversalDirection-CPP POST_BUILD
        $<TARGET_FILE_DIR:PolygonTraversalDirection-CPP>/source_polygon_traversal_direction.txt
 )
 
-add_executable(PolygonTraversalDirection-CPP-TESTS
+add_executable(PolygonTraversalDirection-TESTS
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/tests.cpp
 )
-target_link_libraries(PolygonTraversalDirection-CPP-TESTS PUBLIC
+target_link_libraries(PolygonTraversalDirection-TESTS PUBLIC
+    modules
     classes
     spdlog::spdlog
     spdlog::spdlog_header_only
@@ -271,4 +272,9 @@ target_link_libraries(PolygonTraversalDirection-CPP-TESTS PUBLIC
     GTest::gtest_main
     Boost::filesystem
 )
-target_precompile_headers(PolygonTraversalDirection-CPP-TESTS REUSE_FROM classes)
+target_precompile_headers(PolygonTraversalDirection-TESTS REUSE_FROM classes)
+add_custom_command(TARGET PolygonTraversalDirection-TESTS POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/source.txt
+        $<TARGET_FILE_DIR:PolygonTraversalDirection-TESTS>/source_polygon_traversal_direction.txt
+)
