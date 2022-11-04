@@ -229,14 +229,17 @@ int main(int argc, char **argv)
     program_name = std::string(argv[0]);
     program_name = program_name.substr(program_name.find_last_of("/\\") + 1);   // вытягиваем имя проги из argv[0]
 
-    std::shared_ptr<spdlog::logger> logger;
+    std::shared_ptr<spdlog::logger> logger = nullptr;
     try
     {
         // Create basic file logger (not rotated)
         //logger = spdlog::basic_logger_mt("main.cpp", "logs/basic.txt");
 
         // create a file rotating logger with 5mb size max and 3 rotated files
-        logger = spdlog::rotating_logger_mt("main.cpp", "logs/" + program_name + ".txt", 1024 * 1024 * 5, 3);
+        std::string file_name = std::string("logs/") + program_name + std::string(".txt");
+        unsigned long file_size = 5242880UL;
+
+        logger = spdlog::rotating_logger_mt("main.cpp", file_name, file_size, 3);
     }
     catch (const spdlog::spdlog_ex& ex)
     {

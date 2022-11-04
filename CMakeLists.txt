@@ -220,14 +220,20 @@ target_link_libraries(PIMonteCarlo-CPP PUBLIC
 )
 target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM classes)
 
-# # add_executable(PIMonteCarlo-CPP-TESTS
-# #     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/tests.cpp
-# # )
-# # target_link_libraries(PIMonteCarlo-CPP-TESTS PUBLIC
-# #     tests
-# #     classes
-# # )
-# # target_precompile_headers(PIMonteCarlo-CPP-TESTS REUSE_FROM WeightCombinations-CPP)
+add_executable(PIMonteCarlo-CPP-TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/tests.cpp
+)
+target_link_libraries(PIMonteCarlo-CPP-TESTS PUBLIC
+    # tests
+    classes
+    spdlog::spdlog
+    spdlog::spdlog_header_only
+    GTest::gmock
+    GTest::gtest 
+    GTest::gmock_main
+    GTest::gtest_main
+)
+target_precompile_headers(PIMonteCarlo-CPP-TESTS REUSE_FROM classes)
 
 # Polygon Traversal Direction
 add_executable(PolygonTraversalDirection-C
