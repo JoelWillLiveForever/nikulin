@@ -19,12 +19,12 @@ add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 # https://stackoverflow.com/questions/2368811/how-to-set-warning-level-in-cmake
 # https://cmake.org/cmake/help/latest/command/add_compile_options.html
 if (MSVC)
-   # warning all warnings as errors
+    # warning all warnings as errors
     # add_compile_options(/Wall /WX)
     add_compile_options(/W4 /WX)
 else()
-   # lots of warnings and all warnings as errors
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wno-deprecated)
 endif()
 
 # control where the static and shared libraries are built so that on windows
@@ -59,12 +59,9 @@ endif()
 
 find_package(GTest CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
-#find_package(fmt CONFIG REQUIRED)
 
 # Get the current working branch
 execute_process(
-    #COMMAND git log -1 --format=%h
-    
     COMMAND git rev-parse HEAD
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
     OUTPUT_VARIABLE GIT_COMMIT_HASH
@@ -130,6 +127,7 @@ add_library(classes STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class.cpp
 )
 target_precompile_headers(classes PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/stable.h)
+target_link_libraries(classes PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
 
 # add executables
 # Weight Combinations
@@ -146,10 +144,8 @@ target_precompile_headers(WeightCombinations-C-DETAILED REUSE_FROM modules)
 add_executable(WeightCombinations-CPP
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/main.cpp
 )
-target_link_libraries(WeightCombinations-CPP PUBLIC
+target_link_libraries(WeightCombinations-CPP PRIVATE
     classes
-    spdlog::spdlog
-    spdlog::spdlog_header_only
     Boost::program_options
     Boost::filesystem
 )
@@ -163,10 +159,8 @@ add_custom_command(TARGET WeightCombinations-CPP POST_BUILD
 add_executable(WeightCombinations-CPP-TESTS
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/tests.cpp
 )
-target_link_libraries(WeightCombinations-CPP-TESTS PUBLIC
+target_link_libraries(WeightCombinations-CPP-TESTS PRIVATE
     classes
-    spdlog::spdlog
-    spdlog::spdlog_header_only
     GTest::gmock
     GTest::gtest 
     GTest::gmock_main
@@ -179,7 +173,7 @@ target_precompile_headers(WeightCombinations-CPP-TESTS REUSE_FROM classes)
 add_executable(PIMonteCarlo-C 
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/main.c
 )
-target_link_libraries(PIMonteCarlo-C PUBLIC
+target_link_libraries(PIMonteCarlo-C PRIVATE
     modules
     generators
     ${GETOPT_LIBRARY}           # empty if build in linux
@@ -192,21 +186,19 @@ add_custom_command(TARGET PIMonteCarlo-C POST_BUILD
         ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
         $<TARGET_FILE_DIR:PIMonteCarlo-C>/kernel_boost.cl
 )
-# #target_compile_options(PIMonteCarlo-C PRIVATE
-# #    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-# #        -Wall -Wextra -Wpedantic -Werror>
-# #    $<$<CXX_COMPILER_ID:MSVC>:
-# #        /W4 /WX>
-# #)
+#target_compile_options(PIMonteCarlo-C PRIVATE
+#    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+#        -Wall -Wextra -Wpedantic -Werror>
+#    $<$<CXX_COMPILER_ID:MSVC>:
+#        /W4 /WX>
+#)
 
 add_executable(PIMonteCarlo-CPP
    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/main.cpp
 )
-target_link_libraries(PIMonteCarlo-CPP PUBLIC
+target_link_libraries(PIMonteCarlo-CPP PRIVATE
    classes
    generators
-   spdlog::spdlog
-   spdlog::spdlog_header_only
    Boost::program_options
 )
 target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM classes)
@@ -214,15 +206,13 @@ target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM classes)
 add_executable(PIMonteCarlo-TESTS
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/tests.cpp
 )
-target_link_libraries(PIMonteCarlo-TESTS PUBLIC
+target_link_libraries(PIMonteCarlo-TESTS PRIVATE
     modules
     generators
     ${GETOPT_LIBRARY}           # empty if build in linux
     ${OpenCL_LIBRARIES}
     ${PThreads4W_LIBRARIES}     # empty if build in linux
     classes
-    spdlog::spdlog
-    spdlog::spdlog_header_only
     GTest::gmock
     GTest::gtest 
     GTest::gmock_main
@@ -240,7 +230,7 @@ add_custom_command(TARGET PIMonteCarlo-TESTS POST_BUILD
 add_executable(PolygonTraversalDirection-C
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/main.c
 )
-target_link_libraries(PolygonTraversalDirection-C PUBLIC
+target_link_libraries(PolygonTraversalDirection-C PRIVATE
     modules
 )
 target_precompile_headers(PolygonTraversalDirection-C REUSE_FROM modules)
@@ -248,7 +238,7 @@ target_precompile_headers(PolygonTraversalDirection-C REUSE_FROM modules)
 add_executable(PolygonTraversalDirection-CPP
    ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/main.cpp
 )
-target_link_libraries(PolygonTraversalDirection-CPP PUBLIC
+target_link_libraries(PolygonTraversalDirection-CPP PRIVATE
    classes
 )
 target_precompile_headers(PolygonTraversalDirection-CPP REUSE_FROM classes)
@@ -261,11 +251,9 @@ add_custom_command(TARGET PolygonTraversalDirection-CPP POST_BUILD
 add_executable(PolygonTraversalDirection-TESTS
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/tests.cpp
 )
-target_link_libraries(PolygonTraversalDirection-TESTS PUBLIC
+target_link_libraries(PolygonTraversalDirection-TESTS PRIVATE
     modules
     classes
-    spdlog::spdlog
-    spdlog::spdlog_header_only
     GTest::gmock
     GTest::gtest 
     GTest::gmock_main

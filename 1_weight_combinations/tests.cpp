@@ -277,7 +277,11 @@ TEST(Main, basic_usage_test)
         out << line;
     c.wait();
 
+#ifdef _WIN32
     ASSERT_EQ(out.str(), "100 200 300 500 1000 1200 1400 1500 2000 3000 \r");
+#else
+    ASSERT_EQ(out.str(), "100 200 300 500 1000 1200 1400 1500 2000 3000 ");
+#endif
 }
 
 int main(int argc, char **argv) {

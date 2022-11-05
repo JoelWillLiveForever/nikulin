@@ -7,11 +7,19 @@ void WeightCombinator::combine(unsigned int target, WeightCombinator::Combinatio
     // если номенклатуры весов не заданы (пустой вектор), то кол-во вариантов точно == 0
     // или их кол-во больше числа битов в combinator (32)
     if ( weights.size() == 0 || weights.size() > static_cast<size_t>(allowed_bits_) )
+#ifdef _WIN32
         throw std::exception("Invalid weights size");
+#else
+        throw std::runtime_error("Invalid weights size");
+#endif
 
     // проверка на нулевой target
     if ( target == 0 )
+#ifdef _WIN32
         throw std::exception("Zero target weight");
+#else
+        throw std::runtime_error("Zero target weight");
+#endif
 
     // число для проверки комбинаций гирь, с помощью битов числа
     unsigned int combinator = 1;

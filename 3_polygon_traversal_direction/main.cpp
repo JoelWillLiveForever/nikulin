@@ -12,7 +12,7 @@ int main()
     int amount_of_points;                                           // количество точек
 
     std::ifstream infile;                                           // создать объект ifstream    
-    infile.open("polygon_traversal_direction_source.txt", std::ios::in);                        // открыть файл source.txt в режиме чтения
+    infile.open("source_polygon_traversal_direction.txt", std::ios::in);                        // открыть файл source.txt в режиме чтения
 
     if ( !infile )
     {

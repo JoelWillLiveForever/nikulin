@@ -222,6 +222,8 @@ int main(int argc, char** argv)
 
             switch (time_unit)
             {
+            case OFF:
+                break;
             case SECONDS:
             {
                 auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);

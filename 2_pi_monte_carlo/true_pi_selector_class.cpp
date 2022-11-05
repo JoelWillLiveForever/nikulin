@@ -11,7 +11,11 @@ double TruePISelector::select_pi()
     //logger->info("select_pi() start");
 
     if (total_pi_ == 0)
+#ifdef _WIN32
         throw std::exception("Zero total_pi");
+#else
+        throw std::runtime_error("Zero total_pi");
+#endif
 
     std::vector<std::thread> threads(total_pi_);
     std::vector<PIMonteCarloPointsGenerator> generators(total_pi_, PIMonteCarloPointsGenerator { points_start_ });
