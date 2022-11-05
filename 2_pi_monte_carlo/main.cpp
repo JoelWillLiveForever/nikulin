@@ -258,7 +258,7 @@ int main(int argc, char **argv)
     config.add_options()
         ("total,t",         po::value<unsigned int>()->default_value(4),    "Set number of calculated PI")
         ("start,s",         po::value<unsigned int>()->default_value(1000), "Set starting numbers of points")
-        ("multiplier,m",    po::value<double>()->default_value(2.0),        "Set points multiplier")
+        ("multiplier,m",    po::value<unsigned int>()->default_value(2),        "Set points multiplier")
         ("max-points",      po::value<unsigned int>()->default_value(0),    "Set maximum number of points AND RUN program in PI convergence check mode")
         ("eps,e",           po::value<double>()->default_value(0.01),       "Set calculation accuracy")
 //        ( "select,s", po::value<std::vector<unsigned int>>()->multitoken()->value_name("\"total_pi, points_start, points_multiplier, eps\""),  "Run PI calculation" )
@@ -302,12 +302,12 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
     }
     
-    unsigned int total_pi       = vm["total"].as<unsigned int>(),
-                 points_start   = vm["start"].as<unsigned int>(),
-                 max_points     = vm["max-points"].as<unsigned int>();
+    unsigned int total_pi           = vm["total"].as<unsigned int>(),
+                 points_start       = vm["start"].as<unsigned int>(),
+                 max_points         = vm["max-points"].as<unsigned int>(),
+                 points_multiplier  = vm["multiplier"].as<unsigned int>();
 
-    double points_multiplier    = vm["multiplier"].as<double>(),
-           eps                  = vm["eps"].as<double>();
+    double eps = vm["eps"].as<double>();
 
     logger->info("Command line arguments:\ntotal_pi: {}\npoints_start: {}\nmax_points: {}\npoints_multiplier: {}\neps: {}\n", 
         total_pi, points_start, max_points, points_multiplier, eps);

@@ -17,9 +17,6 @@ extern "C"
 
 namespace bp = boost::process;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-
 TEST(TruePISelectorClass, basic_usage_test)
 {
     TruePISelector selector(6, 1000, 2, 0.01);
@@ -30,8 +27,10 @@ TEST(TruePISelectorClass, basic_usage_test)
     ASSERT_NEAR(pi, 3.14, 0.01);
 }
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
 TEST(TruePISelectorClass, zero_total_pi_test)
 {
     EXPECT_THROW({
@@ -49,7 +48,9 @@ TEST(TruePISelectorClass, zero_total_pi_test)
         }
     }, std::exception);
 }
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 // TODO
 //void run_subprocess()

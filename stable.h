@@ -1,14 +1,22 @@
 #pragma once
 
-#ifdef _MSC_VER
-    __pragma(warning(disable: 4005 4193 4244 4668))
-#endif
+//#ifdef _MSC_VER
+//#pragma warning(push)
+//#pragma warning(disable: 4005)
+//#pragma warning(disable: 193)
+//#pragma warning(disable: 4244)
+//#pragma warning(disable: 4668)
+//#endif
 
 // generators library
 #include "random/src/xor_shift.h"
 #include "random/src/xor_shift_thread_safe.h"
 
 #ifdef __cplusplus
+    #include <boost/program_options.hpp>
+    #include <boost/program_options/errors.hpp>
+    #include <boost/filesystem.hpp>
+
     #include <iostream>
     #include <fstream>
     #include <iomanip>
@@ -26,15 +34,15 @@
     #include <algorithm>
     #include <stdexcept>
     #include <iterator>
-    
+
+#ifdef __GNUC__    
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
     #include <strstream>
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
-
-    #include <boost/program_options.hpp>
-    #include <boost/program_options/errors.hpp>
-    #include <boost/filesystem.hpp>
+#endif
 
     #include <spdlog/spdlog.h>
 //    #include <spdlog/sinks/basic_file_sink.h>
@@ -50,7 +58,11 @@
 #include <malloc.h>
 
 #ifdef _WIN32
-    #include <windows.h>
+    #ifdef __cplusplus
+        #include <WinSock2.h>
+    #else
+        #include <windows.h>
+    #endif
     #include <sysinfoapi.h>
 #else
     #include <sys/time.h>
@@ -81,5 +93,10 @@
 #if defined (__APPLE__) || defined (__MACH__)
     #include <OpenCL/opencl.h>
 #else
-    #include <CL/cl.h>
+    #ifdef _MSC_VER
+        #pragma warning(disable: 4193)
+        #include <CL/cl.h>
+    #else
+        #include <CL/cl.h>
+    #endif
 #endif
