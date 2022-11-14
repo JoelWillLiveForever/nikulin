@@ -1,6 +1,6 @@
-/* Условие задачи 1:
- * Имеется 10 гирь весом 100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000 и 3000 г.
- * Сколькими способами гирями этого набора можно составить вес в V грамм? */
+/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 1:
+ * пїЅпїЅпїЅпїЅпїЅпїЅпїЅ 10 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000 пїЅ 3000 пїЅ.
+ * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ V пїЅпїЅпїЅпїЅпїЅ? */
 
 #include "version.h"
 #include "wc_module.h"
@@ -72,11 +72,11 @@ int print_help_message(char* argv[])
         example2[40];
 
     err = snprintf(example1, sizeof(example1), "%s", "./executable");
-    if (err < 0 || err >= sizeof(example1))
+    if (err < 0 || (unsigned long)err >= sizeof(example1))
         return err; // bad exit, if value != 0
 
     err = snprintf(example2, sizeof(example2), "%s%s", "./executable", " --show-combinations");
-    if (err < 0 || err >= sizeof(example1))
+    if (err < 0 || (unsigned long)err >= sizeof(example1))
         return err; // bad exit, if value != 0
 
     err = printf("\nExamples:\n\n"
@@ -119,16 +119,16 @@ int main(int argc, char* argv[])
     int option_index = 0;
     int opt;
 
-    // дефолтный конфиг программы
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     bool isSeconds = false,
         isMilliseconds = false,
         isMicroseconds = false,
         isNanoseconds = false,
 
-        isShowCombinations = false, // вывод комбинаций
+        isShowCombinations = false, // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-        isReadFromFile = true;     // по дефолту читаем из файла
-    //isOutputToFile = false;    // по дефолту выводим результат в терминал
+        isReadFromFile = true;     // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+    //isOutputToFile = false;    // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
     char* file_source = "source_wc.txt";
     //char file_output[BUFSIZE] = "output_wc.txt";
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
 
             char file_source_tmp[BUFSIZE];
             error_code = snprintf(file_source_tmp, sizeof(file_source_tmp), "%s", optarg);
-            if (error_code < 0 || error_code >= sizeof(file_source_tmp))
+            if (error_code < 0 || (unsigned long)error_code >= sizeof(file_source_tmp))
             {
                 fprintf(stderr, "Error: cannot read source file name: %s, error_code: %d", optarg, error_code);
                 return EXIT_READ_FILENAME_FAILURE;
@@ -349,13 +349,13 @@ int main(int argc, char* argv[])
         FILE* file;
         if ((file = fopen(file_source, "r")) == NULL)
         {
-            // читаем из файла
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             fprintf(stderr, "Error: cannot opening file");
             return EXIT_OPEN_FILE_FAILURE;
         }
 
-        buffer = BUFSIZE;  // буфер номенклатуры весов
-        nomenclature = (unsigned int*)calloc(buffer, sizeof(unsigned int));   // номенклатура весов
+        buffer = BUFSIZE;  // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+        nomenclature = (unsigned int*)calloc(buffer, sizeof(unsigned int));   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         if (!nomenclature)
             return errno;
         nomenclature_end = nomenclature + buffer;
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
         int read_int = 0;
         while (true)
         {
-            // последнее число в файле, это целевой вес
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
             if (fscanf(file, "%d%*c", &read_int) == EOF)
             {
                 if (!target)
@@ -387,14 +387,14 @@ int main(int argc, char* argv[])
                 nomenclature_end = nomenclature + buffer;
             }
 
-            // значения гирь не должны быть отрицательными или нулевыми
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (read_int <= 0)
             {
                 fprintf(stderr, "Error: one or more weights contain negative values");
                 return EXIT_NOMENCLATURE_NEGATIVE_WEIGHT_VALUE;
             }
 
-            nomenclature[i++] = (unsigned int)read_int; // установить значение гири в массив номенклатур
+            nomenclature[i++] = (unsigned int)read_int; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
         fclose(file);
     }
@@ -402,7 +402,7 @@ int main(int argc, char* argv[])
     if (!target)
         target = 11200;
 
-    // удалить нулевые веса
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     unsigned int nomenclature_size = 0;
     for (unsigned int* ptr = nomenclature; ptr != nomenclature + buffer; ptr++)
         if (*ptr) nomenclature_size++;
@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
 #else
     gettimeofday(&begin, 0);
 
-    number_of_combinations = get_number_of_combinations(&solution, nomenclature, &weights_size, &target, &combinations);
+    number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &combinations);
     if (number_of_combinations == -1 || !combinations)
         return number_of_combinations;
 
@@ -447,12 +447,12 @@ int main(int argc, char* argv[])
     {
         for (unsigned int** combination = combinations, **combination_end = combinations + number_of_combinations; combination != combination_end; combination++)
         {
-            fprintf(stdout, "\n");
+            fprintf(stdout, "%s\n", " ");
             for (unsigned int* weight = *combination, *weight_end = *combination + nomenclature_size; weight != weight_end; weight++)
                 if (*weight)
-                    fprintf(stdout, "%u ", *weight);
+                    fprintf(stdout, "%u%s", *weight, " ");
         }
-        fprintf(stdout, "\n");
+        fprintf(stdout, "%s\n", " ");
     }
 
 #ifdef _WIN32

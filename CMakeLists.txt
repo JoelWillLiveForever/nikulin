@@ -55,6 +55,13 @@ if (WIN32)
     
     message("-- GETOPT_INCLUDE_DIR: ${GETOPT_INCLUDE_DIR}")
     message("-- GETOPT_LIBRARY: ${GETOPT_LIBRARY}")
+else()
+    # https://github.com/FXIhub/spsim/blob/master/cmake/Modules/FindMATH.cmake
+    find_path(MATH_INCLUDE_DIR math.h)
+    include_directories(${MATH_INCLUDE_DIR})
+
+    set(MATH_NAMES ${MATH_NAMES} m)
+    find_library(MATH_LIBRARY NAMES ${MATH_NAMES})
 endif()
 
 find_package(GTest CONFIG REQUIRED)
@@ -141,7 +148,9 @@ target_link_libraries(WeightCombinations-C PRIVATE
     modules
     generators
     ${GETOPT_LIBRARY}
+    ${MATH_LIBRARY}
 )
+
 target_precompile_headers(WeightCombinations-C REUSE_FROM modules)
 add_custom_command(TARGET WeightCombinations-C POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

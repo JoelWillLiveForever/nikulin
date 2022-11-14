@@ -674,6 +674,7 @@ TEST(Main_C, get_combinations_values_test)
     bp::child c("WeightCombinations-C -c -t 1000", bp::std_out > pipe_stream);
 #endif
 
+#ifdef _WIN32
     std::string line;
     std::ostringstream out;
 
@@ -681,10 +682,16 @@ TEST(Main_C, get_combinations_values_test)
         out << line;
     c.wait();
 
-#ifdef _WIN32
-    ASSERT_EQ(out.str(), "2\r\r200 300 500 \r1000 \r");
+    ASSERT_EQ(out.str(), "2\r \r200 300 500  \r1000  \r");
 #else
-    ASSERT_EQ(out.str(), "2\n\n200 300 500 \n1000 \n");
+    std::vector<std::string> data;
+    std::string line;
+
+    while (c.running() && std::getline(pipe_stream, line) && !line.empty())
+        data.push_back(line);
+    c.wait();
+
+    ASSERT_THAT(data, ::testing::ElementsAre("2", " ", "200 300 500  ", "1000  "));
 #endif
 }
 

@@ -3,7 +3,7 @@
 #include "wc_module.h"
 #include "../random/src/xor_shift.h"
 
-void search_combinations_recursive(unsigned int target, unsigned int weight, unsigned int weight_id, unsigned int* nomenclature, unsigned int* weights_ids, unsigned int* nomenclature_size, unsigned int* current_combination, int* weights_counter, unsigned int* weights_ids_sums, int* number_of_combinations, unsigned int** combinations, unsigned int* max_combinations, const unsigned int* original_nomenclature_size)
+void search_combinations_recursive(int target, unsigned int weight, unsigned int weight_id, unsigned int* nomenclature, unsigned int* weights_ids, unsigned int* nomenclature_size, unsigned int* current_combination, int* weights_counter, unsigned int* weights_ids_sums, int* number_of_combinations, unsigned int** combinations, unsigned int* max_combinations, const unsigned int* original_nomenclature_size)
 {
     (*weights_counter)++;
     current_combination[*weights_counter] = weight;
