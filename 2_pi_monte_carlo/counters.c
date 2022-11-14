@@ -1,5 +1,3 @@
-#include "../stable.h"  // C precompiled headers
-
 #include "counters.h"
 
 struct PIPoints

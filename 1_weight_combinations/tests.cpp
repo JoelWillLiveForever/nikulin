@@ -3,7 +3,14 @@
 
 #include <boost/process.hpp>
 
+// протестим CPP проги
 #include "weight_combinator.hpp"
+
+// протестим C проги
+extern "C"
+{
+    #include "wc_module.h"
+};
 
 /* 
 тест на правильность работы класса

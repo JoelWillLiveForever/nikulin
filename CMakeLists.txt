@@ -93,6 +93,9 @@ add_library(generators STATIC
 
 # C libraries
 add_library(modules STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/wc_module.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/wc_module.c
+
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/counters.h
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/counters.c
 
@@ -132,14 +135,29 @@ target_link_libraries(classes PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
 # add executables
 # Weight Combinations
 add_executable(WeightCombinations-C
-    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinations.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/main.c
+)
+target_link_libraries(WeightCombinations-C PRIVATE
+    modules
+    generators
+    ${GETOPT_LIBRARY}
 )
 target_precompile_headers(WeightCombinations-C REUSE_FROM modules)
+add_custom_command(TARGET WeightCombinations-C POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/source.txt
+        $<TARGET_FILE_DIR:WeightCombinations-C>/source_wc.txt
+)
 
-add_executable(WeightCombinations-C-DETAILED
+add_executable(WeightCombinations-C-DETAIL
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinations_detail.c
 )
-target_precompile_headers(WeightCombinations-C-DETAILED REUSE_FROM modules)
+target_precompile_headers(WeightCombinations-C-DETAIL REUSE_FROM modules)
+add_custom_command(TARGET WeightCombinations-C-DETAIL POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/source.txt
+        $<TARGET_FILE_DIR:WeightCombinations-C>/source_wc.txt
+)
 
 add_executable(WeightCombinations-CPP
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/main.cpp
@@ -156,10 +174,11 @@ add_custom_command(TARGET WeightCombinations-CPP POST_BUILD
         $<TARGET_FILE_DIR:WeightCombinations-CPP>/source_weight_combinations.txt
 )
 
-add_executable(WeightCombinations-CPP-TESTS
+add_executable(WeightCombinations-TESTS
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/tests.cpp
 )
-target_link_libraries(WeightCombinations-CPP-TESTS PRIVATE
+target_link_libraries(WeightCombinations-TESTS PRIVATE
+    modules
     classes
     GTest::gmock
     GTest::gtest 
@@ -167,7 +186,7 @@ target_link_libraries(WeightCombinations-CPP-TESTS PRIVATE
     GTest::gtest_main
     Boost::filesystem
 )
-target_precompile_headers(WeightCombinations-CPP-TESTS REUSE_FROM classes)
+target_precompile_headers(WeightCombinations-TESTS REUSE_FROM classes)
 
 # # PI Monte Carlo
 add_executable(PIMonteCarlo-C 
