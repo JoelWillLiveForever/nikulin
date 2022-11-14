@@ -1,6 +1,6 @@
-/* ������� ������ 1:
- * ������� 10 ���� ����� 100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000 � 3000 �.
- * ��������� ��������� ������ ����� ������ ����� ��������� ��� � V �����? */
+﻿/* Условие задачи 1:
+ * Имеется 10 гирь весом 100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000 и 3000 г.
+ * Сколькими способами гирями этого набора можно составить вес в V грамм? */
 
 #include "version.h"
 #include "wc_module.h"
@@ -119,16 +119,16 @@ int main(int argc, char* argv[])
     int option_index = 0;
     int opt;
 
-    // ��������� ������ ���������
+    // дефолтный конфиг программы
     bool isSeconds = false,
         isMilliseconds = false,
         isMicroseconds = false,
         isNanoseconds = false,
 
-        isShowCombinations = false, // ����� ����������
+        isShowCombinations = false, // отобразить комбинации
 
-        isReadFromFile = true;     // �� ������� ������ �� �����
-    //isOutputToFile = false;    // �� ������� ������� ��������� � ��������
+        isReadFromFile = true;     // читать из файла
+    //isOutputToFile = false;
 
     char* file_source = "source_wc.txt";
     //char file_output[BUFSIZE] = "output_wc.txt";
@@ -349,13 +349,13 @@ int main(int argc, char* argv[])
         FILE* file;
         if ((file = fopen(file_source, "r")) == NULL)
         {
-            // ������ �� �����
+            // ошибка при открытии файла
             fprintf(stderr, "Error: cannot opening file");
             return EXIT_OPEN_FILE_FAILURE;
         }
 
-        buffer = BUFSIZE;  // ����� ������������ �����
-        nomenclature = (unsigned int*)calloc(buffer, sizeof(unsigned int));   // ������������ �����
+        buffer = BUFSIZE;
+        nomenclature = (unsigned int*)calloc(buffer, sizeof(unsigned int));   // номенклатура гирь
         if (!nomenclature)
             return errno;
         nomenclature_end = nomenclature + buffer;
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
         int read_int = 0;
         while (true)
         {
-            // ��������� ����� � �����, ��� ������� ���
+            // читаем данные из файла
             if (fscanf(file, "%d%*c", &read_int) == EOF)
             {
                 if (!target)
@@ -387,14 +387,14 @@ int main(int argc, char* argv[])
                 nomenclature_end = nomenclature + buffer;
             }
 
-            // �������� ���� �� ������ ���� �������������� ��� ��������
+            // если обнаружен отрицательный вес -> ошибка
             if (read_int <= 0)
             {
                 fprintf(stderr, "Error: one or more weights contain negative values");
                 return EXIT_NOMENCLATURE_NEGATIVE_WEIGHT_VALUE;
             }
 
-            nomenclature[i++] = (unsigned int)read_int; // ���������� �������� ���� � ������ �����������
+            nomenclature[i++] = (unsigned int)read_int; // если всё хорошо, добавить гирю к номенклатуре
         }
         fclose(file);
     }
@@ -402,7 +402,7 @@ int main(int argc, char* argv[])
     if (!target)
         target = 11200;
 
-    // ������� ������� ����
+    // рассчитываем размер номенклатуры
     unsigned int nomenclature_size = 0;
     for (unsigned int* ptr = nomenclature; ptr != nomenclature + buffer; ptr++)
         if (*ptr) nomenclature_size++;
