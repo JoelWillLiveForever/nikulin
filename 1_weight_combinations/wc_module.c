@@ -333,12 +333,12 @@ int solution_bits(unsigned int* nomenclature, unsigned int* nomenclature_size, u
         return -1;
     }
 
-    // проверка на нулевой target
-    if (*target == 0)
-    {
-        fprintf(stderr, "Zero target weight: %u\n", *target);
-        return -1;
-    }
+    //// проверка на нулевой target
+    //if (*target == 0)
+    //{
+    //    fprintf(stderr, "Zero target weight: %u\n", *target);
+    //    return -1;
+    //}
 
     // число для проверки комбинаций гирь, с помощью битов числа
     unsigned int combinator = 1;
@@ -418,15 +418,6 @@ int get_number_of_combinations(enum Solution* solution, unsigned int* nomenclatu
         return -1;
     }
 
-    if (*out_combinations)
-    {
-        // если out_combinations не пустой, очистить
-        free(*out_combinations);
-        *out_combinations = 0;
-
-        fprintf(stdout, "Array '***out_combinations' was not empty\n");
-    }
-
     // find min_weight and weights_sum
     unsigned int min_weight = UINT_MAX,
         weights_sum = 0;
@@ -437,6 +428,12 @@ int get_number_of_combinations(enum Solution* solution, unsigned int* nomenclatu
         if (*ptr && min_weight > *ptr)
             min_weight = *ptr;
         weights_sum += *ptr;
+    }
+
+    if (*target == 0)   // вес не должен быть нулевым
+    {
+        fprintf(stderr, "Zero target weight\n");
+        return -1;
     }
 
     if (*target < min_weight || *target > weights_sum)

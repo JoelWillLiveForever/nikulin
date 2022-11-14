@@ -61,7 +61,8 @@ void WeightCombinator::combine(unsigned int target, WeightCombinator::Combinatio
         combinator++;
     }
     
-    combinations.erase(unique(combinations.begin(), combinations.end()), combinations.end());   // удалить дубликаты
+    // TODO: сделать опцию program_options 'удалять дубликаты' если не нужно учитывать id-гири
+    //combinations.erase(unique(combinations.begin(), combinations.end()), combinations.end());   // удалить дубликаты
 }
 
 //TODO: try fix it

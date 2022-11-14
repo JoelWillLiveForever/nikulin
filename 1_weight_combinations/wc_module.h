@@ -1,6 +1,8 @@
 #ifndef __WC_MODULE_H__ // Include Guard
 #define __WC_MODULE_H__
 
+#include "../random/src/xor_shift.h"
+
 enum Solution
 {
     RECURSIVE,

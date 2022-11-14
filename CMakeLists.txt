@@ -179,6 +179,7 @@ add_executable(WeightCombinations-TESTS
 )
 target_link_libraries(WeightCombinations-TESTS PRIVATE
     modules
+    generators
     classes
     GTest::gmock
     GTest::gtest 

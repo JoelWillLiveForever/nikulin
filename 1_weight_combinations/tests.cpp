@@ -12,6 +12,8 @@ extern "C"
     #include "wc_module.h"
 };
 
+namespace bp = boost::process;
+
 /* 
 тест на правильность работы класса
 должен выдавать две комбинации: {100, 200} и {300}
@@ -223,6 +225,14 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_resu
 {
     WeightCombinator::Combinations expected = {
         {100, 100, 100},
+        {100, 200},
+        {100, 200},
+        {100, 200},
+        {100, 200},
+        {100, 200},
+        {100, 200},
+        {100, 200},
+        {100, 200},
         {100, 200}
     };
     
@@ -236,9 +246,6 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_resu
     ASSERT_THAT(result, expected);
 }
 
-// TODO
-// FIXME
-// TEST NOT WORK
 /*
 усложнение предыдущего теста
 вместо одной одинаковый гири -> несколько одинаковых
@@ -246,19 +253,18 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_resu
 TEST(WeightCombinatorClass, combine_all_weights_are_same_some_combination_in_result_test)
 {
     WeightCombinator::Combinations expected = {
-        {100, 100, 100, 100, 100},
-        {100, 100, 100, 200},
-        {100, 200, 200},
-        // {100, 100, 100, 200},
-        // {100, 200, 200},
-        {250, 250},
-        {100, 400},
-        {500}
+        {100, 100, 100},
+        {100, 100, 100},
+        {100, 100, 100},
+        {100, 100, 100},
+        {300},
+        {300},
+        {300}
     };
    
-    WeightCombinator::Weights weights = {100, 100, 100, 100, 100, 200, 200, 200, 250, 250, 400, 400, 500};
+    WeightCombinator::Weights weights = {100, 100, 100, 300, 300, 100, 300};
     WeightCombinator::Combinations result;
-    int target = 500;
+    int target = 300;
 
     WeightCombinator combinator;
     combinator.combine(target, result, weights);
@@ -266,7 +272,6 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_some_combination_in_res
     ASSERT_THAT(result, expected);
 }
 
-namespace bp = boost::process;
 TEST(Main, basic_usage_test)
 {
     bp::ipstream pipe_stream;
@@ -288,6 +293,398 @@ TEST(Main, basic_usage_test)
     ASSERT_EQ(out.str(), "100 200 300 500 1000 1200 1400 1500 2000 3000 \r");
 #else
     ASSERT_EQ(out.str(), "100 200 300 500 1000 1200 1400 1500 2000 3000 ");
+#endif
+}
+
+// Тесты C кода
+TEST(get_number_of_combinations, basic_bits_test)
+{
+    unsigned int expected_number_of_combinations = 2;
+
+    unsigned int nomenclature_size = 10;
+    unsigned int* nomenclature = (unsigned int*)calloc(nomenclature_size, sizeof(unsigned int));
+    if (!nomenclature)
+    {
+        FAIL() << "Cannot create '*nomenclature' dynamic array\n";
+        return;
+    }
+    //ASSERT_TRUE(nomenclature != nullptr);
+
+    nomenclature[0] = 100;
+    nomenclature[1] = 200;
+    nomenclature[2] = 300;
+    nomenclature[3] = 500;
+    nomenclature[4] = 1000;
+    nomenclature[5] = 1200;
+    nomenclature[6] = 1400;
+    nomenclature[7] = 1500;
+    nomenclature[8] = 2000;
+    nomenclature[9] = 3000;
+
+    unsigned int target = 300;
+    enum Solution solution = BITS;
+
+    unsigned int** result;
+    int number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &result);
+
+    ASSERT_EQ(number_of_combinations, expected_number_of_combinations);
+
+    ASSERT_EQ(result[0][0], 100);
+    ASSERT_EQ(result[0][1], 200);
+    ASSERT_EQ(result[1][0], 300);
+}
+
+TEST(get_number_of_combinations, basic_recursive_test)
+{
+    unsigned int expected_number_of_combinations = 2;
+
+    unsigned int nomenclature_size = 10;
+    unsigned int* nomenclature = (unsigned int*)calloc(nomenclature_size, sizeof(unsigned int));
+    if (!nomenclature)
+    {
+        FAIL() << "Cannot create '*nomenclature' dynamic array\n";
+        return;
+    }
+
+    nomenclature[0] = 100;
+    nomenclature[1] = 200;
+    nomenclature[2] = 300;
+    nomenclature[3] = 500;
+    nomenclature[4] = 1000;
+    nomenclature[5] = 1200;
+    nomenclature[6] = 1400;
+    nomenclature[7] = 1500;
+    nomenclature[8] = 2000;
+    nomenclature[9] = 3000;
+
+    unsigned int target = 300;
+    enum Solution solution = RECURSIVE;
+
+    unsigned int** result;
+    int number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &result);
+
+    ASSERT_EQ(number_of_combinations, expected_number_of_combinations);
+
+    ASSERT_EQ(result[0][0], 100);
+    ASSERT_EQ(result[0][1], 200);
+    ASSERT_EQ(result[1][0], 300);
+}
+
+TEST(get_number_of_combinations, combine_all_weights_are_same_bits_test)
+{
+    unsigned int expected_number_of_combinations = 4;
+
+    unsigned int nomenclature_size = 4;
+    unsigned int* nomenclature = (unsigned int*)calloc(nomenclature_size, sizeof(unsigned int));
+    if (!nomenclature)
+    {
+        FAIL() << "Cannot create '*nomenclature' dynamic array\n";
+        return;
+    }
+
+    nomenclature[0] = 100;
+    nomenclature[1] = 100;
+    nomenclature[2] = 100;
+    nomenclature[3] = 100;
+
+    unsigned int target = 300;
+    enum Solution solution = BITS;
+
+    unsigned int** result;
+    int number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &result);
+
+    ASSERT_EQ(number_of_combinations, expected_number_of_combinations);
+
+    ASSERT_EQ(result[0][0], 100);
+    ASSERT_EQ(result[0][1], 100);
+    ASSERT_EQ(result[0][2], 100);
+    
+    ASSERT_EQ(result[1][0], 100);
+    ASSERT_EQ(result[1][1], 100);
+    ASSERT_EQ(result[1][2], 100);
+
+    ASSERT_EQ(result[2][0], 100);
+    ASSERT_EQ(result[2][1], 100);
+    ASSERT_EQ(result[2][2], 100);
+
+    ASSERT_EQ(result[3][0], 100);
+    ASSERT_EQ(result[3][1], 100);
+    ASSERT_EQ(result[3][2], 100);
+}
+
+TEST(get_number_of_combinations, combine_all_weights_are_same_recursive_test)
+{
+    unsigned int expected_number_of_combinations = 4;
+
+    unsigned int nomenclature_size = 4;
+    unsigned int* nomenclature = (unsigned int*)calloc(nomenclature_size, sizeof(unsigned int));
+    if (!nomenclature)
+    {
+        FAIL() << "Cannot create '*nomenclature' dynamic array\n";
+        return;
+    }
+
+    nomenclature[0] = 100;
+    nomenclature[1] = 100;
+    nomenclature[2] = 100;
+    nomenclature[3] = 100;
+
+    unsigned int target = 300;
+    enum Solution solution = RECURSIVE;
+
+    unsigned int** result;
+    int number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &result);
+
+    ASSERT_EQ(number_of_combinations, expected_number_of_combinations);
+
+    ASSERT_EQ(result[0][0], 100);
+    ASSERT_EQ(result[0][1], 100);
+    ASSERT_EQ(result[0][2], 100);
+
+    ASSERT_EQ(result[1][0], 100);
+    ASSERT_EQ(result[1][1], 100);
+    ASSERT_EQ(result[1][2], 100);
+
+    ASSERT_EQ(result[2][0], 100);
+    ASSERT_EQ(result[2][1], 100);
+    ASSERT_EQ(result[2][2], 100);
+
+    ASSERT_EQ(result[3][0], 100);
+    ASSERT_EQ(result[3][1], 100);
+    ASSERT_EQ(result[3][2], 100);
+}
+
+TEST(get_number_of_combinations, all_weights_are_same_two_values_bits_test)
+{
+    unsigned int expected_number_of_combinations = 7;
+
+    unsigned int nomenclature_size = 7;
+    unsigned int* nomenclature = (unsigned int*)calloc(nomenclature_size, sizeof(unsigned int));
+    if (!nomenclature)
+    {
+        FAIL() << "Cannot create '*nomenclature' dynamic array\n";
+        return;
+    }
+
+    nomenclature[0] = 100;
+    nomenclature[1] = 100;
+    nomenclature[2] = 100;
+    nomenclature[3] = 300;
+    nomenclature[4] = 300;
+    nomenclature[5] = 100;
+    nomenclature[6] = 300;
+
+    unsigned int target = 300;
+    enum Solution solution = BITS;
+
+    unsigned int** result;
+    int number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &result);
+
+    ASSERT_EQ(number_of_combinations, expected_number_of_combinations);
+
+    //for (int i = 0; i < number_of_combinations; i++)
+    //{
+    //    std::cout << "\n";
+    //    for (unsigned int j = 0; j < nomenclature_size; j++)
+    //    {
+    //        std::cout << result[i][j] << " ";
+    //    }
+    //}
+
+    ASSERT_EQ(result[0][0], 100);
+    ASSERT_EQ(result[0][1], 100);
+    ASSERT_EQ(result[0][2], 100);
+
+    ASSERT_EQ(result[1][0], 300);
+
+    ASSERT_EQ(result[2][0], 300);
+
+    ASSERT_EQ(result[3][0], 100);
+    ASSERT_EQ(result[3][1], 100);
+    ASSERT_EQ(result[3][2], 100);
+
+    ASSERT_EQ(result[4][0], 100);
+    ASSERT_EQ(result[4][1], 100);
+    ASSERT_EQ(result[4][2], 100);
+
+    ASSERT_EQ(result[5][0], 100);
+    ASSERT_EQ(result[5][1], 100);
+    ASSERT_EQ(result[5][2], 100);
+
+    ASSERT_EQ(result[6][0], 300);
+}
+
+TEST(get_number_of_combinations, all_weights_are_same_two_values_recursive_test)
+{
+    unsigned int expected_number_of_combinations = 7;
+
+    unsigned int nomenclature_size = 7;
+    unsigned int* nomenclature = (unsigned int*)calloc(nomenclature_size, sizeof(unsigned int));
+    if (!nomenclature)
+    {
+        FAIL() << "Cannot create '*nomenclature' dynamic array\n";
+        return;
+    }
+
+    nomenclature[0] = 100;
+    nomenclature[1] = 100;
+    nomenclature[2] = 100;
+    nomenclature[3] = 300;
+    nomenclature[4] = 300;
+    nomenclature[5] = 100;
+    nomenclature[6] = 300;
+
+    unsigned int target = 300;
+    enum Solution solution = RECURSIVE;
+
+    unsigned int** result;
+    int number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &result);
+
+    ASSERT_EQ(number_of_combinations, expected_number_of_combinations);
+
+    //for (int i = 0; i < number_of_combinations; i++)
+    //{
+    //    std::cout << "\n";
+    //    for (unsigned int j = 0; j < nomenclature_size; j++)
+    //    {
+    //        std::cout << result[i][j] << " ";
+    //    }
+    //}
+
+    ASSERT_EQ(result[0][0], 100);
+    ASSERT_EQ(result[0][1], 100);
+    ASSERT_EQ(result[0][2], 100);
+
+    ASSERT_EQ(result[1][0], 100);
+    ASSERT_EQ(result[1][1], 100);
+    ASSERT_EQ(result[1][2], 100);
+
+    ASSERT_EQ(result[2][0], 100);
+    ASSERT_EQ(result[2][1], 100);
+    ASSERT_EQ(result[2][2], 100);
+
+    ASSERT_EQ(result[3][0], 100);
+    ASSERT_EQ(result[3][1], 100);
+    ASSERT_EQ(result[3][2], 100);
+
+    ASSERT_EQ(result[4][0], 300);
+
+    ASSERT_EQ(result[5][0], 300);
+
+    ASSERT_EQ(result[6][0], 300);
+}
+
+TEST(get_number_of_combinations, zero_target_test)
+{
+    int expected_number_of_combinations = -1;
+
+    unsigned int nomenclature_size = 10;
+    unsigned int* nomenclature = (unsigned int*)calloc(nomenclature_size, sizeof(unsigned int));
+    if (!nomenclature)
+    {
+        FAIL() << "Cannot create '*nomenclature' dynamic array\n";
+        return;
+    }
+
+    nomenclature[0] = 100;
+    nomenclature[1] = 200;
+    nomenclature[2] = 300;
+    nomenclature[3] = 500;
+    nomenclature[4] = 1000;
+    nomenclature[5] = 1200;
+    nomenclature[6] = 1400;
+    nomenclature[7] = 1500;
+    nomenclature[8] = 2000;
+    nomenclature[9] = 3000;
+
+    unsigned int target = 0;
+    enum Solution solution = RECURSIVE;
+
+    ::testing::internal::CaptureStderr();   // перехватываем err msg из stderr
+
+    unsigned int** result;
+    int number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &result);
+
+    std::string errMsg = ::testing::internal::GetCapturedStderr();
+
+    ASSERT_EQ(number_of_combinations, expected_number_of_combinations);
+    ASSERT_EQ(errMsg, "Zero target weight\n");
+}
+
+TEST(get_number_of_combinations, bits_solution_big_nomenclature_test)
+{
+    int expected_number_of_combinations = -1;
+
+    unsigned int nomenclature_size = (unsigned int)_allowed_bits + 1;
+    unsigned int* nomenclature = (unsigned int*)calloc(nomenclature_size, sizeof(unsigned int));
+    if (!nomenclature)
+    {
+        FAIL() << "Cannot create '*nomenclature' dynamic array\n";
+        return;
+    }
+
+    for (unsigned int* ptr = nomenclature, *end = nomenclature + nomenclature_size; ptr != end; ptr++)
+        *ptr = 100;
+
+    unsigned int target = 500;
+    enum Solution solution = BITS;
+
+    ::testing::internal::CaptureStderr();   // перехватываем err msg из stderr
+
+    unsigned int** result;
+    int number_of_combinations = get_number_of_combinations(&solution, nomenclature, &nomenclature_size, &target, &result);
+
+    std::string errMsg = ::testing::internal::GetCapturedStderr();
+
+    ASSERT_EQ(number_of_combinations, expected_number_of_combinations);
+    ASSERT_EQ(errMsg, "Nomenclature size exceeds allowable value: 33\nMax allowed bits: 32\n");
+}
+
+TEST(Main_C, set_target_and_nomenclature_test)
+{
+    bp::ipstream pipe_stream;
+
+#ifdef _WIN32
+    bp::child c("WeightCombinations-C.exe -t 300 -n 100 100 100 100", bp::std_out > pipe_stream);
+#else
+    bp::child c("WeightCombinations-C -t 300 -n 100 100 100 100", bp::std_out > pipe_stream);
+#endif
+
+    std::string line;
+    std::ostringstream out;
+
+    while (pipe_stream && std::getline(pipe_stream, line) && !line.empty())
+        out << line;
+    c.wait();
+
+#ifdef _WIN32
+    ASSERT_EQ(out.str(), "4\r");
+#else
+    ASSERT_EQ(out.str(), "4");
+#endif
+}
+
+TEST(Main_C, get_combinations_values_test)
+{
+    bp::ipstream pipe_stream;
+
+#ifdef _WIN32
+    bp::child c("WeightCombinations-C.exe -c -t 1000", bp::std_out > pipe_stream);
+#else
+    bp::child c("WeightCombinations-C -c -t 1000", bp::std_out > pipe_stream);
+#endif
+
+    std::string line;
+    std::ostringstream out;
+
+    while (pipe_stream && std::getline(pipe_stream, line) && !line.empty())
+        out << line;
+    c.wait();
+
+#ifdef _WIN32
+    ASSERT_EQ(out.str(), "2\r\r200 300 500 \r1000 \r");
+#else
+    ASSERT_EQ(out.str(), "2\n\n200 300 500 \n1000 \n");
 #endif
 }
 
