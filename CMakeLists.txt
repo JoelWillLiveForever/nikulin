@@ -149,16 +149,6 @@ add_custom_command(TARGET WeightCombinations-C POST_BUILD
         $<TARGET_FILE_DIR:WeightCombinations-C>/source_wc.txt
 )
 
-add_executable(WeightCombinations-C-DETAIL
-    ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/weight_combinations_detail.c
-)
-target_precompile_headers(WeightCombinations-C-DETAIL REUSE_FROM modules)
-add_custom_command(TARGET WeightCombinations-C-DETAIL POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/source.txt
-        $<TARGET_FILE_DIR:WeightCombinations-C>/source_wc.txt
-)
-
 add_executable(WeightCombinations-CPP
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/main.cpp
 )
