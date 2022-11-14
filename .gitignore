@@ -54,3 +54,6 @@ build/
 
 # Ignore all CMakeSettings.json files
 CMakeSettings.json
+
+# Ignore /docs dir
+docs/
