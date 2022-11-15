@@ -1,7 +1,25 @@
+/**
+ * @file weight_combinator.cpp
+ * @author Vladimir Nikulin (mail.jorey@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2022-11-15
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include "../stable.h"  // CPP precompiled headers
 
 #include "weight_combinator.hpp"
 
+/**
+ * @brief Реализация метода WeightCombinator::combine(unsigned int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
+ * 
+ * @param target Целевой вес
+ * @param combinations Массив, куда будем сохранять комбинации
+ * @param weights Номенклатура весов
+ */
 void WeightCombinator::combine(unsigned int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
 {
     // если номенклатуры весов не заданы (пустой вектор), то кол-во вариантов точно == 0

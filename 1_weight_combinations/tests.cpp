@@ -1,3 +1,14 @@
+/**
+ * @file tests.cpp
+ * @author Vladimir Nikulin (mail.jorey@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2022-11-15
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -12,14 +23,15 @@ extern "C"
     #include "wc_module.h"
 };
 
+/// @brief Псевдоним для boost::process
 namespace bp = boost::process;
 
-/* 
-тест на правильность работы класса
-должен выдавать две комбинации: {100, 200} и {300}
-при номенклатуре весов {100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000}
-и целевом весе target = 300
-*/
+/**
+ * @brief Тест на правильность работы класса
+ * должен выдавать две комбинации: {100, 200} и {300}
+ * при номенклатуре весов {100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000, 3000}
+ * и целевом весе target = 300
+ */
 TEST(WeightCombinatorClass, combine_basic_test)
 {
     WeightCombinator::Combinations expected = {
@@ -37,10 +49,10 @@ TEST(WeightCombinatorClass, combine_basic_test)
     ASSERT_THAT(result, expected);
 }
 
-/*
-тест метода combinator.combine(target, result, weights)
-должен выдать ошибку при нулевом значении target
-*/
+/**
+ * @brief Тест метода combinator.combine(target, result, weights)
+ * должен выдать ошибку при нулевом значении target
+ */
 TEST(WeightCombinatorClass, combine_zero_target_test)
 {
     WeightCombinator::Weights weights = { 100, 200, 300 };
@@ -61,9 +73,7 @@ TEST(WeightCombinatorClass, combine_zero_target_test)
     }, std::exception);
 }
 
-/*
-сокращённый вариант предыдущего теста
-*/
+/// @brief Сокращённый вариант предыдущего теста TEST(WeightCombinatorClass, combine_zero_target_test)
 TEST(WeightCombinatorClass, combine_zero_target_test_2)
 {
 
@@ -76,11 +86,10 @@ TEST(WeightCombinatorClass, combine_zero_target_test_2)
     EXPECT_THROW(combinator.combine(target, result, weights), std::exception);
 }
 
-/*
-тест метода combinator.combine(target, result, weights)
-при пустой номенклатуре весов
-должна быть выдана ошибка плохого аргумента
-*/
+/**
+ * @brief Тест метода WeightCombinator::combine(unsigned int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights).
+ * При пустой номенклатуре весов должна быть выдана ошибка плохого аргумента
+ */
 TEST(WeightCombinatorClass, combine_empty_collection_test)
 {
     WeightCombinator::Weights weights;          // empty
@@ -101,12 +110,12 @@ TEST(WeightCombinatorClass, combine_empty_collection_test)
     }, std::exception);
 }
 
-/*
-тест метода combinator.combine(target, result, weights)
-если номенклатура больше, чем количество бит в переменной combinator (> 32)
-(биты отвечают за кол-во возможных вариантов наборов гирь)
-должна быть выдана ошибка плохого аргумента
-*/
+/**
+ * @brief Тест метода WeightCombinator::combine(unsigned int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights).
+ * Если номенклатура больше, чем количество бит в переменной combinator (> 32)
+ * (биты отвечают за кол-во возможных вариантов наборов гирь)
+ * должна быть выдана ошибка плохого аргумента
+ */
 TEST(WeightCombinatorClass, combine_big_collection_test)
 {
     WeightCombinator::Weights weights(100);
@@ -127,10 +136,10 @@ TEST(WeightCombinatorClass, combine_big_collection_test)
     }, std::exception);
 }
 
-/*
-тест поведения при одном элементе в номенклатуре весов
-ожидается возврат одной комбинации при совпадении target и weights[0]
-*/
+/**
+ * @brief Тест поведения при одном элементе в номенклатуре весов.
+ * Ожидается возврат одной комбинации при совпадении target и weights[0]
+ */
 TEST(WeightCombinatorClass, combine_one_element_in_collection_test)
 {
     WeightCombinator::Weights weights = {100};
@@ -143,10 +152,10 @@ TEST(WeightCombinatorClass, combine_one_element_in_collection_test)
     ASSERT_THAT(result, WeightCombinator::Combinations{ {100} });
 }
 
-/*
-тест противоположный предыдущему
-ожидается возврат 0 при различных target и weights[0]
-*/
+/**
+ * @brief Тест противоположный тесту TEST(WeightCombinatorClass, combine_one_element_in_collection_test).
+ * Ожидается возврат 0 при различных target и weights[0]
+ */
 TEST(WeightCombinatorClass, combine_one_element_in_collection_bad_target_value_test)
 {
     WeightCombinator::Weights weights = {100};
@@ -159,9 +168,10 @@ TEST(WeightCombinatorClass, combine_one_element_in_collection_bad_target_value_t
     ASSERT_THAT(result, WeightCombinator::Combinations());
 }
 
-/*
-ожидается возврат 0 при различных target = 2637 при несоответствующей номенклатуре весов
-*/
+/**
+ * @brief
+ * Ожидается возврат 0 при различных target = 2637 при несоответствующей номенклатуре весов
+ */
 TEST(WeightCombinatorClass, combine_zero_combination_in_result_test)
 {
     WeightCombinator::Combinations expected;    // empty
@@ -176,10 +186,11 @@ TEST(WeightCombinatorClass, combine_zero_combination_in_result_test)
     ASSERT_THAT(result, expected);
 }
 
-/*
-ожидается возврат 1, максимальный вес "поддерживаемый" номенклатурой == сумме всех весов из номенклатуры
-это одна комбинация всегда
-*/
+/**
+ * @brief
+ * Ожидается возврат 1, максимальный вес "поддерживаемый" номенклатурой == сумме всех весов из номенклатуры.
+ * Это одна комбинация всегда
+ */
 TEST(WeightCombinatorClass, combine_max_combination_in_result_test)
 {
     WeightCombinator::Combinations expected = {
@@ -196,11 +207,12 @@ TEST(WeightCombinatorClass, combine_max_combination_in_result_test)
     ASSERT_THAT(result, expected);
 }
 
-/*
-программа должна работать, даже если номенклатура имеет одинаковые веса
-при номенклатуре {100, 100, 100, 100, 100, 100, 100}, т.е. 7 гирь
-заданный вес target = 700 -> сумма всех семи гирь из номенклатуры даёт комбинацию
-*/
+/**
+ * @brief
+ * Программа должна работать, даже если номенклатура имеет одинаковые веса.
+ * При номенклатуре {100, 100, 100, 100, 100, 100, 100}, т.е. 7 гирь
+ * заданный вес target = 700 -> сумма всех семи гирь из номенклатуры даёт комбинацию
+ */
 TEST(WeightCombinatorClass, combine_all_weights_are_same_one_combination_in_result_test)
 {
     WeightCombinator::Combinations expected = {
@@ -217,10 +229,11 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_one_combination_in_resu
     ASSERT_THAT(result, expected);
 }
 
-/*
-усложнение предыдущего теста
-вместо одной одинаковый гири -> две одинаковые
-*/
+/**
+ * @brief
+ * Усложнение предыдущего теста TEST(WeightCombinatorClass, combine_all_weights_are_same_one_combination_in_result_test).
+ * Вместо одной одинаковый гири -> две одинаковые
+ */
 TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_result_test)
 {
     WeightCombinator::Combinations expected = {
@@ -246,10 +259,10 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_resu
     ASSERT_THAT(result, expected);
 }
 
-/*
-усложнение предыдущего теста
-вместо одной одинаковый гири -> несколько одинаковых
-*/
+/**
+ * @brief Усложнение предыдущего теста TEST(WeightCombinatorClass, combine_all_weights_are_same_two_combination_in_result_test)
+ * Вместо одной одинаковый гири -> несколько одинаковых
+ */
 TEST(WeightCombinatorClass, combine_all_weights_are_same_some_combination_in_result_test)
 {
     WeightCombinator::Combinations expected = {
@@ -272,6 +285,10 @@ TEST(WeightCombinatorClass, combine_all_weights_are_same_some_combination_in_res
     ASSERT_THAT(result, expected);
 }
 
+/**
+ * @brief Тестируем через main()
+ * 
+ */
 TEST(Main, basic_usage_test)
 {
     bp::ipstream pipe_stream;
@@ -297,6 +314,8 @@ TEST(Main, basic_usage_test)
 }
 
 // Тесты C кода
+
+/// @brief Тест битового варианта
 TEST(get_number_of_combinations, basic_bits_test)
 {
     unsigned int expected_number_of_combinations = 2;
@@ -334,6 +353,7 @@ TEST(get_number_of_combinations, basic_bits_test)
     ASSERT_EQ(result[1][0], 300);
 }
 
+/// @brief Тест рекурсивного варианта
 TEST(get_number_of_combinations, basic_recursive_test)
 {
     unsigned int expected_number_of_combinations = 2;
@@ -370,6 +390,7 @@ TEST(get_number_of_combinations, basic_recursive_test)
     ASSERT_EQ(result[1][0], 300);
 }
 
+/// @brief Тест, когда все гири одинаковы. Битовый вариант
 TEST(get_number_of_combinations, combine_all_weights_are_same_bits_test)
 {
     unsigned int expected_number_of_combinations = 4;
@@ -412,6 +433,7 @@ TEST(get_number_of_combinations, combine_all_weights_are_same_bits_test)
     ASSERT_EQ(result[3][2], 100);
 }
 
+/// @brief Тест, когда все гири одинаковы. Рекурсивный вариант
 TEST(get_number_of_combinations, combine_all_weights_are_same_recursive_test)
 {
     unsigned int expected_number_of_combinations = 4;
@@ -454,6 +476,7 @@ TEST(get_number_of_combinations, combine_all_weights_are_same_recursive_test)
     ASSERT_EQ(result[3][2], 100);
 }
 
+/// @brief Тест, когда есть несколько гирь, но значения всего два. Битовый вариант
 TEST(get_number_of_combinations, all_weights_are_same_two_values_bits_test)
 {
     unsigned int expected_number_of_combinations = 7;
@@ -514,6 +537,7 @@ TEST(get_number_of_combinations, all_weights_are_same_two_values_bits_test)
     ASSERT_EQ(result[6][0], 300);
 }
 
+/// @brief Тест, когда есть несколько гирь, но значения всего два. Рекурсивный вариант
 TEST(get_number_of_combinations, all_weights_are_same_two_values_recursive_test)
 {
     unsigned int expected_number_of_combinations = 7;
@@ -574,6 +598,7 @@ TEST(get_number_of_combinations, all_weights_are_same_two_values_recursive_test)
     ASSERT_EQ(result[6][0], 300);
 }
 
+/// @brief Тест на выдачу ошибки, при нулевом целевом весе
 TEST(get_number_of_combinations, zero_target_test)
 {
     int expected_number_of_combinations = -1;
@@ -611,6 +636,7 @@ TEST(get_number_of_combinations, zero_target_test)
     ASSERT_EQ(errMsg, "Zero target weight\n");
 }
 
+/// @brief Тест на выдачу ошибки, при слишком большой номенклатуре. Битовый вариант
 TEST(get_number_of_combinations, bits_solution_big_nomenclature_test)
 {
     int expected_number_of_combinations = -1;
@@ -640,6 +666,7 @@ TEST(get_number_of_combinations, bits_solution_big_nomenclature_test)
     ASSERT_EQ(errMsg, "Nomenclature size exceeds allowable value: 33\nMax allowed bits: 32\n");
 }
 
+/// @brief Тест программы целиком, из дочернего процесса
 TEST(Main_C, set_target_and_nomenclature_test)
 {
     bp::ipstream pipe_stream;
@@ -664,6 +691,7 @@ TEST(Main_C, set_target_and_nomenclature_test)
 #endif
 }
 
+/// @brief Тест печати комбинаций
 TEST(Main_C, get_combinations_values_test)
 {
     bp::ipstream pipe_stream;
@@ -695,6 +723,13 @@ TEST(Main_C, get_combinations_values_test)
 #endif
 }
 
+/**
+ * @brief Точка входа для тестирования
+ * 
+ * @param argc Количество аргументов
+ * @param argv Сами аргументы
+ * @return int Статус код ошибки
+ */
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     ::testing::InitGoogleMock(&argc, argv);

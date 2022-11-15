@@ -1,6 +1,17 @@
-/* Условие задачи 1:
+/**
+ * @file main.cpp
+ * @author Vladimir Nikulin (mail.jorey@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2022-11-15
+ *
+ * Условие задачи 1:
  * Имеется 10 гирь весом 100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000 и 3000 г.
- * Сколькими способами гирями этого набора можно составить вес в V грамм? */ 
+ * Сколькими способами гирями этого набора можно составить вес в V грамм?
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 
 #include "version.h"
 
@@ -8,15 +19,23 @@
 #include "weight_combinator_io.hpp"
 
 // коды ошибок
+/// @brief Ошибка при инициализации логгера
 #define EXIT_FAILURE_LOGGER_INIT 2
+
+/// @brief Ошибка при чтении аргументов с помощью boost::program_options
 #define EXIT_FAILURE_PROGRAM_OPTIONS 3
+
+/// Была встречена какая-то ошибка из std namespace
 #define EXIT_FAILURE_STD 4
 
 namespace po = boost::program_options;
 
 static std::string program_name = "?";
 
-// https://evileg.com/en/post/430/
+/**
+ * @brief Поддерживаемые временные единицы, для измерения скорости выполнения программы
+ * @details https://evileg.com/en/post/430/
+ */
 enum TimeUnit
 {
     OFF,
@@ -26,6 +45,13 @@ enum TimeUnit
     NANOSECONDS
 };
 
+/**
+ * @brief Ввод TimeUnit из stdin
+ * 
+ * @param in Ссылка на объект потока
+ * @param unit Ссылка на объект TimeUnit
+ * @return std::istream& Возвращаем ссылку на объект потока
+ */
 inline std::istream& operator>>(std::istream& in, TimeUnit& unit)
 {
     std::string token;
@@ -49,6 +75,13 @@ inline std::istream& operator>>(std::istream& in, TimeUnit& unit)
     return in;
 }
 
+/**
+ * @brief Вывод TimeUnit в stdout
+ * 
+ * @param out Ссылка на объект потока
+ * @param unit Ссылка на объект TimeUnit
+ * @return std::ostream& Возвращаем ссылку на объект потока
+ */
 inline std::ostream& operator<<(std::ostream& out, const TimeUnit& unit)
 {
     std::string value;
@@ -76,7 +109,16 @@ inline std::ostream& operator<<(std::ostream& out, const TimeUnit& unit)
     return out;
 }
 
+/// @brief Псевдоним (alias) для std::vector<unsigned int>
 using Nomenclature = std::vector<unsigned int>;
+
+/**
+ * @brief Вывод номенклатуры в stdout
+ * 
+ * @param out Ссылка на объект потока
+ * @param v Ссылка на объект Nomenclature (std::vector<unsigned int>)
+ * @return std::ostream& Возвращаем ссылку на объект потока
+ */
 inline std::ostream& operator<<(std::ostream& out, const Nomenclature& v) {
     if (!v.empty())
     {
@@ -93,6 +135,13 @@ inline std::ostream& operator<<(std::ostream& out, const Nomenclature& v) {
     return out;
 }
 
+/**
+ * @brief Точка входа в программу
+ * 
+ * @param argc Количество аргументов
+ * @param argv Сами аргументы
+ * @return int Статус код ошибки
+ */
 int main(int argc, char** argv)
 {
     // вытягиваем имя проги из argv[0]

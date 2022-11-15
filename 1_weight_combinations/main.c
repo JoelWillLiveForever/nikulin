@@ -1,26 +1,51 @@
-﻿/* Условие задачи 1:
+﻿/**
+ * @file main.c
+ * @author Vladimir Nikulin (mail.jorey@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2022-11-15
+ *
+ * Условие задачи 1:
  * Имеется 10 гирь весом 100, 200, 300, 500, 1000, 1200, 1400, 1500, 2000 и 3000 г.
- * Сколькими способами гирями этого набора можно составить вес в V грамм? */
+ * Сколькими способами гирями этого набора можно составить вес в V грамм?
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 
 #include "version.h"
 #include "wc_module.h"
 
-#define EXIT_PRINT_HELP_MSG_FAILURE 2
-#define EXIT_READ_FILENAME_FAILURE 3
-#define EXIT_OPEN_FILE_FAILURE 4
-#define EXIT_NOMENCLATURE_CALLOC_FAILURE 5
-#define EXIT_NOMENCLATURE_REALLOC_FAILURE 6
-#define EXIT_NOMENCLATURE_NEGATIVE_WEIGHT_VALUE 7
-#define EXIT_NOMENCLATURE_STR_BAD_VALUE 8
-#define EXIT_READ_SOLUTION_FAILURE 9
+/// @brief Ошибка при печати help message
+#define EXIT_PRINT_HELP_MSG_FAILURE 2        
 
+/// @brief Невозможно прочитать файл с заданным именем
+#define EXIT_READ_FILENAME_FAILURE 3    
+
+/// @brief Невозможно открыть заданный файл
+#define EXIT_OPEN_FILE_FAILURE 4
+
+/// @brief Невозможно выделить память с помощью calloc
+#define EXIT_NOMENCLATURE_CALLOC_FAILURE 5
+
+/// @brief Невозможно расширить память с помощью realloc
+#define EXIT_NOMENCLATURE_REALLOC_FAILURE 6
+
+/// @brief При чтении файла был встречен отрицацельный вес гири
+#define EXIT_NOMENCLATURE_NEGATIVE_WEIGHT_VALUE 7
+
+/// @brief Невозможно прочитать аргумент командной строки '-s, --solution'
+#define EXIT_READ_SOLUTION_FAILURE 8
+
+/// @brief Стандартный размер буфера, для malloc, calloc, realloc
 #define BUFSIZE 16
 
-/*
-* Print help message to terminal
-* @param[in] argv
-* @param[out] exit_code
-*/
+/**
+ * @brief Печатает help message
+ * 
+ * @param argv Аргументы командной строки
+ * @return int Статус код ошибки, по умолчанию 0
+ */
 int print_help_message(char* argv[])
 {
     int err = printf("Usage:\n\n"
@@ -91,9 +116,13 @@ int print_help_message(char* argv[])
 
 static int verbose_flag;
 
-/*
-* Main entry point of the program
-*/
+/**
+ * @brief Точка входа в программу
+ * 
+ * @param argc Количество переданных аргументов 
+ * @param argv Сами аргументы
+ * @return int Код ошибки, по умолчанию 0
+ */
 int main(int argc, char* argv[])
 {
     // checked options
