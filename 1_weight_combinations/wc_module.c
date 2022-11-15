@@ -1,8 +1,36 @@
+/**
+ * @file wc_module.c
+ * @author Vladimir Nikulin (mail.jorey@gmail.com)
+ * @brief Реализация функционала для модуля wc_module.h
+ * @version 0.1
+ * @date 2022-11-15
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include "../stable.h"  // C precompiled headers
 
 #include "wc_module.h"
 #include "../random/src/xor_shift.h"
 
+/**
+ * @brief Функция рекурсии, каждый раз вызывает саму себя и отнимает по одной гире из номенклатуры
+ * 
+ * @param target Целевой вес, уменьшается с каждой итерацией рекурсии
+ * @param weight Текущая гиря, удаляется из номенклатуры на предыдущей итерации
+ * @param weight_id Id-шник этой гири
+ * @param nomenclature Оставшаяся номенклатура с гирями
+ * @param weights_ids Оставшиеся id-шники
+ * @param nomenclature_size Размер оставшейся номенклатуры
+ * @param current_combination Кандидат в комбинацию, тут храняться все выбранные гири
+ * @param weights_counter Счётчик для current_combination
+ * @param weights_ids_sums Текущая 'накопленная' сумма id-шников, позволяет выявлять уникальные комбинации
+ * @param number_of_combinations Счётчик комбинаций
+ * @param combinations Найденные комбинации
+ * @param max_combinations Максимально возможное количество комбинаций (всегда const)
+ * @param original_nomenclature_size Размер оригинальной номенклатуры гирь
+ */
 void search_combinations_recursive(int target, unsigned int weight, unsigned int weight_id, unsigned int* nomenclature, unsigned int* weights_ids, unsigned int* nomenclature_size, unsigned int* current_combination, int* weights_counter, unsigned int* weights_ids_sums, int* number_of_combinations, unsigned int** combinations, unsigned int* max_combinations, const unsigned int* original_nomenclature_size)
 {
     (*weights_counter)++;
@@ -98,6 +126,15 @@ void search_combinations_recursive(int target, unsigned int weight, unsigned int
     (*weights_counter)--;
 }
 
+/**
+ * @brief Метод, который решает задачу, с помощью рекурсии
+ * 
+ * @param nomenclature Номенклатура гирь
+ * @param nomenclature_size Размер номенклатуры гирь
+ * @param target Целевой вес, для него ищем комбинации
+ * @param out_combinations Итоговые комбинации гирь
+ * @return int Размер массива out_combinations (по совместительству - количество комбинаций для данного целевого веса)
+ */
 int solution_recursive(unsigned int* nomenclature, unsigned int* nomenclature_size, unsigned int* target, unsigned int*** out_combinations)
 {
     // array for weights ids
@@ -227,8 +264,8 @@ int solution_recursive(unsigned int* nomenclature, unsigned int* nomenclature_si
             sub_index++;
         }
 
-        search_combinations_recursive(*target, current_weight, current_weight_id, sub_nomenclature, sub_weights_ids, sub_nomenclature_size, weights_current_combination, weight_counter, weights_ids_sums, number_of_combinations, *out_combinations, max_combinations, nomenclature_size);   // ������ ��������
-        if (*number_of_combinations == -1)  // something error
+        // тут верх рекрсии, запускаем её
+        search_combinations_recursive(*target, current_weight, current_weight_id, sub_nomenclature, sub_weights_ids, sub_nomenclature_size, weights_current_combination, weight_counter, weights_ids_sums, number_of_combinations, *out_combinations, max_combinations, nomenclature_size);        if (*number_of_combinations == -1)  // something error
         {
             fprintf(stderr, "Something error in 'search_combinations_recursive' func\n");
 
@@ -269,6 +306,14 @@ int solution_recursive(unsigned int* nomenclature, unsigned int* nomenclature_si
     return *number_of_combinations;
 }
 
+/**
+ * @brief Вставка гири в конец curr_combination
+ * 
+ * @param curr_combination Массив с использоваными гирями
+ * @param curr_combination_size Его размер
+ * @param value Гиря, значение которой необходимо вставить в массив
+ * @return int Код ошибки, вернёт 0, если нет ошибки
+ */
 int push_weight(unsigned int* curr_combination, unsigned int* curr_combination_size, unsigned int* value)
 {
     if (!curr_combination || !curr_combination_size || !value)
@@ -289,6 +334,15 @@ int push_weight(unsigned int* curr_combination, unsigned int* curr_combination_s
     return -1;
 }
 
+/**
+ * @brief Вставка комбинации в конец combinations
+ * 
+ * @param combinations Массив с итоговыми комбинациями
+ * @param combinations_size Его размер
+ * @param curr_combination Готовая комбинация, которая была найдена ранее
+ * @param original_nomenclature_size Размер этой комбинации
+ * @return int Код ошибки, вернёт 0, если нет ошибки
+ */
 int push_combination(unsigned int*** combinations, unsigned int* combinations_size, unsigned int* curr_combination, unsigned int* original_nomenclature_size)
 {
     if (!*combinations || !combinations_size || !curr_combination)
@@ -317,6 +371,15 @@ int push_combination(unsigned int*** combinations, unsigned int* combinations_si
     return -1;
 }
 
+/**
+ * @brief Метод, который решает задачу, с помощью битов числа
+ * 
+ * @param nomenclature Номенклатура гирь
+ * @param nomenclature_size Размер номенклатуры
+ * @param target Целевой вес, для него ищем комбинации
+ * @param out_combinations Итоговые комбинации гирь
+ * @return int Размер массива out_combinations (по совместительству - количество комбинаций для данного целевого веса)
+ */
 int solution_bits(unsigned int* nomenclature, unsigned int* nomenclature_size, unsigned int* target, unsigned int*** out_combinations)
 {
     if (*nomenclature_size == 0 || *nomenclature_size > (unsigned int)_allowed_bits)
@@ -397,6 +460,16 @@ int solution_bits(unsigned int* nomenclature, unsigned int* nomenclature_size, u
     return number_of_combinations;
 }
 
+/**
+ * @brief Запускает решение в зависимости от выбранного алгоритма solution
+ * 
+ * @param solution Выбранный алгоритм решения
+ * @param nomenclature Номенклатура гирь
+ * @param nomenclature_size Размер номенклатуры
+ * @param target Целевой вес, для него ищем комбинации
+ * @param out_combinations Итоговые комбинации гирь
+ * @return int Размер массива out_combinations (по совместительству - количество комбинаций для данного целевого веса)
+ */
 int get_number_of_combinations(enum Solution* solution, unsigned int* nomenclature, unsigned int* nomenclature_size, unsigned int* target, unsigned int*** out_combinations)
 {
     if (!solution || !nomenclature || !nomenclature_size || !target)

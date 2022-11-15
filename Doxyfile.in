@@ -1,0 +1,14 @@
+PROJECT_NAME           = "Nikulin Tasks"
+OUTPUT_LANGUAGE        = Russian
+
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/docs/
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/1_weight_combinations/ \
+                         @CMAKE_CURRENT_SOURCE_DIR@/2_pi_monte_carlo/ \
+                         @CMAKE_CURRENT_SOURCE_DIR@/3_polygon_traversal_direction/
+
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
