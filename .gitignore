@@ -57,3 +57,6 @@ CMakeSettings.json
 
 # Ignore /docs dir
 docs/
+
+# Ignore all .orig files (astyle)
+*.orig

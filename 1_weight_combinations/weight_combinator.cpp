@@ -1,12 +1,12 @@
 /**
  * @file weight_combinator.cpp
  * @author Vladimir Nikulin (mail.jorey@gmail.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-11-15
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include "../stable.h"  // CPP precompiled headers
@@ -15,70 +15,75 @@
 
 /**
  * @brief Реализация метода WeightCombinator::combine(unsigned int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
- * 
+ *
  * @param target Целевой вес
  * @param combinations Массив, куда будем сохранять комбинации
  * @param weights Номенклатура весов
  */
-void WeightCombinator::combine(unsigned int target, WeightCombinator::Combinations &combinations, WeightCombinator::Weights &weights)
+void WeightCombinator::combine( unsigned int target, WeightCombinator::Combinations &combinations,
+                                WeightCombinator::Weights &weights )
 {
     // если номенклатуры весов не заданы (пустой вектор), то кол-во вариантов точно == 0
     // или их кол-во больше числа битов в combinator (32)
-    if ( weights.size() == 0 || weights.size() > static_cast<size_t>(allowed_bits_) )
-#ifdef _WIN32
-        throw std::exception("Invalid weights size");
-#else
-        throw std::runtime_error("Invalid weights size");
-#endif
+    if ( weights.size() == 0 || weights.size() > static_cast<size_t>( allowed_bits_ ) )
+    #ifdef _WIN32
+        throw std::exception( "Invalid weights size" );
+
+    #else
+        throw std::runtime_error( "Invalid weights size" );
+    #endif
 
     // проверка на нулевой target
     if ( target == 0 )
-#ifdef _WIN32
-        throw std::exception("Zero target weight");
-#else
-        throw std::runtime_error("Zero target weight");
-#endif
+    #ifdef _WIN32
+        throw std::exception( "Zero target weight" );
+
+    #else
+        throw std::runtime_error( "Zero target weight" );
+    #endif
 
     // число для проверки комбинаций гирь, с помощью битов числа
     unsigned int combinator = 1;
-    
+
     // сортировка набора гирь, вдруг веса идут не по порядку
-    std::sort(weights.begin(), weights.end());
+    std::sort( weights.begin(), weights.end() );
 
     // максиммальное число комбинаций и итератор на номенклатуру весов
-    unsigned int all_combinations = (unsigned int)::pow(2, weights.size());
+    unsigned int all_combinations = ( unsigned int )::pow( 2, weights.size() );
     WeightCombinator::Weights::iterator iter = weights.begin();
 
     // проходимся по всем уникальным комбинациям, увеличивая combinator на 1
-    while (combinator < all_combinations)
+    while ( combinator < all_combinations )
     {
-        unsigned int bit = 0; // номер проверяемого бита + по совместительству индекс гири
+        unsigned int bit =
+            0; // номер проверяемого бита + по совместительству индекс гири
         unsigned int combinator_copy = combinator;
         unsigned int local_target = 0;
 
         std::vector<unsigned int> curr_combination;
-        while (combinator_copy != 0)
+
+        while ( combinator_copy != 0 )
         {
-            if (combinator_copy & 1)
+            if ( combinator_copy & 1 )
             {
                 // получить размер гири из массива гирь, если бит равен 1
-                unsigned int weight = *(iter + bit);
-                
+                unsigned int weight = *( iter + bit );
+
                 local_target += weight;
-                curr_combination.push_back(weight);
+                curr_combination.push_back( weight );
             }
 
             combinator_copy >>= 1; // сместить отсавшиеся биты вправо
             bit++;
         }
-        
+
         // если текущая комбинация дала необходимый вес, то сохранить комбинацию
-        if (local_target == target)
-            combinations.push_back(curr_combination);
+        if ( local_target == target )
+            combinations.push_back( curr_combination );
 
         combinator++;
     }
-    
+
     // TODO: сделать опцию program_options 'удалять дубликаты' если не нужно учитывать id-гири
     //combinations.erase(unique(combinations.begin(), combinations.end()), combinations.end());   // удалить дубликаты
 }

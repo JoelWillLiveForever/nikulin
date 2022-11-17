@@ -11,8 +11,9 @@ int main()
 {
     int amount_of_points;                                           // количество точек
 
-    std::ifstream infile;                                           // создать объект ifstream    
-    infile.open("source_polygon_traversal_direction.txt", std::ios::in);                        // открыть файл source.txt в режиме чтения
+    std::ifstream infile;                                           // создать объект ifstream
+    infile.open( "source_polygon_traversal_direction.txt",
+                 std::ios::in );                      // открыть файл source.txt в режиме чтения
 
     if ( !infile )
     {
@@ -27,7 +28,7 @@ int main()
     double x = 0, y = 0;
     int i;
 
-    for (i = 0; i < amount_of_points * 2; i++)
+    for ( i = 0; i < amount_of_points * 2; i++ )
     {
         if ( infile.eof() && i < amount_of_points * 2 )
         {
@@ -36,7 +37,7 @@ int main()
             return EXIT_FAILURE;
         }
 
-        if (i % 2 == 0) 
+        if ( i % 2 == 0 )
         {
             // координата x
             infile >> x;
@@ -46,25 +47,26 @@ int main()
             // координата y
             infile >> y;
 
-            Point p(x, y);
-            points.push_back(p);
+            Point p( x, y );
+            points.push_back( p );
         }
     }
-    
+
     // смотрим на прочитанные координаты
     std::vector<Point>::iterator iter = points.begin();
-    while (iter != points.end())
+
+    while ( iter != points.end() )
     {
-        std::cout << "Element: " << ((Point) *iter).to_string() << std::endl;
+        std::cout << "Element: " << ( ( Point ) *iter ).to_string() << std::endl;
         iter++;
     }
 
-    DirectionFinder df(points);
-    int result = df.find_direction();     
+    DirectionFinder df( points );
+    int result = df.find_direction();
 
     result == -1
-        ? std::cout << "Result = " << result << "; (anti-clockwise)" << std::endl
-        : std::cout << "Result = " << result << "; (clockwise)" << std::endl;
-    
+    ? std::cout << "Result = " << result << "; (anti-clockwise)" << std::endl
+                : std::cout << "Result = " << result << "; (clockwise)" << std::endl;
+
     return 0;
 }
