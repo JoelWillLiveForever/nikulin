@@ -396,12 +396,43 @@ double get_pi_multithread( long number_of_counters,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
 // реализация версии OpenCL
+///////////////////////////////////////////////////////////////////////////////////////////////
 
-const unsigned int MAX_SOURCE_SIZE = 0xFFFFFF;
+// Convert kernel_boost.cl file to C string: https://github.com/MatejGomboc/OpenCL-source-to-C-string-converter
+const char* source_str =
+"/* Условие задачи 2:\n"
+" * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */\n"
+"\n"
+"#define ULONG_MAX 0xffffffffffffffffUL\n"
+"\n"
+"unsigned long xs64_gen(unsigned long seed)\n"
+"{\n"
+"    seed ^= (seed >> 12);\n"
+"    seed ^= (seed << 25);\n"
+"    seed ^= (seed >> 27);\n"
+"\n"
+"    return seed * ULONG_MAX;\n"
+"}\n"
+"\n"
+"__kernel void boost( __global const double *randoms, __global int *points )\n"
+"{\n"
+"    int i = get_global_id(0);\n"
+"    points[i] = 0;\n"
+"\n"
+"    unsigned long seed = randoms[i] * ULONG_MAX;\n"
+"\n"
+"    seed = xs64_gen(seed);\n"
+"    double x = (double) seed / (double) ULONG_MAX;\n"
+"\n"
+"    seed = xs64_gen(seed);\n"
+"    double y = (double) seed / (double) ULONG_MAX;\n"
+"\n"
+"    double len = x*x + y*y;\n"
+"\n"
+"    if (len <= 1)\n"
+"        points[i] = 1;\n"
+"}\n";
 
 double get_pi_opencl( long number_of_counters,
                       uint32_t start,
@@ -409,22 +440,7 @@ double get_pi_opencl( long number_of_counters,
                       double eps,
                       bool use_xs1024 )
 {
-    // Load the kernel source code into the array source_str
-    FILE *fp;
-    char *source_str;
-    size_t source_size;
-
-    fp = fopen( "kernel_boost.cl", "r" );
-
-    if ( !fp )
-    {
-        fprintf( stderr, "Failed to load OpenCL kernel\n" );
-        exit( EXIT_FAILURE );
-    }
-
-    source_str = ( char * ) malloc( MAX_SOURCE_SIZE );
-    source_size = fread( source_str, 1, MAX_SOURCE_SIZE, fp );
-    fclose( fp );
+    size_t source_size = strlen(source_str);
 
     // Get platform and device information
     cl_platform_id platform_id = NULL;
@@ -441,7 +457,7 @@ double get_pi_opencl( long number_of_counters,
     // Create a command queue
     cl_command_queue command_queue = clCreateCommandQueue( context, device_id, 0, &ret );
 
-    size_t local_item_size = 64;
+    size_t local_item_size = 256;
 
     struct PIPoints *pi_points_arr = ( struct PIPoints * ) malloc( number_of_counters * sizeof( struct PIPoints ) );
     memset( pi_points_arr, 0, number_of_counters * sizeof( struct PIPoints ) );

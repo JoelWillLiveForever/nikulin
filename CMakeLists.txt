@@ -200,11 +200,11 @@ target_link_libraries(PIMonteCarlo-C PRIVATE
     ${PThreads4W_LIBRARIES}     # empty if build in linux
 )
 target_precompile_headers(PIMonteCarlo-C REUSE_FROM modules)
-add_custom_command(TARGET PIMonteCarlo-C POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
-        $<TARGET_FILE_DIR:PIMonteCarlo-C>/kernel_boost.cl
-)
+#add_custom_command(TARGET PIMonteCarlo-C POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
+#        $<TARGET_FILE_DIR:PIMonteCarlo-C>/kernel_boost.cl
+#)
 #target_compile_options(PIMonteCarlo-C PRIVATE
 #    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
 #        -Wall -Wextra -Wpedantic -Werror>
@@ -239,11 +239,11 @@ target_link_libraries(PIMonteCarlo-TESTS PRIVATE
     Boost::filesystem
 )
 target_precompile_headers(PIMonteCarlo-TESTS REUSE_FROM classes)
-add_custom_command(TARGET PIMonteCarlo-TESTS POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
-        $<TARGET_FILE_DIR:PIMonteCarlo-TESTS>/kernel_boost.cl
-)
+#add_custom_command(TARGET PIMonteCarlo-TESTS POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
+#        $<TARGET_FILE_DIR:PIMonteCarlo-TESTS>/kernel_boost.cl
+#)
 
 # Polygon Traversal Direction
 add_executable(PolygonTraversalDirection-C
