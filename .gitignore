@@ -60,3 +60,9 @@ docs/
 
 # Ignore all .orig files (astyle)
 *.orig
+
+# Ignore all log files
+*.log
+
+# Ignore all user files
+*.user
