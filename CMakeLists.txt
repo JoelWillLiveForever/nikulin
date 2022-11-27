@@ -99,9 +99,23 @@ add_library(generators STATIC
 )
 
 # C libraries
+set(CL2C
+    ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cl_to_clang.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl")
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/kernel_boost.cl.c
+    COMMAND ${CL2C}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+add_custom_target(cl SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl"
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/kernel_boost.cl.c)
+
 add_library(modules STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/wc_module.h
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/wc_module.c
+
+    ${CMAKE_CURRENT_BINARY_DIR}/kernel_boost.cl.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/counters.h
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/counters.c
@@ -285,6 +299,25 @@ add_custom_command(TARGET PolygonTraversalDirection-TESTS POST_BUILD
         ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/source.txt
         $<TARGET_FILE_DIR:PolygonTraversalDirection-TESTS>/source_polygon_traversal_direction.txt
 )
+
+add_library(time STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/time/TimeManagment.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/time/TimeManagment.cpp
+)
+
+add_executable(TimeManagement-TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/time/tests.cpp
+)
+target_link_libraries(TimeManagement-TESTS PRIVATE
+    classes
+    GTest::gmock
+    GTest::gtest 
+    GTest::gmock_main
+    GTest::gtest_main
+    Boost::filesystem
+    time
+)
+target_precompile_headers(TimeManagement-TESTS REUSE_FROM classes)
 
 # Doxygen generate docs
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
