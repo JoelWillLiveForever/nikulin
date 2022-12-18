@@ -17,19 +17,22 @@ private:
     void thread_task(std::vector<PIMonteCarloPointsGenerator>::iterator generators_iter);    // метод, который будет выполняться в потоке
 
 public:
-    PIConvergenceCheck(unsigned int total_pi = 10, unsigned int points_start = 1'000, unsigned int points_multiplier = 10, unsigned int max_points = 10'000'000, double eps = 0.0001): 
-        total_pi_(total_pi), points_start_(points_start), points_multiplier_(points_multiplier), max_points_(max_points), eps_(eps)
+    PIConvergenceCheck(const std::string& program_name, unsigned int total_pi = 10, unsigned int points_start = 1'000,
+                       unsigned int points_multiplier = 10, unsigned int max_points = 10'000'000, double eps = 0.0001):
+                       total_pi_(total_pi), points_start_(points_start), points_multiplier_(points_multiplier),
+                       max_points_(max_points), eps_(eps)
     {
-        try
-        {
-            extern std::string program_name;
-            logger = spdlog::rotating_logger_mt("PIConvergenceCheck.class", "logs/" + program_name + ".txt", 1024 * 1024 * 5, 3);
-        }
-        catch (const spdlog::spdlog_ex& ex)
-        {
-            std::cout << "Log initialization failed: " << ex.what() << std::endl;
-            exit(EXIT_FAILURE);
-        }
+//        try
+//        {
+//            extern std::string program_name;
+            logger = spdlog::rotating_logger_mt("PIConvergenceCheck.class", program_name, 1024 * 1024 * 5, 3);
+            logger->flush_on( spdlog::level::trace );
+//        }
+//        catch (const spdlog::spdlog_ex& ex)
+//        {
+//            std::cout << "Log initialization failed: " << ex.what() << std::endl;
+//            exit(EXIT_FAILURE);
+//        }
         logger->info("Logger init");
     }
 

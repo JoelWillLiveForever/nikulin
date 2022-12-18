@@ -22,7 +22,10 @@ void PIConvergenceCheck::convergence_check()
     {
         // запускаем потоки
         for (threads_iter = threads.begin(); threads_iter != threads.end(); threads_iter++)
-            *threads_iter = std::thread { &PIConvergenceCheck::thread_task, this, generators.begin() + (threads_iter - threads.begin()) };
+            *threads_iter = std::thread {
+                                &PIConvergenceCheck::thread_task, this, generators.begin()
+                                    + (threads_iter - threads.begin())
+                            };
         
         // инициализируем min и max
         double min = DBL_MAX, max = DBL_MIN, avg = 0;

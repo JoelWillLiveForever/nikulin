@@ -30,8 +30,6 @@
 
 namespace po = boost::program_options;
 
-static std::string program_name = "?";
-
 /**
  * @brief Поддерживаемые временные единицы, для измерения скорости выполнения программы
  * @details https://evileg.com/en/post/430/
@@ -144,10 +142,6 @@ inline std::ostream& operator<<(std::ostream& out, const Nomenclature& v) {
  */
 int main(int argc, char** argv)
 {
-    // вытягиваем имя проги из argv[0]
-    boost::filesystem::path p = argv[0];
-    program_name = p.stem().string();
-
     // Общие опции
     po::options_description generic("Generic options");
     generic.add_options()
@@ -155,11 +149,12 @@ int main(int argc, char** argv)
         ("version,v", "Get program version")
         ("time-unit,u", po::value<TimeUnit>()->default_value(TimeUnit::OFF, "off"),
             "Set units for measuring execution time \nTime units: \noff | (0) \nseconds | ss | (1) \nmilliseconds | ms | (2) \nmicroseconds | us | (3) \nnanoseconds | ns | (4)")
-        ("log-filename", po::value<std::string>()->default_value(program_name + ".txt"), "Set filename for logfile")
+        ("log-filename", po::value<std::string>()->default_value(
+             std::filesystem::path( argv[0] ).replace_extension(".log").filename().string()), "Set filename for logfile")
         ("log-max-file-size", po::value<unsigned int>()->default_value(1024), "Set max size for logfile")
         ("log-max-files", po::value<unsigned int>()->default_value(3), "Set max files for logs")
-        ("log-enable", po::value<bool>()->default_value(true), "Enable or disable logging to file")
-        ("log-enable-in-console", po::value<bool>()->default_value(false), "Enable or disable logging to console")
+        ("log-disable", "Enable or disable logging to file")
+        ("log-enable-in-console", "Enable or disable logging to console")
         ;
 
     // Опции для управления значениями аргументов, которые подаются программе на вход
@@ -184,38 +179,42 @@ int main(int argc, char** argv)
         po::store(po::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
         po::notify(vm);
 
-        bool log_enable = vm["log-enable"].as<bool>();
-        bool log_enable_in_console = vm["log-enable-in-console"].as<bool>();
+        bool log_disable = vm.count("log-disable");
+        bool log_enable_in_console = vm.count("log-enable-in-console");
 
         // Инициализация логгера
-        std::string log_filename = vm["log-filename"].as<std::string>();
+        std::filesystem::path log_filename = vm["log-filename"].as<std::string>();
 
         unsigned int log_max_file_size = vm["log-max-file-size"].as<unsigned int>();
         unsigned int log_max_files = vm["log-max-files"].as<unsigned int>();
 
-        auto logger = spdlog::rotating_logger_mt("MAIN", "logs/" + log_filename, log_max_file_size, log_max_files);     // логгер на вывод в файл
-        spdlog::flush_on(spdlog::level::err);
+        auto logger = spdlog::rotating_logger_mt("MAIN", (std::filesystem::path( argv[0] ).remove_filename() /
+                      log_filename).string(), log_max_file_size, log_max_files);     // логгер на вывод в файл
+        spdlog::set_default_logger(logger);
+        spdlog::flush_on(spdlog::level::trace);
 
-        log_enable
-            ? spdlog::set_level(spdlog::level::trace)
-            : spdlog::set_level(spdlog::level::off);
+        log_disable
+            ? spdlog::set_level(spdlog::level::off)
+            : spdlog::set_level(spdlog::level::trace);
 
         auto console_logger = spdlog::stdout_color_mt("MAIN-CONSOLE", spdlog::color_mode::automatic);    // логгер на вывод в терминал
-        console_logger->flush_on(spdlog::level::err);
+//        console_logger->flush_on(spdlog::level::trace);
 
         log_enable_in_console
             ? console_logger->set_level(spdlog::level::trace)
             : console_logger->set_level(spdlog::level::off);
-
-        spdlog::set_default_logger(logger);
 
         // Вывод help
         if (vm.count("help"))
         {
             std::cout << desc << '\n';
 
-            spdlog::info("Exit {}", EXIT_SUCCESS);
-            console_logger->info("Exit {}", EXIT_SUCCESS);
+//            spdlog::info("Exit {}", EXIT_SUCCESS);
+//            console_logger->info("Exit {}", EXIT_SUCCESS);
+
+            spdlog::apply_all([&](std::shared_ptr<spdlog::logger> l) {
+                l->info("Exit {}", EXIT_SUCCESS);
+            });
 
             return EXIT_SUCCESS;
         }
@@ -235,8 +234,12 @@ int main(int argc, char** argv)
 #endif
             std::cout << version << std::endl;
 
-            spdlog::info("Exit {}", EXIT_SUCCESS);
-            console_logger->info("Exit {}", EXIT_SUCCESS);
+//            spdlog::info("Exit {}", EXIT_SUCCESS);
+//            console_logger->info("Exit {}", EXIT_SUCCESS);
+
+            spdlog::apply_all([&](std::shared_ptr<spdlog::logger> l) {
+                l->info("Exit {}", EXIT_SUCCESS);
+            });
 
             return EXIT_SUCCESS;
         }
@@ -252,10 +255,15 @@ int main(int argc, char** argv)
         std::ostringstream time_unit_out;
         time_unit_out << time_unit;
 
-        spdlog::debug("Command line arguments: \nlog-filename: {} \nlog-max-file-size: {} \nlog-max-files {} \ntime-unit: {} \ntarget: {} \nnomenclature: {}",
-            log_filename, log_max_file_size, log_max_files, time_unit_out.str(), target, nomenclature);
-        console_logger->debug("Command line arguments: \nlog-filename: {} \nlog-max-file-size: {} \nlog-max-files {} \ntime-unit: {} \ntarget: {} \nnomenclature: {}",
-            log_filename, log_max_file_size, log_max_files, time_unit_out.str(), target, nomenclature);
+//        spdlog::debug("Command line arguments: log-filename: {} log-max-file-size: {} log-max-files {} time-unit: {} target: {} nomenclature: {}",
+//            log_filename.string(), log_max_file_size, log_max_files, time_unit_out.str(), target, nomenclature);
+//        console_logger->debug("Command line arguments: log-filename: {} log-max-file-size: {} log-max-files {} time-unit: {} target: {} nomenclature: {}",
+//            log_filename.string(), log_max_file_size, log_max_files, time_unit_out.str(), target, nomenclature);
+
+        spdlog::apply_all([&](std::shared_ptr<spdlog::logger> l) {
+            l->debug("Command line arguments: log-filename: {} log-max-file-size: {} log-max-files {} time-unit: {} target: {} nomenclature: {}",
+            log_filename.string(), log_max_file_size, log_max_files, time_unit_out.str(), target, nomenclature);
+        });
 
         WeightCombinator::Combinations combinations;
         WeightCombinator combinator;
@@ -308,34 +316,39 @@ int main(int argc, char** argv)
             result << combinations;
         }
 
-        spdlog::info(result.str());
-        spdlog::info("Exit {}", EXIT_SUCCESS);
+//        spdlog::info(result.str());
+//        spdlog::info("Exit {}", EXIT_SUCCESS);
 
-        console_logger->info(result.str());
-        console_logger->info("Exit {}", EXIT_SUCCESS);
+//        console_logger->info(result.str());
+//        console_logger->info("Exit {}", EXIT_SUCCESS);
+
+        spdlog::apply_all([&](std::shared_ptr<spdlog::logger> l) {
+            l->info(result.str());
+            l->info("Exit {}", EXIT_SUCCESS);
+        });
 
         std::cout << result.str() << std::endl;
 
         return EXIT_SUCCESS;
     }
-    catch (const po::error& ex)
-    {
-        //spdlog::error(ex.what());
-        //spdlog::info("Exit {}", EXIT_FAILURE_PROGRAM_OPTIONS);
+//    catch (const po::error& ex)
+//    {
+//        //spdlog::error(ex.what());
+//        //spdlog::info("Exit {}", EXIT_FAILURE_PROGRAM_OPTIONS);
 
-        std::cerr << ex.what() << std::endl;
+//        std::cerr << ex.what() << std::endl;
 
-        return EXIT_FAILURE_PROGRAM_OPTIONS;
-    }
-    catch (const spdlog::spdlog_ex& ex)
-    {
-        //spdlog::error(ex.what());
-        //spdlog::info("Exit {}", EXIT_FAILURE_LOGGER_INIT);
+//        return EXIT_FAILURE_PROGRAM_OPTIONS;
+//    }
+//    catch (const spdlog::spdlog_ex& ex)
+//    {
+//        //spdlog::error(ex.what());
+//        //spdlog::info("Exit {}", EXIT_FAILURE_LOGGER_INIT);
 
-        std::cerr << "Log initialization failed: " << ex.what() << std::endl;
+//        std::cerr << "Log initialization failed: " << ex.what() << std::endl;
 
-        return EXIT_FAILURE_LOGGER_INIT;
-    }
+//        return EXIT_FAILURE_LOGGER_INIT;
+//    }
     catch (const std::exception& ex)
     {
         //spdlog::error(ex.what());

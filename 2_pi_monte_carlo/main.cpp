@@ -222,140 +222,154 @@ int main(int argc, char *argv[])
 //}
 
 namespace po = boost::program_options;
-std::string program_name = "?";
 
 int main(int argc, char **argv)
 {
-    program_name = std::string(argv[0]);
-    program_name = program_name.substr(program_name.find_last_of("/\\") + 1);   // вытягиваем имя проги из argv[0]
+    int code = EXIT_SUCCESS;
+    std::filesystem::path log_file_name = std::filesystem::path( argv[0] ).replace_extension(".log");
 
-    std::shared_ptr<spdlog::logger> logger = nullptr;
     try
     {
         // Create basic file logger (not rotated)
         //logger = spdlog::basic_logger_mt("main.cpp", "logs/basic.txt");
 
         // create a file rotating logger with 5mb size max and 3 rotated files
-        std::string file_name = std::string("logs/") + program_name + std::string(".txt");
-        unsigned long file_size = 5242880UL;
+        const unsigned long file_size = 5242880UL;
 
-        logger = spdlog::rotating_logger_mt("main.cpp", file_name, file_size, 3);
-    }
-    catch (const spdlog::spdlog_ex& ex)
-    {
-        std::cout << "Log initialization failed: " << ex.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    logger->info("Logger init");
+        auto logger = spdlog::rotating_logger_mt("main.cpp", log_file_name.string(), file_size, 3);
+        spdlog::set_default_logger( logger );
+        spdlog::flush_on( spdlog::level::trace );
 
-    po::options_description generic( "Generic options" );
-    generic.add_options()
-        ( "help,h",     "Get help message" )
-        ( "version,v",  "Get program version" )
-    ;
+        spdlog::info("Logger init");
 
-    po::options_description config( "Configuration" );
-    config.add_options()
-        ("total,t",         po::value<unsigned int>()->default_value(4),    "Set number of calculated PI")
-        ("start,s",         po::value<unsigned int>()->default_value(1000), "Set starting numbers of points")
-        ("multiplier,m",    po::value<unsigned int>()->default_value(2),        "Set points multiplier")
-        ("max-points",      po::value<unsigned int>()->default_value(0),    "Set maximum number of points AND RUN program in PI convergence check mode")
-        ("eps,e",           po::value<double>()->default_value(0.01),       "Set calculation accuracy")
-//        ( "select,s", po::value<std::vector<unsigned int>>()->multitoken()->value_name("\"total_pi, points_start, points_multiplier, eps\""),  "Run PI calculation" )
-//        ( "select,s", po::value<SelectOptionArgs>()->value_name("\"total_pi, points_start, points_multiplier, eps\""),  "Run PI calculation" )
-//        ( "check,c",    "Run PI convergence check" )
-    ;
+        po::options_description generic( "Generic options" );
+        generic.add_options()
+            ( "help,h",     "Get help message" )
+            ( "version,v",  "Get program version" )
+        ;
 
-    po::options_description desc;
-    desc.add(generic).add(config);
+        po::options_description config( "Configuration" );
+        config.add_options()
+            ("total,t",         po::value<unsigned int>()->default_value(4),    "Set number of calculated PI")
+            ("start,s",         po::value<unsigned int>()->default_value(1000), "Set starting numbers of points")
+            ("multiplier,m",    po::value<unsigned int>()->default_value(2),        "Set points multiplier")
+            ("max-points",      po::value<unsigned int>()->default_value(0),    "Set maximum number of points AND RUN program in PI convergence check mode")
+            ("eps,e",           po::value<double>()->default_value(0.01),       "Set calculation accuracy")
+    //        ( "select,s", po::value<std::vector<unsigned int>>()->multitoken()->value_name("\"total_pi, points_start, points_multiplier, eps\""),  "Run PI calculation" )
+    //        ( "select,s", po::value<SelectOptionArgs>()->value_name("\"total_pi, points_start, points_multiplier, eps\""),  "Run PI calculation" )
+    //        ( "check,c",    "Run PI convergence check" )
+        ;
 
-    po::variables_map vm;
-    po::store( po::command_line_parser( argc, argv ).options( desc ).allow_unregistered().run(), vm );
-    po::notify( vm );
+        po::options_description desc;
+        desc.add(generic).add(config);
 
-//    if ( vm.count( "help" ) || argc == 1 )
-    if ( vm.count( "help" ) )
-    {
-        std::cout << desc << '\n';
+        po::variables_map vm;
+        po::store( po::command_line_parser( argc, argv ).options( desc ).allow_unregistered().run(), vm );
+        po::notify( vm );
 
-        logger->info("Print help message");
+    //    if ( vm.count( "help" ) || argc == 1 )
+        if ( vm.count( "help" ) )
+        {
+            std::cout << desc << '\n';
 
-        return EXIT_SUCCESS;
-    }
+            spdlog::info("Print help message");
 
-    if ( vm.count( "version" ) )
-    {
-        std::string version = "?";
-        #if defined(__VERSION_H__)
-        version = VERSION_MAJOR + "."
-            + VERSION_MINOR + "."
-            + VERSION_PATCH + "."
-            + VERSION_TWEAK + "-"
-            + BUILD_DATE;
-        #elif defined(__GIT_VERSION_H__)
-        version = GIT_COMMIT_HASH;
-        #endif
-        std::cout << version << std::endl;
+            return EXIT_SUCCESS;
+        }
 
-        logger->info("Print program version: {}", version);
+        if ( vm.count( "version" ) )
+        {
+            std::string version = "?";
+            #if defined(__VERSION_H__)
+            version = VERSION_MAJOR + "."
+                + VERSION_MINOR + "."
+                + VERSION_PATCH + "."
+                + VERSION_TWEAK + "-"
+                + BUILD_DATE;
+            #elif defined(__GIT_VERSION_H__)
+            version = GIT_COMMIT_HASH;
+            #endif
+            std::cout << version << std::endl;
 
-        return EXIT_SUCCESS;
-    }
-    
-    unsigned int total_pi           = vm["total"].as<unsigned int>(),
-                 points_start       = vm["start"].as<unsigned int>(),
-                 max_points         = vm["max-points"].as<unsigned int>(),
-                 points_multiplier  = vm["multiplier"].as<unsigned int>();
+            spdlog::info("Print program version: {}", version);
 
-    double eps = vm["eps"].as<double>();
+            return EXIT_SUCCESS;
+        }
 
-    logger->info("Command line arguments:\ntotal_pi: {}\npoints_start: {}\nmax_points: {}\npoints_multiplier: {}\neps: {}\n", 
-        total_pi, points_start, max_points, points_multiplier, eps);
+        unsigned int total_pi           = vm["total"].as<unsigned int>(),
+                     points_start       = vm["start"].as<unsigned int>(),
+                     max_points         = vm["max-points"].as<unsigned int>(),
+                     points_multiplier  = vm["multiplier"].as<unsigned int>();
 
-    if ( vm.count("max-points") && max_points )
-    {
-        // запустить в режиме проверки сходимости
- 
-        std::cout << "...Checking\n";
-        logger->info("...Checking");
+        double eps = vm["eps"].as<double>();
 
-        PIConvergenceCheck checker(total_pi, points_start, points_multiplier, max_points, eps);
-        
+        spdlog::info("Command line arguments: total_pi: {} points_start: {} max_points: {} points_multiplier: {} eps: {}",
+            total_pi, points_start, max_points, points_multiplier, eps);
+
+        if ( /*vm.count("max-points") &&*/ max_points )
+        {
+            // запустить в режиме проверки сходимости
+
+            std::cout << "...Checking\n";
+            spdlog::info("...Checking");
+
+            PIConvergenceCheck checker(log_file_name.string(), total_pi, points_start, points_multiplier, max_points, eps);
+
+            auto start = std::chrono::high_resolution_clock::now();
+
+            checker.convergence_check();
+
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::high_resolution_clock::now() - start);
+
+            std::cout << "Elapsed time: " << duration.count() << " ms" << std::endl;
+
+            return EXIT_SUCCESS;
+        }
+
+        // запуск в режиме рассчёта Пи (по-умолчанию)
+
+    //    std::cout << "Total PI: " << total_pi << '\n'
+    //        << "Points start: " << points_start << '\n'
+    //        << "Multiplier: "   << points_multiplier << '\n'
+    //        << "Eps:"           << eps << '\n'
+    //        << "Max points " << max_points << '\n';
+
+        std::cout << "...Processing\n";
+        spdlog::info("...Processing");
+
+        TruePISelector selector(total_pi, points_start, points_multiplier, eps);
+
         auto start = std::chrono::high_resolution_clock::now();
-        checker.convergence_check();
-        auto stop = std::chrono::high_resolution_clock::now();
-        
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+
+        double pi = selector.select_pi();
+
+        // рассчитываем время затраченное на выполнение алгоритма в функции selector.select_pi()
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::high_resolution_clock::now() - start);
+
+        std::cout << "PI is " << pi << '\n';
         std::cout << "Elapsed time: " << duration.count() << " ms" << std::endl;
 
-        return EXIT_SUCCESS;
+        spdlog::info("Result: pi: {} elapsed time: {} ",
+            pi, duration.count());
     }
-    
-    // запуск в режиме рассчёта Пи (по-умолчанию)
-
-//    std::cout << "Total PI: " << total_pi << '\n'
-//        << "Points start: " << points_start << '\n'
-//        << "Multiplier: "   << points_multiplier << '\n'
-//        << "Eps:"           << eps << '\n'
-//        << "Max points " << max_points << '\n';
-
-    std::cout << "...Processing\n";
-    logger->info("...Processing");
-        
-    TruePISelector selector(total_pi, points_start, points_multiplier, eps);
-
-    auto start = std::chrono::high_resolution_clock::now();
-    double pi = selector.select_pi();
-    auto stop = std::chrono::high_resolution_clock::now();
-
-    // рассчитываем время затраченное на выполнение алгоритма в функции selector.select_pi()
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-
-    std::cout << "PI is " << pi << '\n';
-    std::cout << "Elapsed time: " << duration.count() << " ms" << std::endl;
-
-    logger->info("Result:\npi: {}\nelapsed time: {}\n",
-        pi, duration.count());
+//    catch ( boost::program_options::error& e )
+//    {
+//        std::cerr << e.what();
+//        return EXIT_FAILURE;
+//    }
+//    catch (const spdlog::spdlog_ex& e)
+//    {
+//        std::cerr << "Log initialization failed: " << e.what() << std::endl;
+//        code = EXIT_FAILURE;
+//    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        spdlog::error( e.what() );
+        code = EXIT_FAILURE;
+    }
 
 //    if ( vm.count( "select" ) )
 //    {
@@ -436,7 +450,9 @@ int main(int argc, char **argv)
 //        return EXIT_SUCCESS;
 //    }
 
-    return EXIT_SUCCESS;
+    spdlog::info( "Exit {}", code );
+
+    return code;
 }
 
 #endif

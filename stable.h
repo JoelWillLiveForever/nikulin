@@ -8,15 +8,8 @@
 //#pragma warning(disable: 4668)
 //#endif
 
-// generators library
-#include "random/src/xor_shift.h"
-#include "random/src/xor_shift_thread_safe.h"
-
 #ifdef __cplusplus
-    #include <boost/program_options.hpp>
-    #include <boost/program_options/errors.hpp>
-    #include <boost/filesystem.hpp>
-
+    #include <filesystem>
     #include <iostream>
     #include <fstream>
     #include <iomanip>
@@ -34,6 +27,10 @@
     #include <algorithm>
     #include <stdexcept>
     #include <iterator>
+
+    #include <boost/program_options.hpp>
+    #include <boost/program_options/errors.hpp>
+    #include <boost/filesystem.hpp>
 
 #ifdef __GNUC__    
 #pragma GCC diagnostic push
@@ -100,3 +97,8 @@
         #include <CL/cl.h>
     #endif
 #endif
+
+// generators library
+#include "random/src/xor_shift.h"
+#include "random/src/xor_shift_thread_safe.h"
+
