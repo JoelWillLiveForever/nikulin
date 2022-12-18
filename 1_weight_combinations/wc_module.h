@@ -4,9 +4,9 @@
  * @brief Заголовочный файл для модуля wc_module.c
  * @version 0.1
  * @date 2022-11-15
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #ifndef __WC_MODULE_H__ // Include Guard
@@ -22,12 +22,12 @@ enum Solution
 };
 
 /// @brief Максимальный размер номенлктары гирь, если выбран алгоритм BITS
-static const char _allowed_bits = sizeof(unsigned int) * 8;
+static const char _allowed_bits = sizeof( unsigned int ) * 8;
 
 // TODO: расставить const
 /**
  * @brief Методя для рассчёта количества всех возможных вариантов использования гирь, из которых получается заданный вес
- * 
+ *
  * @param solution Выбор алгоритма решения задачи
  * @param nomenclature Номенклатура весов
  * @param nomenclature_size Размер номенклатуры
@@ -35,6 +35,7 @@ static const char _allowed_bits = sizeof(unsigned int) * 8;
  * @param out_combinations Итоговые комбинации гирь
  * @return int Размер массива out_combinations (по совместительству - количество комбинаций для данного целевого веса)
  */
-int get_number_of_combinations(enum Solution* solution, unsigned int* nomenclature, unsigned int* nomenclature_size, unsigned int* target, unsigned int*** out_combinations);
+int get_number_of_combinations( enum Solution *solution, unsigned int *nomenclature, unsigned int *nomenclature_size,
+                                unsigned int *target, unsigned int ***out_combinations );
 
 #endif

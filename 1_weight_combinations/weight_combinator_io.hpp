@@ -4,9 +4,9 @@
  * @brief Модуль с функционалом ввода/вывода для класса WeightCombinator
  * @version 0.1
  * @date 2022-11-15
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #pragma once
@@ -17,10 +17,10 @@ class WeightCombinator;
 
 /**
  * @brief Перегрузка оператора вывода в стандартный поток комбинаций гирь
- * 
+ *
  * @param out Объект потока
  * @param data Массив с комбинациями гирь
- * @return std::ostream& 
+ * @return std::ostream&
  */
-std::ostream& operator<< (std::ostream& out, WeightCombinator::Combinations const& data);
+std::ostream &operator<< ( std::ostream &out, WeightCombinator::Combinations const &data );
 //std::ostream& operator>> (std::ostream& out, WeightCombinator::Combinations const& data);

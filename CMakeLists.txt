@@ -99,9 +99,23 @@ add_library(generators STATIC
 )
 
 # C libraries
+set(CL2C
+    ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cl_to_clang.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl")
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/kernel_boost.cl.c
+    COMMAND ${CL2C}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+add_custom_target(cl SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl"
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/kernel_boost.cl.c)
+
 add_library(modules STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/wc_module.h
     ${CMAKE_CURRENT_SOURCE_DIR}/1_weight_combinations/wc_module.c
+
+    ${CMAKE_CURRENT_BINARY_DIR}/kernel_boost.cl.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/counters.h
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/counters.c
@@ -200,11 +214,11 @@ target_link_libraries(PIMonteCarlo-C PRIVATE
     ${PThreads4W_LIBRARIES}     # empty if build in linux
 )
 target_precompile_headers(PIMonteCarlo-C REUSE_FROM modules)
-add_custom_command(TARGET PIMonteCarlo-C POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
-        $<TARGET_FILE_DIR:PIMonteCarlo-C>/kernel_boost.cl
-)
+#add_custom_command(TARGET PIMonteCarlo-C POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
+#        $<TARGET_FILE_DIR:PIMonteCarlo-C>/kernel_boost.cl
+#)
 #target_compile_options(PIMonteCarlo-C PRIVATE
 #    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
 #        -Wall -Wextra -Wpedantic -Werror>
@@ -239,11 +253,11 @@ target_link_libraries(PIMonteCarlo-TESTS PRIVATE
     Boost::filesystem
 )
 target_precompile_headers(PIMonteCarlo-TESTS REUSE_FROM classes)
-add_custom_command(TARGET PIMonteCarlo-TESTS POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
-        $<TARGET_FILE_DIR:PIMonteCarlo-TESTS>/kernel_boost.cl
-)
+#add_custom_command(TARGET PIMonteCarlo-TESTS POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#        ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/kernel_boost.cl
+#        $<TARGET_FILE_DIR:PIMonteCarlo-TESTS>/kernel_boost.cl
+#)
 
 # Polygon Traversal Direction
 add_executable(PolygonTraversalDirection-C
@@ -285,6 +299,25 @@ add_custom_command(TARGET PolygonTraversalDirection-TESTS POST_BUILD
         ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/source.txt
         $<TARGET_FILE_DIR:PolygonTraversalDirection-TESTS>/source_polygon_traversal_direction.txt
 )
+
+add_library(time STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/time/TimeManagment.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/time/TimeManagment.cpp
+)
+
+add_executable(TimeManagement-TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/time/tests.cpp
+)
+target_link_libraries(TimeManagement-TESTS PRIVATE
+    classes
+    GTest::gmock
+    GTest::gtest 
+    GTest::gmock_main
+    GTest::gtest_main
+    Boost::filesystem
+    time
+)
+target_precompile_headers(TimeManagement-TESTS REUSE_FROM classes)
 
 # Doxygen generate docs
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/

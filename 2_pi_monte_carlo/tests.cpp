@@ -12,44 +12,45 @@
 // протестим C проги
 extern "C"
 {
-    #include "counters.h"
+#include "counters.h"
 };
 
 namespace bp = boost::process;
 
-TEST(TruePISelectorClass, basic_usage_test)
+TEST( TruePISelectorClass, basic_usage_test )
 {
-    TruePISelector selector(6, 1000, 2, 0.01);
+    TruePISelector selector( 6, 1000, 2, 0.01 );
 
     double pi = 0;
     pi = selector.select_pi();
 
-    ASSERT_NEAR(pi, 3.14, 0.01);
+    ASSERT_NEAR( pi, 3.14, 0.01 );
 }
 
 #ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
-TEST(TruePISelectorClass, zero_total_pi_test)
+TEST( TruePISelectorClass, zero_total_pi_test )
 {
-    EXPECT_THROW({
+    EXPECT_THROW(
+    {
         try
         {
-            TruePISelector selector(0, 1000, 2, 0.01);
+            TruePISelector selector( 0, 1000, 2, 0.01 );
 
             double pi = 0;
-            pi = selector.select_pi(); 
+            pi = selector.select_pi();
         }
-        catch (std::exception const& e)
+        catch ( std::exception const &e )
         {
-            EXPECT_STREQ("Zero total_pi", e.what());
+            EXPECT_STREQ( "Zero total_pi", e.what() );
             throw;
         }
-    }, std::exception);
+    }, std::exception );
 }
 #ifdef __GNUC__
-#pragma GCC diagnostic pop
+    #pragma GCC diagnostic pop
 #endif
 
 // TODO
@@ -86,33 +87,34 @@ TEST(TruePISelectorClass, zero_total_pi_test)
 //    //EXPECT_THROW(run_subprocess());
 //}
 
-TEST(counters_module, pi_single_thread_basic_usage_test)
+TEST( counters_module, pi_single_thread_basic_usage_test )
 {
     double pi = 0;
-    pi = get_pi_single_thread(6, 1000, 2, 0.01, false);
+    pi = get_pi_single_thread( 6, 1000, 2, 0.01, false );
 
-    ASSERT_NEAR(pi, 3.14, 0.01);
+    ASSERT_NEAR( pi, 3.14, 0.01 );
 }
 
-TEST(counters_module, pi_multithread_basic_usage_test)
+TEST( counters_module, pi_multithread_basic_usage_test )
 {
     double pi = 0;
-    pi = get_pi_multithread(36, 1000, 2, 0.01, 6, false);
+    pi = get_pi_multithread( 36, 1000, 2, 0.01, 6, false );
 
-    ASSERT_NEAR(pi, 3.14, 0.01);
+    ASSERT_NEAR( pi, 3.14, 0.01 );
 }
 
-TEST(counters_module, pi_opencl_basic_usage_test)
+TEST( counters_module, pi_opencl_basic_usage_test )
 {
     double pi = 0;
-    pi = get_pi_opencl(10, 1000, 2, 0.01, false);
+    pi = get_pi_opencl( 10, 1000, 2, 0.01, false );
 
-    ASSERT_NEAR(pi, 3.14, 0.01);
+    ASSERT_NEAR( pi, 3.14, 0.01 );
 }
 
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    ::testing::InitGoogleMock(&argc, argv);
+int main( int argc, char **argv )
+{
+    ::testing::InitGoogleTest( &argc, argv );
+    ::testing::InitGoogleMock( &argc, argv );
 
     return RUN_ALL_TESTS();
 }
