@@ -33,6 +33,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
+add_custom_target (AStyle SOURCES .astylerc)
+
 # option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 # search and load required libraries
@@ -300,24 +302,24 @@ add_custom_command(TARGET PolygonTraversalDirection-TESTS POST_BUILD
         $<TARGET_FILE_DIR:PolygonTraversalDirection-TESTS>/source_polygon_traversal_direction.txt
 )
 
-add_library(time STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/time/TimeManagment.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/time/TimeManagment.cpp
-)
+#add_library(time STATIC
+#    ${CMAKE_CURRENT_SOURCE_DIR}/time/TimeManagment.hpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/time/TimeManagment.cpp
+#)
 
-add_executable(TimeManagement-TESTS
-    ${CMAKE_CURRENT_SOURCE_DIR}/time/tests.cpp
-)
-target_link_libraries(TimeManagement-TESTS PRIVATE
-    classes
-    GTest::gmock
-    GTest::gtest 
-    GTest::gmock_main
-    GTest::gtest_main
-    Boost::filesystem
-    time
-)
-target_precompile_headers(TimeManagement-TESTS REUSE_FROM classes)
+#add_executable(TimeManagement-TESTS
+#    ${CMAKE_CURRENT_SOURCE_DIR}/time/tests.cpp
+#)
+#target_link_libraries(TimeManagement-TESTS PRIVATE
+#    classes
+#    GTest::gmock
+#    GTest::gtest
+#    GTest::gmock_main
+#    GTest::gtest_main
+#    Boost::filesystem
+#    time
+#)
+#target_precompile_headers(TimeManagement-TESTS REUSE_FROM classes)
 
 # Doxygen generate docs
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/

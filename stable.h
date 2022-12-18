@@ -32,21 +32,21 @@
     #include <boost/program_options/errors.hpp>
     #include <boost/filesystem.hpp>
 
-#ifdef __GNUC__    
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
+    #ifdef __GNUC__
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    #endif
     #include <strstream>
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+    #ifdef __GNUC__
+        #pragma GCC diagnostic pop
+    #endif
 
     #include <spdlog/spdlog.h>
-//    #include <spdlog/sinks/basic_file_sink.h>
+    //    #include <spdlog/sinks/basic_file_sink.h>
     #include <spdlog/sinks/rotating_file_sink.h>
     #include <spdlog/fmt/ranges.h>
     #include <spdlog/sinks/stdout_color_sinks.h>
-    
+
     //#include <spdlog/fmt/ostr.h
 #endif
 
