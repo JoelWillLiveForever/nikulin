@@ -66,3 +66,6 @@ docs/
 
 # Ignore all user files
 *.user
+
+*(*).*
+*copy.*
