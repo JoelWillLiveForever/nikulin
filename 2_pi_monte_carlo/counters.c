@@ -1,582 +1,900 @@
 #include "counters.h"
 
-struct PIPoints
+typedef struct
 {
     uint64_t good_points;
     uint64_t all_points;
-};
+} PIPoints;
 
-void generate_points( struct PIPoints *pi_points_arr,
-                      uint32_t index,
+void generate_points( PIPoints *pi_points_array,
+                      uint32_t i,
                       uint32_t how_much_to_gen,
-                      bool use_xs_1024 )
+                      GeneratorType generator_type )
 {
-    if ( !pi_points_arr ) // проверка на нулевой указатель
+    if ( !pi_points_array ) // проверка на нулевой указатель
     {
-        fprintf( stderr, "Bad pointer for \"pi_points_arr\" in module \'counters.c\'\n" );
-        exit( EXIT_FAILURE );
+        fprintf( stderr, "Bad pointer for \"pi_points_array\" in module \'counters.c\'\n" );
+        return;
     }
 
-    ( pi_points_arr + index )->all_points += how_much_to_gen;
+    pi_points_array[i].all_points += how_much_to_gen;
 
-    double x, y;
-    uint8_t len;
+    static bool isInit = true;  // инициализируем генераторы только один раз
 
-    while ( how_much_to_gen-- )
+    static RandomContext16 rctx16;
+    static RandomContext32 rctx32;
+    static RandomContext64 rctx64;
+    static RandomContext1024 rctx1024;
+
+    if (isInit)
     {
-        if ( use_xs_1024 )
-        {
-            x = next_xs1024( 0 ) / ( double )RANDOM_MAX;
-            y = next_xs1024( 0 ) / ( double )RANDOM_MAX;
-        }
-        else
-        {
-            x = next_xs64( 0 ) / ( double )RANDOM_MAX;
-            y = next_xs64( 0 ) / ( double )RANDOM_MAX;
-        }
+        InitRandomContext16(&rctx16);
+        InitRandomContext32(&rctx32);
+        InitRandomContext64(&rctx64);
+        InitRandomContext1024(&rctx1024);
 
-        len = ( uint8_t )( x * x + y * y );
-        ( pi_points_arr + index )->good_points += ( !len );
+        isInit = false;
     }
 
-    //return 4.0 * (double)(*pi_points).good_points / (double)(*pi_points).all_points;
+    unsigned long random_buffer_size = 2 * how_much_to_gen;
+    double* random_buffer = (double*)malloc(random_buffer_size * sizeof(double));
+
+    int ret = 0;
+    switch (generator_type)
+    {
+    case XOR_SHIFT_16:
+        ret = fill_buffer_xs16(&rctx16, random_buffer, random_buffer_size);
+        break;
+    case XOR_SHIFT_32:
+        ret = fill_buffer_xs32(&rctx32, random_buffer, random_buffer_size);
+        break;
+    case XOR_SHIFT_64:
+        ret = fill_buffer_xs64(&rctx64, random_buffer, random_buffer_size);
+        break;
+    case XOR_SHIFT_1024:
+        ret = fill_buffer_xs1024(&rctx1024, random_buffer, random_buffer_size);
+        break;
+    case RAND16:
+        ret = fill_buffer_rand16(&rctx16, random_buffer, random_buffer_size);
+        break;
+    case RAND32:
+        ret = fill_buffer_rand32(&rctx32, random_buffer, random_buffer_size);
+        break;
+    case RAND64:
+        ret = fill_buffer_rand64(&rctx64, random_buffer, random_buffer_size);
+        break;
+    default:
+        fprintf(stderr, "You didn't specify a generator type");
+        break;
+    }
+
+    if (ret == -1)
+    {
+        fprintf(stderr, "Cannot fill *random_buffer");
+        return;
+    }
+
+    uint8_t len = 0;
+    double x = 0, y = 0;
+    for (double* ptr = random_buffer, *end = random_buffer + random_buffer_size; ptr != end; ptr += 2)
+    {
+        x = *ptr;
+        y = *(ptr + 1);
+
+        len = !(uint8_t)(x * x + y * y);
+        pi_points_array[i].good_points += len;
+    }
+
+    free(random_buffer);
 }
 
-double get_pi_single_thread( long number_of_counters,
+double get_pi_single_thread( uint32_t number_of_counters,
                              uint32_t start,
                              uint32_t multiplier,
-                             double eps,
-                             bool use_xs1024 )
+                             double precision,
+                             GeneratorType generator_type )
 {
-    struct PIPoints *pi_points_arr = calloc( number_of_counters, sizeof( *pi_points_arr ) );
-
-    if ( pi_points_arr != NULL )
+    PIPoints *pi_points_array = ( PIPoints * )calloc( number_of_counters, sizeof( PIPoints ) );
+    if ( !pi_points_array )
     {
-        long i;
-
-        double min_pi, max_pi, pi;
-
-        while ( 1 )
-        {
-            min_pi = DBL_MAX;
-            max_pi = DBL_MIN;
-            pi = -1;
-
-            for ( i = 0; i < number_of_counters; i++ )
-            {
-                generate_points( pi_points_arr, i, start, use_xs1024 );
-                pi = 4.0 * ( pi_points_arr + i )->good_points / ( double )( pi_points_arr + i )->all_points;
-
-                /* pi = 4.0 * pi_points_arr[i].good_points / (double)pi_points_arr[i].all_points;*/
-
-                if ( min_pi > pi )
-                    min_pi = pi;
-
-                if ( max_pi < pi )
-                    max_pi = pi;
-            }
-
-            double e = max_pi - min_pi;
-            //printf("eps: %f\n", e);
-
-            if ( e < eps )
-                break;
-
-            //printf("%f\n", pi);
-            //printf("Start: %u\n", start);
-
-            start *= multiplier;
-        }
-
-        return pi;
-    }
-    else
+        fprintf( stderr, "Cannot create *pi_points_array with calloc" );
         return -1;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-// реализация версии multithread
-
-struct ThreadArgs
-{
-    struct PIPoints *pi_points_arr;
-
-    unsigned *indexes;
-    unsigned indexes_size;
-
-    unsigned how_much_points_to_gen;
-
-    bool use_xs1024;
-};
-
-//pthread_mutex_t locker;
-
-void *generate_points_in_thread( void *thread_args )
-{
-    struct ThreadArgs *args = ( struct ThreadArgs * )thread_args;
-
-    if ( !args )
-        return NULL;
-
-    struct PIPoints *pi_points_arr = ( struct PIPoints * )args->pi_points_arr;
-
-    unsigned *indexes = ( unsigned * )args->indexes;
-    unsigned indexes_size = ( unsigned )args->indexes_size;
-
-    unsigned how_much_to_gen = ( unsigned )args->how_much_points_to_gen;
-
-    bool use_xs1024 = ( bool )args->use_xs1024;
-
-    uint64_t *bank_numbers = ( uint64_t * )calloc( 16, sizeof( uint64_t ) );
-
-    uint32_t bank_index = 0;
-    uint64_t xs64_value = 0;
-
-    for ( unsigned i = 0; i < indexes_size; i++ )
-    {
-        unsigned index = indexes[i];
-
-        pi_points_arr[index].all_points += how_much_to_gen;
-
-        double x, y;
-        uint8_t len;
-
-        unsigned counter = how_much_to_gen;
-
-        while ( counter-- )
-        {
-            if ( use_xs1024 )
-            {
-                x = next_xs1024_thread_safe( 0, &xs64_value, bank_numbers, &bank_index ) / ( double )RANDOM_MAX;
-                y = next_xs1024_thread_safe( 0, &xs64_value, bank_numbers, &bank_index ) / ( double )RANDOM_MAX;
-            }
-            else
-            {
-                x = next_xs64_thread_safe( 0, &xs64_value ) / ( double )RANDOM_MAX;
-                y = next_xs64_thread_safe( 0, &xs64_value ) / ( double )RANDOM_MAX;
-            }
-
-            len = ( uint8_t )( x * x + y * y );
-            pi_points_arr[index].good_points += ( !len );
-        }
     }
 
-    return NULL;
+    unsigned int i;
+    double min_pi, max_pi, pi;
 
-}
-
-double get_pi_multithread( long number_of_counters,
-                           unsigned start,
-                           unsigned multiplier,
-                           double eps,
-                           unsigned number_of_processors,
-                           bool use_xs1024 )
-{
-    #if 0
-    //    printf("number_of_counters: %u\n"
-    //            "start: %u\n"
-    //            "multiplier: %u\n"
-    //            "eps: %f\n"
-    //            "number_of_processors: %u\n"
-    //            "use_xs_1024: %b\n",
-    //
-    //            number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024);
-    struct PIPoints *pi_points_arr = ( struct PIPoints * ) calloc( number_of_counters, sizeof( struct PIPoints ) );
-    double pi = -1;
-
-    // разбить pi_points_arr на части и распределить эти части между потоками
-    struct ThreadArgs *thread_args = ( struct ThreadArgs * ) calloc( number_of_processors, sizeof( struct ThreadArgs ) );
-
-    for ( unsigned i = 0; i < number_of_processors; i++ )
-    {
-        thread_args[i].how_much_points_to_gen = start;  // установить кол-во точек для генерации
-
-        thread_args[i].pi_points_arr = pi_points_arr;
-        unsigned len = 0;
-
-        for ( long j = i; j < number_of_counters; j += number_of_processors )
-        {
-            len++;
-
-            if ( thread_args[i].indexes )
-            {
-                unsigned *temp = ( unsigned * )realloc( thread_args[i].indexes, len * sizeof( unsigned ) );
-
-                if ( temp != NULL )
-                    *thread_args[i].indexes = *temp; // расширяем динамический массив
-            }
-            else
-                thread_args[i].indexes = ( unsigned * )calloc( len, sizeof( unsigned ) );
-
-            if ( ( thread_args[i].indexes + len - 1 ) != NULL )
-                *( thread_args[i].indexes + len - 1 ) = j;
-        }
-
-        thread_args[i].indexes_size = len;
-        thread_args[i].use_xs1024 = use_xs1024;
-    }
-
-    // создаём массив потоков
-    pthread_t *threads = malloc( number_of_processors * sizeof( pthread_t ) );
-
-    if ( threads )
-    {
-        int err;
-
-        // находимся в цикле, пока Пи не достигнет заданной точности
-        while ( 1 )
-        {
-            // запускаем потоки на выполнение
-            for ( unsigned i = 0; i < number_of_processors; i++ )
-            {
-                //printf("Creating thread: %d\n", i);
-                err = pthread_create( &threads[i], NULL, generate_points_in_thread, ( void * )&thread_args[i] );
-
-                if ( err )
-                {
-                    fprintf( stderr, "Error! Unable to create thread: %d\n", i );
-                    exit( EXIT_FAILURE );
-                }
-            }
-
-            // ожидаем пока потоки закончат выполнение
-            for ( unsigned i = 0; i < number_of_processors; i++ )
-                pthread_join( threads[i], NULL );
-
-            // вычисление Пи, поиск Min Max и рассчёт eps
-            double min_pi = DBL_MAX,
-                   max_pi = DBL_MIN;
-
-            for ( long i = 0; i < number_of_counters; i++ )
-            {
-                pi = 4.0 * ( double )pi_points_arr[i].good_points / ( double )pi_points_arr[i].all_points;
-
-                if ( min_pi > pi )
-                    min_pi = pi;
-
-                if ( max_pi < pi )
-                    max_pi = pi;
-
-                //            printf("\npi_points_arr[%u].good_points: %u\n"
-                //                    "pi_points_arr[%u].all_points: %u\n"
-                //                    "pi_points_arr[%u].pi: %f\n",
-                //
-                //                    i, pi_points_arr[i].good_points, i, pi_points_arr[i].all_points, i, pi);
-            }
-
-            double e = max_pi - min_pi;
-
-            //        printf("\n\npi: %f\n", pi);
-            //        printf("e: %f\n\n", e);
-
-            if ( e < eps )
-                break;
-
-            start *= multiplier;
-
-            // обновляем how_much_to_gen у всех потоков
-            for ( unsigned i = 0; i < number_of_processors; i++ )
-                thread_args[i].how_much_points_to_gen = start;
-        }
-
-        return pi;
-    }
-    else
-        return -1;
-
-    #else
-    //    printf("number_of_counters: %u\n"
-    //            "start: %u\n"
-    //            "multiplier: %u\n"
-    //            "eps: %f\n"
-    //            "number_of_processors: %u\n"
-    //            "use_xs_1024: %b\n",
-    //
-    //            number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024);
-    struct PIPoints *pi_points_arr = ( struct PIPoints * )calloc( number_of_counters, sizeof( struct PIPoints ) );
-    double pi = -1;
-
-    // разбить pi_points_arr на части и распределить эти части между потоками
-    struct ThreadArgs *thread_args = ( struct ThreadArgs * )calloc( number_of_processors, sizeof( struct ThreadArgs ) );
-
-    for ( unsigned i = 0; i < number_of_processors; i++ )
-    {
-        thread_args[i].how_much_points_to_gen = start;  // установить кол-во точек для генерации
-
-        thread_args[i].pi_points_arr = pi_points_arr;
-        unsigned len = 0;
-
-        for ( int j = i; j < number_of_counters; j += number_of_processors )
-        {
-            if ( thread_args[i].indexes )
-            {
-                unsigned *temp = ( unsigned * )realloc( thread_args[i].indexes,
-                                                        ( ++len ) * sizeof( unsigned ) ); // расширяем динамический массив
-
-                if ( temp )
-                    thread_args[i].indexes = temp;
-            }
-            else
-                thread_args[i].indexes = ( unsigned * )calloc( ++len, sizeof( unsigned ) );
-
-            ( *( thread_args[i].indexes + len - 1 ) ) = j;
-        }
-
-        thread_args[i].indexes_size = len;
-        thread_args[i].use_xs1024 = use_xs1024;
-    }
-
-    // создаём массив потоков
-    pthread_t *threads = malloc( number_of_processors * sizeof( pthread_t ) );
-    int err = 0;
-
-    // находимся в цикле, пока Пи не достигнет заданной точности
     while ( 1 )
     {
-        // запускаем потоки на выполнение
-        for ( unsigned i = 0; i < number_of_processors; i++ )
+        min_pi = DBL_MAX;
+        max_pi = DBL_MIN;
+        pi = -1;
+
+        for ( i = 0; i < number_of_counters; i++ )
         {
-            //printf("Creating thread: %d\n", i);
-            if ( threads )
-                err = pthread_create( &threads[i], NULL, generate_points_in_thread, ( void * )&thread_args[i] );
-
-            if ( err )
-            {
-                fprintf( stderr, "Error! Unable to create thread: %d\n", i );
-                exit( EXIT_FAILURE );
-            }
-        }
-
-        // ожидаем пока потоки закончат выполнение
-        if ( threads )
-            for ( unsigned i = 0; i < number_of_processors; i++ )
-                pthread_join( threads[i], NULL );
-
-        // вычисление Пи, поиск Min Max и рассчёт eps
-        double min_pi = DBL_MAX,
-               max_pi = DBL_MIN;
-
-        for ( int i = 0; i < number_of_counters; i++ )
-        {
-            pi = 4.0 * ( double )pi_points_arr[i].good_points / ( double )pi_points_arr[i].all_points;
+            generate_points( pi_points_array, i, start, generator_type );
+            pi = 4.0 * ( double )pi_points_array[i].good_points / ( double )pi_points_array[i].all_points;
 
             if ( min_pi > pi )
                 min_pi = pi;
 
             if ( max_pi < pi )
                 max_pi = pi;
-
-            //            printf("\npi_points_arr[%u].good_points: %u\n"
-            //                    "pi_points_arr[%u].all_points: %u\n"
-            //                    "pi_points_arr[%u].pi: %f\n",
-            //
-            //                    i, pi_points_arr[i].good_points, i, pi_points_arr[i].all_points, i, pi);
         }
 
         double e = max_pi - min_pi;
 
-        //        printf("\n\npi: %f\n", pi);
-        //        printf("e: %f\n\n", e);
+        if ( e < precision )
+            break;
 
-        if ( e < eps )
+        start *= multiplier;
+    }
+
+    return pi;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// реализация версии multithread
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct
+{
+    PIPoints *pi_points_array;                  // каждый поток считает свои Пи
+
+    unsigned int *pi_points_array_indexes;      // индекс чисел Пи, с которыми работает данный поток
+    unsigned int pi_points_array_indexes_size;  // сколько Пи нужно рассчитать конкретно этому потоку
+
+    unsigned int how_much_to_gen;
+
+    GeneratorType generator_type;
+} ThreadArgs;
+
+//pthread_mutex_t locker;
+
+void *generate_points_in_thread( void *thread_args )
+{
+    ThreadArgs *args = ( ThreadArgs * )thread_args;
+    if ( !args )
+        return NULL;
+
+    RandomContext16 rctx16;
+    RandomContext32 rctx32;
+    RandomContext64 rctx64;
+    RandomContext1024 rctx1024;
+
+    InitRandomContext16(&rctx16);
+    InitRandomContext32(&rctx32);
+    InitRandomContext64(&rctx64);
+    InitRandomContext1024(&rctx1024);
+
+    unsigned int how_much_to_gen = args->how_much_to_gen;
+    
+    // TODO: Ограничить потребление памяти программой
+    //// разрешаю забить памяти на 4 ГБ
+    //unsigned long max_size = 4 * 1024 * 1024;   // максимально разрешённое число байт для буфера
+    //unsigned long random_buffer_full_size = 2 * how_much_to_gen;    // полный размер в байтах, требуемый буферу
+
+    unsigned long random_buffer_size = 2 * how_much_to_gen;
+    double *random_buffer = (double*)malloc(random_buffer_size * sizeof(double));
+
+    for (unsigned int* index = args->pi_points_array_indexes, *last_index = args->pi_points_array_indexes + args->pi_points_array_indexes_size; index != last_index; index++)
+    {
+        args->pi_points_array[*index].all_points += how_much_to_gen;
+
+        int ret = 0;
+        switch (args->generator_type)
+        {
+        case XOR_SHIFT_16:
+            ret = fill_buffer_xs16(&rctx16, random_buffer, random_buffer_size);
+            break;
+        case XOR_SHIFT_32:
+            ret = fill_buffer_xs32(&rctx32, random_buffer, random_buffer_size);
+            break;
+        case XOR_SHIFT_64:
+            ret = fill_buffer_xs64(&rctx64, random_buffer, random_buffer_size);
+            break;
+        case XOR_SHIFT_1024:
+            ret = fill_buffer_xs1024( &rctx1024, random_buffer, random_buffer_size);
+            break;
+        case RAND16:
+            ret = fill_buffer_rand16(&rctx16, random_buffer, random_buffer_size);
+            break;
+        case RAND32:
+            ret = fill_buffer_rand32(&rctx32, random_buffer, random_buffer_size);
+            break;
+        case RAND64:
+            ret = fill_buffer_rand64(&rctx64, random_buffer, random_buffer_size);
+            break;
+        default:
+            fprintf(stderr, "You didn't specify a generator type");
+            break;
+        }
+
+        if (ret == -1)
+        {
+            fprintf(stderr, "Cannot fill *random_buffer");
+            return NULL;
+        }
+
+        uint8_t len = 0;
+        double x = 0, y = 0;
+        for (double* ptr = random_buffer, *end = random_buffer + random_buffer_size; ptr != end; ptr += 2)
+        {
+            x = *ptr;
+            y = *(ptr + 1);
+
+            len = !(uint8_t)(x * x + y * y);
+            args->pi_points_array[*index].good_points += len;
+        }
+    }
+
+    free(random_buffer);
+    return NULL;
+}
+
+double get_pi_multithread( uint32_t number_of_counters,
+                           uint32_t start,
+                           uint32_t multiplier,
+                           double precision,
+                           long number_of_processors,
+                           GeneratorType generator_type )
+{
+    PIPoints *pi_points_array = ( PIPoints * )calloc( number_of_counters, sizeof( PIPoints ) );
+    if (!pi_points_array)
+    {
+        fprintf(stderr, "Cannot create *pi_points_array with calloc");
+        return -1;
+    }
+
+    ThreadArgs *thread_args = ( ThreadArgs * )calloc( number_of_processors, sizeof( ThreadArgs ) );
+    if (!thread_args)
+    {
+        fprintf(stderr, "Cannot create *thread_args with calloc");
+        return -1;
+    }
+
+    // разбить pi_points_array на части и распределить эти части между потоками
+    for ( long thread_index = 0; thread_index < number_of_processors; thread_index++ )
+    {
+        thread_args[thread_index].pi_points_array = pi_points_array;    // каждый поток получит копию указателя на весь массив pi_points_array
+        thread_args[thread_index].generator_type = generator_type;
+        thread_args[thread_index].how_much_to_gen = start;              // установить кол-во точек для генерации
+
+        unsigned int pi_points_array_indexes_size = 0;                  // количество чисел Пи, которые будет генерировать данный поток
+
+        for ( unsigned int pi_points_array_index = thread_index; pi_points_array_index < number_of_counters; pi_points_array_index += number_of_processors )
+        {
+            if ( thread_args[thread_index].pi_points_array_indexes )
+            {
+                // расширяем динамический массив
+                unsigned int *temp = ( unsigned int * )realloc( thread_args[thread_index].pi_points_array_indexes, ( ++pi_points_array_indexes_size ) * sizeof( unsigned int ) );
+                if (!temp)
+                {
+                    fprintf(stderr, "Cannot resize *thread_args[%u].pi_points_array_indexes with realloc", thread_index);
+                    return -1;
+                }
+
+                thread_args[thread_index].pi_points_array_indexes = temp;
+            }
+            else
+            {
+                unsigned int *temp = (unsigned int*)calloc(++pi_points_array_indexes_size, sizeof(unsigned int));
+                if (!temp)
+                {
+                    fprintf(stderr, "Cannot create *thread_args[%u].pi_points_array_indexes with calloc", thread_index);
+                    return -1;
+                }
+
+                thread_args[thread_index].pi_points_array_indexes = temp;
+            }
+
+            unsigned int* last_element = &thread_args[thread_index].pi_points_array_indexes[pi_points_array_indexes_size - 1];
+            *last_element = pi_points_array_index;
+        }
+
+        thread_args[thread_index].pi_points_array_indexes_size = pi_points_array_indexes_size;
+    }
+
+    // создаём массив потоков
+    pthread_t *threads = malloc( number_of_processors * sizeof( pthread_t ) );
+    if (!threads)
+    {
+        fprintf(stderr, "Cannot create *threads with calloc");
+        return -1;
+    }
+
+    double pi = -1;
+    while ( 1 ) // находимся в цикле, пока Пи не достигнем заданной точности
+    {
+        // запускаем потоки на выполнение
+        for ( long i = 0; i < number_of_processors; i++ )
+        {
+            int err = pthread_create( &threads[i], NULL, generate_points_in_thread, ( void * )&thread_args[i] );
+            if ( err )
+            {
+                fprintf(stderr, "Error! Unable to create thread: %d\n", i);
+                return -1;
+            }
+        }
+
+        // ожидаем пока все потоки закончат выполнение
+        for ( long i = 0; i < number_of_processors; i++ )
+            pthread_join( threads[i], NULL );
+
+        // вычисление Пи, поиск Min Max и рассчёт precision
+        double min_pi = DBL_MAX,
+               max_pi = DBL_MIN;
+
+        for ( unsigned int i = 0; i < number_of_counters; i++ )
+        {
+            uint64_t good_points = pi_points_array[i].good_points;
+            uint64_t all_points = pi_points_array[i].all_points;
+
+            pi = 4.0 * good_points / ( double )all_points;
+
+            if ( min_pi > pi )
+                min_pi = pi;
+
+            if ( max_pi < pi )
+                max_pi = pi;
+        }
+
+        double my_precision = max_pi - min_pi;
+        if ( my_precision < precision )
             break;
 
         start *= multiplier;
 
         // обновляем how_much_to_gen у всех потоков
-        for ( unsigned i = 0; i < number_of_processors; i++ )
-            thread_args[i].how_much_points_to_gen = start;
+        for ( long i = 0; i < number_of_processors; i++ )
+            thread_args[i].how_much_to_gen = start;
     }
 
     return pi;
-    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // реализация версии OpenCL
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-// Convert kernel_boost.cl file to C string: https://github.com/MatejGomboc/OpenCL-source-to-C-string-converter
-extern const char* source_str;
-//"/* Условие задачи 2:\n"
-//" * Вычислить значение числа Пи методом Монте-Карло с точностью 0.0001 */\n"
-//"\n"
-//"#define ULONG_MAX 0xffffffffffffffffUL\n"
-//"\n"
-//"unsigned long xs64_gen(unsigned long seed)\n"
-//"{\n"
-//"    seed ^= (seed >> 12);\n"
-//"    seed ^= (seed << 25);\n"
-//"    seed ^= (seed >> 27);\n"
-//"\n"
-//"    return seed * ULONG_MAX;\n"
-//"}\n"
-//"\n"
-//"__kernel void boost( __global const double *randoms, __global int *points )\n"
-//"{\n"
-//"    int i = get_global_id(0);\n"
-//"    points[i] = 0;\n"
-//"\n"
-//"    unsigned long seed = randoms[i] * ULONG_MAX;\n"
-//"\n"
-//"    seed = xs64_gen(seed);\n"
-//"    double x = (double) seed / (double) ULONG_MAX;\n"
-//"\n"
-//"    seed = xs64_gen(seed);\n"
-//"    double y = (double) seed / (double) ULONG_MAX;\n"
-//"\n"
-//"    double len = x*x + y*y;\n"
-//"\n"
-//"    if (len <= 1)\n"
-//"        points[i] = 1;\n"
-//"}\n";
-
-double get_pi_opencl( long number_of_counters,
-                      uint32_t start,
-                      uint32_t multiplier,
-                      double eps,
-                      bool use_xs1024 )
+extern const char* kernel_source;
+double get_pi_opencl(uint32_t number_of_counters,
+    uint64_t start,
+    uint32_t multiplier,
+    double precision,
+    GeneratorType generator_type)
 {
-    size_t source_size = strlen(source_str);
+    double pi = 0;
 
-    // Get platform and device information
-    cl_platform_id platform_id = NULL;
-    cl_device_id device_id = NULL;
-    cl_uint ret_num_devices;
-    cl_uint ret_num_platforms;
-    cl_int ret = clGetPlatformIDs( 1, &platform_id, &ret_num_platforms );
+    RandomContext64 rctx64;
+    RandomContext1024 rctx1024;
 
-    ret = clGetDeviceIDs( platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices );
+    InitRandomContext64(&rctx64);
+    InitRandomContext1024(&rctx1024);
 
-    // Create an OpenCL context
-    cl_context context = clCreateContext( NULL, 1, &device_id, NULL, NULL, &ret );
+    size_t kernel_code_size = strlen(kernel_source);
+    cl_int ret;
 
-    // Create a command queue
-    cl_command_queue command_queue = clCreateCommandQueue( context, device_id, 0, &ret );
-
-    size_t local_item_size = 256;
-
-    struct PIPoints *pi_points_arr = ( struct PIPoints * ) malloc( number_of_counters * sizeof( struct PIPoints ) );
-    memset( pi_points_arr, 0, number_of_counters * sizeof( struct PIPoints ) );
-
-    unsigned long points_size;
-
-    double *randoms;
-    int *points;
-
-    double pi = -1;
-
-    while ( 1 )
+    // Get the number of platforms
+    cl_uint num_platforms;
+    ret = clGetPlatformIDs(0, NULL, &num_platforms);
+    if (ret != CL_SUCCESS)
     {
-        points_size = start * number_of_counters;
-
-        randoms = ( double * ) malloc( points_size * sizeof( double ) );
-        points = ( int * ) calloc( points_size, sizeof( int ) );
-
-        // разрадать по сиду каждому kernel
-        for ( unsigned i = 0; i < points_size; i++ )
-        {
-            *( randoms + i ) =
-                ( use_xs1024 )
-                ? next_xs1024( 0 ) / ( double )RANDOM_MAX
-                : next_xs64( 0 ) / ( double )RANDOM_MAX;
-        }
-
-        // обработка с OpenCL
-        // Create memory buffers on the device for each vector
-        cl_mem randoms_mem_obj  = clCreateBuffer( context, CL_MEM_READ_ONLY, points_size * sizeof( double ), NULL, &ret );
-        cl_mem points_mem_obj  = clCreateBuffer( context, CL_MEM_WRITE_ONLY, points_size * sizeof( int ), NULL, &ret );
-
-        // Copy the lists @points and @randoms to their respective memory buffers
-        ret = clEnqueueWriteBuffer( command_queue, randoms_mem_obj, CL_TRUE, 0, points_size * sizeof( double ), randoms, 0,
-                                    NULL, NULL );
-        ret = clEnqueueWriteBuffer( command_queue, points_mem_obj, CL_TRUE, 0, points_size * sizeof( int ), points, 0, NULL,
-                                    NULL );
-
-        // Create a program from the kernel source
-        cl_program program = clCreateProgramWithSource( context, 1, ( const char ** ) &source_str,
-                                                        ( const size_t * ) &source_size, &ret );
-
-        // Build the program
-        ret = clBuildProgram( program, 1, &device_id, NULL, NULL, NULL );
-
-        // Create the OpenCL kernel
-        cl_kernel kernel = clCreateKernel( program, "boost", &ret );
-
-        // Set the arguments of the kernel
-        ret = clSetKernelArg( kernel, 0, sizeof( cl_mem ), ( void * ) &randoms_mem_obj );
-        ret = clSetKernelArg( kernel, 1, sizeof( cl_mem ), ( void * ) &points_mem_obj );
-
-        // Execute the OpenCL kernel on the list
-        size_t global_item_size = points_size;
-
-        ret = clEnqueueNDRangeKernel( command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL );
-
-        // Read the memory buffer @points on the device to the local variable @points
-        ret = clEnqueueReadBuffer( command_queue, points_mem_obj, CL_TRUE, 0, points_size * sizeof( int ), points, 0, NULL,
-                                   NULL );
-
-        // показать points
-        //        for (int i = 0; i < points_size; i++)
-        //            printf("points[%d]: %d\n", i, points[i]);
-
-        // суммирование точек в pi_points_arr и поиск min max PI
-        double min_pi = DBL_MAX,
-               max_pi = DBL_MIN,
-               e;
-
-        for ( long i = 0; i < number_of_counters; i++ )
-        {
-            pi_points_arr[i].all_points += start;
-
-            for ( unsigned j = i; j < points_size; j += number_of_counters )
-            {
-                if ( points[j] > 1 )
-                    points[j] = 1;
-
-                pi_points_arr[i].good_points += ( unsigned long ) points[j];
-            }
-
-            pi = 4.0 * pi_points_arr[i].good_points / ( double ) pi_points_arr[i].all_points;
-
-            if ( pi < min_pi )
-                min_pi = pi;
-
-            if ( pi > max_pi )
-                max_pi = pi;
-        }
-
-        //        printf("pi: %f\n",
-        //                "min_pi: %f\n"
-        //                "max_pi: %f\n", pi, min_pi, max_pi);
-
-        e = max_pi - min_pi;
-        //        printf("e: %f\n", e);
-
-        if ( e < eps )
-            break;
-
-        start *= multiplier;
-
-        // Clean up
-        ret = clFlush( command_queue );
-        ret = clFinish( command_queue );
-
-        ret = clReleaseKernel( kernel );
-        ret = clReleaseProgram( program );
-
-        ret = clReleaseMemObject( randoms_mem_obj );
-        ret = clReleaseMemObject( points_mem_obj );
+        fprintf(stderr, "Cannot getting platform IDs: %d\n", ret);
+        return -1;
     }
 
-    ret = clReleaseCommandQueue( command_queue );
-    ret = clReleaseContext( context );
+    if (num_platforms == 0)
+    {
+        fprintf(stdout, "No available OpenCL platforms\n");
+        return -2;
+    }
 
-    free( randoms );
-    free( points );
+    cl_platform_id* platforms = (cl_platform_id*)malloc(num_platforms * sizeof(cl_platform_id));
+    if (!platforms)
+    {
+        fprintf(stderr, "Cannot allocating memory for platform IDs\n");
+        return -1;
+    }
+
+    ret = clGetPlatformIDs(num_platforms, platforms, NULL);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot getting platform IDs\n");
+        return -1;
+    }
+
+    cl_platform_id platform = platforms[0];
+    free(platforms);
+
+    cl_uint num_devices = 0;
+    ret = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, NULL, &num_devices);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot getting GPU devices IDs: %d\n", ret);
+        return -1;
+    }
+
+    cl_device_id* devices;
+    if (num_devices == 0)
+    {
+        fprintf(stdout, "No GPU device available\n");
+        fprintf(stdout, "Choose CPU as default device\n");
+
+        ret = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 0, NULL, &num_devices);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot getting CPU devices IDs: %d\n", ret);
+            return -1;
+        }
+
+        if (num_devices == 0)
+        {
+            fprintf(stdout, "No CPU device available\n");
+            return -2;
+        }
+
+        devices = (cl_device_id*)malloc(num_devices * sizeof(cl_device_id));
+        if (!devices)
+        {
+            fprintf(stderr, "Cannot allocating memory for devices IDs\n");
+            return -1;
+        }
+
+        ret = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, num_devices, devices, NULL);
+
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot getting CPU devices IDs: %d\n", ret);
+            return -1;
+        }
+    }
+    else
+    {
+        devices = (cl_device_id*)malloc(num_devices * sizeof(cl_device_id));
+        if (!devices)
+        {
+            fprintf(stderr, "Cannot allocating memory for devices IDs\n");
+            return -1;
+        }
+
+        ret = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, num_devices, devices, NULL);
+
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot getting GPU devices IDs: %d\n", ret);
+            return -1;
+        }
+    }
+
+    cl_device_id device = devices[0];
+    free(devices);
+
+    // request max memory size for cl_mem_obj for this device
+    cl_ulong max_memory_allocation_size;
+    ret = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &max_memory_allocation_size, NULL);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot get CL_DEVICE_MAX_MEM_ALLOC_SIZE: %d\n", ret);
+        return -1;
+    }
+
+    // request max available compute units for this device
+    size_t max_work_group_size;
+    ret = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_group_size, NULL);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot get CL_DEVICE_MAX_WORK_GROUP_SIZE: %d\n", ret);
+        return -1;
+    }
+    
+    // display the received values
+    //fprintf(stdout, "max_memory_allocation_size: %llu\nmax_work_group_size: %llu\n\n", max_memory_allocation_size, max_work_group_size);
+
+    cl_context context = clCreateContext(NULL, 1, &device, NULL, NULL, &ret);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot create cl_context: %d\n", ret);
+        return -1;
+    }
+
+    cl_command_queue command_queue = clCreateCommandQueueWithProperties(context, device, NULL, &ret);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot create command_queue: %d\n", ret);
+        return -1;
+    }
+
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&kernel_source, (const size_t*)&kernel_code_size, &ret);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot create cl_program: %d\n", ret);
+        return -1;
+    }
+
+    ret = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot build cl_program: %d\n", ret);
+
+        size_t log_size;
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
+
+        char* log = (char*)malloc(log_size + 1);
+        if (!log)
+        {
+            fprintf(stderr, "Cannot allocate memory for *log variable\n");
+            return -1;
+        }
+
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
+
+        log[log_size] = '\0';
+        fprintf(stderr, "Build log:\n%s\n", log);
+
+        free(log);
+        return -1;
+    }
+
+    // seeds size and number of points to generate
+    uint64_t seeds_size = number_of_counters * start;
+
+    // Create mem objects
+    cl_mem mem_pi_points_array = clCreateBuffer(context, CL_MEM_READ_WRITE, number_of_counters * sizeof(PIPoints), NULL, &ret);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot create mem_pi_points_array: %d\n", ret);
+        return -1;
+    }
+
+    cl_mem mem_generator_type = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(GeneratorType), NULL, &ret);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot create mem_generator_type: %d\n", ret);
+        return -1;
+    }
+
+    cl_mem mem_error_code = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, &ret);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot create mem_error_code: %d\n", ret);
+        return -1;
+    }
+
+    // Write data to cl_mem objects
+    PIPoints* pi_points_array = (PIPoints*)calloc(number_of_counters, sizeof(PIPoints));
+    if (!pi_points_array)
+    {
+        fprintf(stderr, "Cannot allocate memory for *pi_points_array with calloc\n");
+        return -1;
+    }
+
+    ret = clEnqueueWriteBuffer(command_queue, mem_pi_points_array, CL_TRUE, 0, number_of_counters * sizeof(PIPoints), pi_points_array, 0, NULL, NULL);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot write data to mem_pi_points_array: %d\n", ret);
+        return -1;
+    }
+
+    uint64_t* seeds = (uint64_t*)malloc(seeds_size * sizeof(uint64_t));
+    if (!seeds)
+    {
+        fprintf(stderr, "Cannot allocate memory for *seeds with malloc\n");
+        return -1;
+    }
+
+    ret = clEnqueueWriteBuffer(command_queue, mem_generator_type, CL_TRUE, 0, sizeof(GeneratorType), &generator_type, 0, NULL, NULL);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot write data to mem_generator_type: %d\n", ret);
+        return -1;
+    }
+
+    int opencl_error_code = 0;
+    ret = clEnqueueWriteBuffer(command_queue, mem_error_code, CL_TRUE, 0, sizeof(int), &opencl_error_code, 0, NULL, NULL);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot write data to mem_error_code: %d\n", ret);
+        return -1;
+    }
+
+    // Generate seeds
+    switch (generator_type)
+    {
+    case XOR_SHIFT_64:
+        for (uint64_t* ptr = seeds, *end = seeds + seeds_size; ptr != end; ptr++)
+            *ptr = next_xs64(&rctx64);
+        break;
+    case XOR_SHIFT_1024:
+        for (uint64_t* ptr = seeds, *end = seeds + seeds_size; ptr != end; ptr++)
+            *ptr = next_xs1024(&rctx1024);
+        break;
+    default:
+        fprintf(stderr, "OpenCL only support XorShift64 and XorShift1024 generator type\n");
+        return -1;
+    }
+
+    uint64_t* pi_points_array_indexes = (uint64_t*)malloc(seeds_size * sizeof(uint64_t));
+    if (!pi_points_array_indexes)
+    {
+        fprintf(stderr, "Cannot allocate memory for *pi_points_array_indexes with malloc\n");
+        return -1;
+    }
+
+    uint64_t index = 0;
+    for (uint64_t* ptr = pi_points_array_indexes, *end = pi_points_array_indexes + seeds_size; ptr != end; ptr++)
+    {
+        index = (end - ptr) / start;
+        *ptr = index;
+    }
+
+    bool is_memory_available = true;
+    uint64_t new_seeds_size = seeds_size;
+
+    //uint64_t counter = 0;
+    while (1)
+    {
+        if (is_memory_available && seeds_size < new_seeds_size)
+        {
+            // нужно сделать realloc *seeds и *pi_points_array_indexes
+            uint64_t* temp = (uint64_t*)realloc(seeds, new_seeds_size * sizeof(uint64_t));
+            if (!temp)
+            {
+                fprintf(stderr, "Cannot allocate memory for *seeds with realloc\n");
+                return -1;
+            }
+            seeds = temp;
+
+            temp = (uint64_t*)realloc(pi_points_array_indexes, new_seeds_size * sizeof(uint64_t));
+            if (!temp)
+            {
+                fprintf(stderr, "Cannot allocate memory for *pi_points_array_indexes with realloc\n");
+                return -1;
+            }
+            pi_points_array_indexes = temp;
+
+            // теперь дополним *seeds новыми сидами
+            switch (generator_type)
+            {
+            case XOR_SHIFT_64:
+                for (uint64_t* ptr = seeds + seeds_size, *end = seeds + new_seeds_size; ptr != end; ptr++)
+                    *ptr = next_xs64(&rctx64);
+                break;
+            case XOR_SHIFT_1024:
+                for (uint64_t* ptr = seeds + seeds_size, *end = seeds + new_seeds_size; ptr != end; ptr++)
+                    *ptr = next_xs1024(&rctx1024);
+                break;
+            default:
+                fprintf(stderr, "OpenCL only support XorShift64 and XorShift1024 generator type\n");
+                return -1;
+            }
+
+            // а pi_points_array_indexes обновим индексы
+            for (uint64_t* ptr = pi_points_array_indexes, *end = pi_points_array_indexes + new_seeds_size; ptr != end; ptr++)
+            {
+                index = (end - ptr) / start;
+                *ptr = index;
+            }
+
+            seeds_size = new_seeds_size;
+        }
+
+        // Create mem_objects with current seeds_size
+        cl_mem mem_seeds = clCreateBuffer(context, CL_MEM_READ_WRITE, seeds_size * sizeof(uint64_t), NULL, &ret);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot create mem_seeds: %d\n", ret);
+            return -1;
+        }
+
+        cl_mem mem_pi_points_array_indexes = clCreateBuffer(context, CL_MEM_READ_WRITE, seeds_size * sizeof(uint64_t), NULL, &ret);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot create mem_pi_points_array_indexes: %d\n", ret);
+            return -1;
+        }
+
+        // Write data to mem_objects
+        ret = clEnqueueWriteBuffer(command_queue, mem_error_code, CL_TRUE, 0, sizeof(int), &opencl_error_code, 0, NULL, NULL);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot write data to mem_error_code: %d\n", ret);
+            return -1;
+        }
+
+        if (opencl_error_code == -1)    // generator type not supported
+        {
+            fprintf(stderr, "OpenCL only support XorShift64 and XorShift1024 generator type\n");
+            return -1;
+        }
+
+        ret = clEnqueueWriteBuffer(command_queue, mem_seeds, CL_TRUE, 0, seeds_size * sizeof(uint64_t), seeds, 0, NULL, NULL);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot write data to mem_seeds: %d\n", ret);
+            return -1;
+        }
+
+        ret = clEnqueueWriteBuffer(command_queue, mem_pi_points_array_indexes, CL_TRUE, 0, seeds_size * sizeof(uint64_t), pi_points_array_indexes, 0, NULL, NULL);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot write data to mem_pi_points_array_indexes: %d\n", ret);
+            return -1;
+        }
+
+        // Create a kernel
+        const char* kernel_name = "boost";
+        cl_kernel kernel = clCreateKernel(program, kernel_name, &ret);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot create cl_kernel: %d\n", ret);
+            return -1;
+        }
+
+        // Set kernel arguments
+        ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&mem_pi_points_array);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot set mem_pi_points_array as argument: %d\n", ret);
+            return -1;
+        }
+
+        ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&mem_seeds);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot set mem_seeds as argument: %d\n", ret);
+            return -1;
+        }
+
+        ret = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&mem_pi_points_array_indexes);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot set mem_pi_points_array_indexes as argument: %d\n", ret);
+            return -1;
+        }
+
+        ret = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&mem_generator_type);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot set mem_generator_type as argument: %d\n", ret);
+            return -1;
+        }
+
+        ret = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&mem_error_code);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot set mem_error_code as argument: %d\n", ret);
+            return -1;
+        }
+
+        // Running the kernel
+        ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, (const size_t *) & seeds_size, (const size_t*)&max_work_group_size, 0, NULL, NULL);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot run kernel: %d\n", ret);
+            return -1;
+        }
+
+        // Read the memory buffer
+        ret = clEnqueueReadBuffer(command_queue, mem_pi_points_array, CL_TRUE, 0, number_of_counters * sizeof(PIPoints), pi_points_array, 0, NULL, NULL);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot read data from mem_pi_points_array: %d\n", ret);
+            return -1;
+        }
+
+        // Calculate PI numbers and find MIN and MAX PI
+        double min_pi = DBL_MAX;
+        double max_pi = DBL_MIN;
+
+        for (PIPoints* ptr = pi_points_array, *end = pi_points_array + number_of_counters; ptr != end; ptr++)
+        {
+            //fprintf(stdout, "Index: %llu\n\n", (end - ptr));
+            //fprintf(stdout, "good_points: %llu\nall_points: %llu\n\n", ptr->good_points, ptr->all_points);
+
+            pi = 4.0 * ptr->good_points / (double)ptr->all_points;
+
+            if (pi > max_pi)
+                max_pi = pi;
+
+            if (pi < min_pi)
+                min_pi = pi;
+        }
+
+        // Cleanup kernel and mem_objects
+        ret = clReleaseKernel(kernel);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot release cl_kernel: %d\n", ret);
+            return -1;
+        }
+
+        ret = clReleaseMemObject(mem_seeds);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot release mem_seeds: %d\n", ret);
+            return -1;
+        }
+
+        ret = clReleaseMemObject(mem_pi_points_array_indexes);
+        if (ret != CL_SUCCESS)
+        {
+            fprintf(stderr, "Cannot mem_pi_points_array_indexes: %d\n", ret);
+            return -1;
+        }
+
+        // Calculate local precision and check with global precision
+        double my_precision = max_pi - min_pi;
+        if (my_precision <= precision)
+            break;
+
+        if (is_memory_available)
+        {
+            start *= multiplier;
+            new_seeds_size = number_of_counters * start;
+
+            if (new_seeds_size * sizeof(uint64_t) > max_memory_allocation_size)
+            {
+                new_seeds_size = seeds_size;
+                is_memory_available = false;
+            }
+        }
+
+        //if (counter % 2 == 0)
+        //{
+        //    fprintf(stdout, "Current pi: %Lf\n", pi);
+        //    counter = 0;
+        //}
+
+        //counter++;
+    }
+
+    // Other cleanup
+    ret = clReleaseProgram(program);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot release cl_program: %d\n", ret);
+        return -1;
+    }
+
+    ret = clReleaseMemObject(mem_pi_points_array);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot release mem_pi_points_array: %d\n", ret);
+        return -1;
+    }
+
+    ret = clReleaseMemObject(mem_generator_type);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot release mem_generator_type: %d\n", ret);
+        return -1;
+    }
+
+    ret = clReleaseMemObject(mem_error_code);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot release mem_error_code: %d\n", ret);
+        return -1;
+    }
+
+    ret = clReleaseCommandQueue(command_queue);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot release cl_command_queue: %d\n", ret);
+        return -1;
+    }
+
+    ret = clReleaseContext(context);
+    if (ret != CL_SUCCESS)
+    {
+        fprintf(stderr, "Cannot release cl_context: %d\n", ret);
+        return -1;
+    }
+
+    free(pi_points_array);
+    free(seeds);
+    free(pi_points_array_indexes);
 
     return pi;
 }

@@ -76,7 +76,7 @@ int print_help_message( char *argv[] )
                       "-u, --unit Arg (=off)", " ", " ", " ", " ",
                       "-s, --solution Arg (=bits)", " ",
                       "-c, --show-combinations",
-                      "-r, --file Arg (=source_wc.txt)",
+                      "-f, --file Arg (=source_wc.txt)",
                       //"-o, --file-output Arg (=output_wc.txt)",
                       "-n, --nomenclature Arg (=\"100, 200, 300, 400, 500, 1000, 1200, 1400, 1500, 2000, 3000\")",
                       "-t, --target Arg (=11200)"
@@ -137,7 +137,7 @@ int main( int argc, char *argv[] )
         {"brief",               no_argument,        &verbose_flag, 0},
 
         {"show-combinations",   no_argument,        NULL, 'c'},
-        {"file",                required_argument,  NULL, 'r'},
+        {"file",                required_argument,  NULL, 'f'},
         //{"file-output",         required_argument,  NULL, 'o'},
 
         {"nomenclature",        required_argument,  NULL, 'n'},
@@ -332,20 +332,25 @@ int main( int argc, char *argv[] )
 
             case 'v':
                 // show program version
-                #if defined(__VERSION_H__)
-                printf( "%u.%u.%u.%u-%s\n",
+#if defined(__VERSION_H__)
+                fprintf(stdout, "%u.%u.%u.%u-%s %s%s%s\n",
 
-                        VERSION_MAJOR,
-                        VERSION_MINOR,
-                        VERSION_PATCH,
-                        VERSION_TWEAK,
+                    VERSION_MAJOR,
+                    VERSION_MINOR,
+                    VERSION_PATCH,
+                    VERSION_TWEAK,
 
-                        BUILD_DATE );
-                #elif defined(__GIT_VERSION_H__)
-                printf( "%s\n", GIT_COMMIT_HASH );
-                #else
-                printf( "%s\n", "?" );
-                #endif
+                    BUILD_DATE,
+
+#if defined(__GIT_VERSION_H__)
+                    "(", GIT_COMMIT_HASH, ")");
+#else
+                    "", "", "");
+#endif     
+
+#else
+                fprintf(stdout, "%s\n", "?");
+#endif
                 return EXIT_SUCCESS;
 
             case 'h':

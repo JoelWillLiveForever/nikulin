@@ -84,21 +84,44 @@
 
 // include OpenCL
 #ifndef CL_TARGET_OPENCL_VERSION
-    #define CL_TARGET_OPENCL_VERSION 120
+#define CL_TARGET_OPENCL_VERSION 220
 #endif
 
 #if defined (__APPLE__) || defined (__MACH__)
-    #include <OpenCL/opencl.h>
+#include <OpenCL/opencl.h>
 #else
-    #ifdef _MSC_VER
-        #pragma warning(disable: 4193)
-        #include <CL/cl.h>
-    #else
-        #include <CL/cl.h>
-    #endif
+#ifdef _MSC_VER
+#pragma warning(disable: 4193)
+#include <CL/cl.h>
+#else
+#include <CL/cl.h>
+#endif
 #endif
 
-// generators library
-#include "random/src/xor_shift.h"
-#include "random/src/xor_shift_thread_safe.h"
+// random library
+// #ifdef _MSC_VER
+//     #pragma warning(push)
+//     #pragma warning(disable: 4651)
+// #endif
+
+#ifdef __cplusplus
+extern "C"
+{
+#include <random/context.h>
+#include <random/rand.h>
+#include <random/xor_shift.h>
+#include <random/converter.h>
+#include <random/buffer_placeholder.h>
+}
+#else
+#include <random/context.h>
+#include <random/rand.h>
+#include <random/xor_shift.h>
+#include <random/converter.h>
+#include <random/buffer_placeholder.h>
+#endif
+
+// #ifdef _MSC_VER
+//     #pragma warning(pop)
+// #endif
 

@@ -43,13 +43,13 @@ int main()
                       prev_pi ); // разница между прошлым Пи и текущим Пи (точность)
 
             // вывод информации с итерации
-            printf( "prev_pi = %Lf20; curr_pi = %Lf; eps = %f; gp = %llu; ap = %llu\n", prev_pi, curr_pi, ( double ) e, gp, ap );
+            //fprintf( stdout, "prev_pi = %Lf20; curr_pi = %Lf; eps = %f; gp = %llu; ap = %llu\n", prev_pi, curr_pi, ( double ) e, gp, ap );
         }
     } while ( e >
 
               EPS ); // как только разница между прошлым Пи и текущим Пи будет > EPS, выйти из цикла
 
-    printf( "PI = %Lf;\n", curr_pi ); // вывод рассчитанного Пи
+    fprintf( stdout, "%Lf;\n", curr_pi ); // вывод рассчитанного Пи
     return 0;
 }
 
@@ -57,7 +57,7 @@ int main()
 
 void print_help_message( char *argv[] )
 {
-    printf( "Usage:\n\n"
+    fprintf( stdout, "Usage:\n\n"
             " %s [options]\n\n"
             "Options:\n"
 
@@ -69,9 +69,8 @@ void print_help_message( char *argv[] )
             " %-40s                  [ds | ms | us | ns ] or\n"
             " %-40s                  [s | m | u | n ]\n"
             " %-40s Set random generator\n"
-            " %-40s Valid arguments: [xor-shift-64 | xor-shift-1024] or\n"
-            " %-40s                  [xs64 | xs1024] or\n"
-            " %-40s                  [6 | 1]\n\n"
+            " %-40s Valid arguments: [xor-shift-16 | xor-shift-32 | xor-shift-64 | xor-shift-1024 | gnu-random-16 | gnu-random-32 | gnu-random-64] or\n"
+            " %-40s                  [xs16 | xs32 | xs64 | xs1024 | rand16 | rand32 | rand64]\n\n"
 
             " %-40s Use all CPU cores for calculating (multi-core processing)\n"
             " %-40s Use GPU (OpenCL) for calculating (GPU processing)\n\n"
@@ -80,50 +79,38 @@ void print_help_message( char *argv[] )
 
             " %-40s Set accuracy for calculating PI\n"
             " %-40s Set start points count\n"
-            " %-40s Set multiplier to increase points at each calculation iteration\n"
-            " %-40s Set maximum number of points AND RUN program in PI convergence check mode\n",
+            " %-40s Set multiplier to increase points at each calculation iteration\n",
 
             argv[0],
             "-h, --help",
             "-v, --version",
             "-u, --unit Arg (off)", " ", " ", " ", " ",
-            "-g, --generator Arg (xor-shift-64)", " ", " ", " ",
+            "-g, --generator Arg (xor-shift-64)", " ", " ",
             "-t, --multithread (off)",
             "-o, --opencl (off)",
             "-n, --number-of-counters Arg (10)",
             "-e, --eps Arg (0.001)",
             "-s, --start Arg (1000)",
-            "-m, --multiplier Arg (2)",
-            "-p, --max-points Arg (10 000 000)" );
+            "-m, --multiplier Arg (2)" );
 
     char example1[40],
-         example2[40],
-         example3[40],
-         example4[40];
+        example2[40],
+        example3[40];
 
     snprintf( example1, sizeof example1, "%s%s", argv[0], " -t" );
     snprintf( example2, sizeof example2, "%s%s", argv[0], " -o -e 0.01 -s 1000000" );
-    snprintf( example3, sizeof example3, "%s%s", argv[0], " -u ms -e 0.0001" );
-    snprintf( example4, sizeof example4, "%s%s", argv[0], " -s 500 -m 3 -p 20000000" );
+    snprintf( example3, sizeof example3, "%s%s", argv[0], " -u ms -e 0.001" );
 
-    printf( "\nExamples:\n\n"
+    fprintf( stdout, "\nExamples:\n\n"
             " %-40s Run PI calculation using all CPU cores (pthread)\n"
             " %-40s Run PI calculation using GPU (OpenCL)\n"
-            " %-40s Run PI calc with precision 0.0001 and output program elapsed time\n"
-            " %-40s Run PI convergence check with start points 500, points multiplier 3 and maximum points 20 000 000\n\n",
-            example1, example2, example3, example4 );
+            " %-40s Run PI calc with precision 0.001 and output program elapsed time\n\n",
+            example1, example2, example3 );
 }
 
 static int verbose_flag;
-
 int main( int argc, char *argv[] )
 {
-    //    if ( argc == 1 )
-    //    {
-    //        fprintf(stderr, "Error! No arguments!\n");
-    //        return EXIT_FAILURE;
-    //    }
-
     // checked options
     const char *const short_options = "toe:s:n:m:p:u:g:vh";
     const struct option long_options[] =
@@ -158,9 +145,7 @@ int main( int argc, char *argv[] )
          isNanoseconds  = false,
 
          isMultithread  = false,
-         isOpenCL       = false,
-
-         use_xs1024     = false;
+         isOpenCL       = false;
 
     // дефолтные значения аргементов main
     long number_of_counters = 10;
@@ -168,8 +153,9 @@ int main( int argc, char *argv[] )
     double eps = 0.001;
 
     uint32_t start = 1000,
-             multiplier = 2,
-             max_points = 10000000;
+        multiplier = 2;
+
+    GeneratorType generator_type = XOR_SHIFT_64;
 
     char *temp;
 
@@ -187,12 +173,12 @@ int main( int argc, char *argv[] )
                 if ( long_options[option_index].flag != 0 )
                     break;
 
-                printf( "Option %s", long_options[option_index].name );
+                fprintf( stdout, "Option %s", long_options[option_index].name );
 
                 if ( optarg )
-                    printf( " with arg %s", optarg );
+                    fprintf( stdout, " with arg %s", optarg );
 
-                printf( "\n" );
+                fprintf( stdout, "\n" );
                 break;
 
             case 't':
@@ -287,21 +273,6 @@ int main( int argc, char *argv[] )
 
                 break;
 
-            case 'p':
-                errno = 0;
-                max_points = strtol( optarg, &temp, 0 );
-
-                if ( temp == optarg || *temp != '\0' ||
-                        ( ( max_points == 0 || max_points == UINT32_MAX ) && errno == ERANGE ) )
-                {
-                    fprintf( stderr, "Could not convert '%s' to uint32_t and leftover string is: '%s'\n",
-                             optarg, temp );
-
-                    return EXIT_FAILURE;
-                }
-
-                break;
-
             case 'u':
 
                 // default, milli, micro, nano seconds to check algorithm speed
@@ -327,29 +298,55 @@ int main( int argc, char *argv[] )
 
                 // выбор генератора рандомных чисел
 
-                if ( !strcmp( optarg, "6" ) || !strcmp( optarg, "xs64" ) || !strcmp( optarg, "xor-shift-64" ) )
-                    use_xs1024 = false;
+                if ( !strcmp( optarg, "xs64" ) || !strcmp( optarg, "xor-shift-64" ) )
+                    generator_type = XOR_SHIFT_64;
 
-                else if ( !strcmp( optarg, "1" ) || !strcmp( optarg, "xs1024" ) || !strcmp( optarg, "xor-shift-1024" ) )
-                    use_xs1024 = true;
+                else if ( !strcmp( optarg, "xs1024" ) || !strcmp( optarg, "xor-shift-1024" ) )
+                    generator_type = XOR_SHIFT_1024;
+
+                else if ( !strcmp(optarg, "xs32") || !strcmp(optarg, "xor-shift-32"))
+                    generator_type = XOR_SHIFT_32;
+
+                else if (!strcmp(optarg, "xs16") || !strcmp(optarg, "xor-shift-16"))
+                    generator_type = XOR_SHIFT_16;
+
+                else if (!strcmp(optarg, "rand16") || !strcmp(optarg, "gnu-rand-16"))
+                    generator_type = RAND16;
+
+                else if (!strcmp(optarg, "rand32") || !strcmp(optarg, "gnu-rand-32"))
+                    generator_type = RAND32;
+
+                else if (!strcmp(optarg, "rand64") || !strcmp(optarg, "gnu-rand-64"))
+                    generator_type = RAND64;
+
+                else
+                {
+                    fprintf(stderr, "You didn't specify a generator type");
+                    return EXIT_FAILURE;
+                }
 
                 break;
 
             case 'v':
                 // show program version
                 #if defined(__VERSION_H__)
-                printf( "%u.%u.%u.%u-%s\n",
+                fprintf( stdout, "%u.%u.%u.%u-%s %s%s%s\n",
 
                         VERSION_MAJOR,
                         VERSION_MINOR,
                         VERSION_PATCH,
                         VERSION_TWEAK,
 
-                        BUILD_DATE );
-                #elif defined(__GIT_VERSION_H__)
-                printf( "%s\n", GIT_COMMIT_HASH );
+                        BUILD_DATE,
+
+                    #if defined(__GIT_VERSION_H__)
+                            "(", GIT_COMMIT_HASH, ")");
+                    #else
+                            "", "", "");
+                    #endif     
+
                 #else
-                printf( "%s\n", "?" );
+                    fprintf( stdout, "%s\n", "?" );
                 #endif
                 return EXIT_SUCCESS;
 
@@ -363,23 +360,23 @@ int main( int argc, char *argv[] )
             default:
                 // if invalid (unrecognized) options
 
-                printf( "\n" );
+                fprintf( stdout, "\n" );
                 print_help_message( argv );
                 return EXIT_FAILURE;
         }
     }
 
     if ( verbose_flag )
-        printf( "Verbose flag is set\n" );
+        fprintf( stdout, "Verbose flag is set\n" );
 
     if ( optind < argc )
     {
-        printf( "Error! Non-option ARGV-elements: " );
+        fprintf( stdout, "Error! Non-option ARGV-elements: " );
 
         while ( optind < argc )
-            printf( "%s", argv[optind++] );
+            fprintf( stdout, "%s", argv[optind++] );
 
-        printf( "\n" );
+        fprintf( stdout, "\n" );
         print_help_message( argv );
 
         return EXIT_FAILURE;
@@ -398,11 +395,11 @@ int main( int argc, char *argv[] )
     {
         #ifdef _WIN32
         begin = GetTickCount64();
-        pi = get_pi_single_thread( number_of_counters, start, multiplier, eps, use_xs1024 );
+        pi = get_pi_single_thread( number_of_counters, start, multiplier, eps, generator_type );
         end = GetTickCount64();
         #else
         gettimeofday( &begin, 0 );
-        pi = get_pi_single_thread( number_of_counters, start, multiplier, eps, use_xs1024 );
+        pi = get_pi_single_thread( number_of_counters, start, multiplier, eps, generator_type );
         gettimeofday( &end, 0 );
         #endif
     }
@@ -425,15 +422,15 @@ int main( int argc, char *argv[] )
             return EXIT_FAILURE;
         }
 
-        printf( "\nAvailable CPUs: %ld\n", number_of_processors );
+        // fprintf( stdout, "\nAvailable CPUs: %ld\n", number_of_processors );
 
         #ifdef _WIN32
         begin = GetTickCount64();
-        pi = get_pi_multithread( number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024 );
+        pi = get_pi_multithread( number_of_counters, start, multiplier, eps, number_of_processors, generator_type );
         end = GetTickCount64();
         #else
         gettimeofday( &begin, 0 );
-        pi = get_pi_multithread( number_of_counters, start, multiplier, eps, number_of_processors, use_xs1024 );
+        pi = get_pi_multithread( number_of_counters, start, multiplier, eps, number_of_processors, generator_type );
         gettimeofday( &end, 0 );
         #endif
     }
@@ -442,16 +439,24 @@ int main( int argc, char *argv[] )
     {
         #ifdef _WIN32
         begin = GetTickCount64();
-        pi = get_pi_opencl( number_of_counters, start, multiplier, eps, use_xs1024 );
+        pi = get_pi_opencl( number_of_counters, start, multiplier, eps, generator_type );
         end = GetTickCount64();
         #else
         gettimeofday( &begin, 0 );
-        pi = get_pi_opencl( number_of_counters, start, multiplier, eps, use_xs1024 );
+        pi = get_pi_opencl( number_of_counters, start, multiplier, eps, generator_type );
         gettimeofday( &end, 0 );
         #endif
     }
 
-    printf( "PI: %f\n", pi );
+    // if pi == -1
+    if (1 + pi < 0.01)
+        return EXIT_FAILURE;
+
+    // if pi == 0
+    if (pi < 0.01)
+        fprintf(stdout, "Your device does not support OpenCL\n");
+    else
+        fprintf( stdout, "%f\n", pi );
 
     #ifdef _WIN32
     unsigned long long elapsed = ( end - begin ) * 1000000; // milliseconds * 1000000 = nanoseconds
@@ -460,16 +465,16 @@ int main( int argc, char *argv[] )
     #endif
 
     if ( isSeconds )
-        printf( "Elapsed time: %lld seconds\n", ( elapsed / 1000000000 ) );
+        fprintf( stdout, "Elapsed time: %lld seconds\n", ( elapsed / 1000000000 ) );
 
     if ( isMilliseconds )
-        printf( "Elapsed time: %lld milliseconds\n", ( elapsed / 1000000 ) );
+        fprintf( stdout, "Elapsed time: %lld milliseconds\n", ( elapsed / 1000000 ) );
 
     if ( isMicroseconds )
-        printf( "Elapsed time: %lld microseconds\n", ( elapsed / 1000 ) );
+        fprintf( stdout, "Elapsed time: %lld microseconds\n", ( elapsed / 1000 ) );
 
     if ( isNanoseconds )
-        printf( "Elapsed time: %lld nanoseconds\n", elapsed );
+        fprintf( stdout, "Elapsed time: %lld nanoseconds\n", elapsed );
 
     return EXIT_SUCCESS;
 }

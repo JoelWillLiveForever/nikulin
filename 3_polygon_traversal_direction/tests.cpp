@@ -4,12 +4,12 @@
 #include <boost/process.hpp>
 namespace bp = boost::process;
 
-// протестим CPP проги
+// РїСЂРѕС‚РµСЃС‚РёРј CPP РїСЂРѕРіРё
 #include "point_class.hpp"
 #include "cross_product_class.hpp"
 #include "direction_finder_class.hpp"
 
-// протестим C проги
+// РїСЂРѕС‚РµСЃС‚РёРј C РїСЂРѕРіРё
 extern "C"
 {
 #include "foo.h"
@@ -17,8 +17,8 @@ extern "C"
 
 TEST( CrossProductClass, compute_test )
 {
-    double expected = -400.0;       // ожидаемый результат
-    double eps = 0.01;              // допустимое расхождение между ожидаемым и полученным значениями
+    double expected = -400.0;       // РѕР¶РёРґР°РµРјС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚
+    double eps = 0.01;              // РґРѕРїСѓСЃС‚РёРјРѕРµ СЂР°СЃС…РѕР¶РґРµРЅРёРµ РјРµР¶РґСѓ РѕР¶РёРґР°РµРјС‹Рј Рё РїРѕР»СѓС‡РµРЅРЅС‹Рј Р·РЅР°С‡РµРЅРёСЏРјРё
 
     Point p1( 10.0, 10.0 ),
           p2( 20.0, 20.0 ),
@@ -32,8 +32,8 @@ TEST( CrossProductClass, compute_test )
 
 TEST( CrossProductClass, compute_ppp_test )
 {
-    double expected = 178.2;        // ожидаемый результат
-    double eps = 0.01;              // допустимое расхождение между ожидаемым и полученным значениями
+    double expected = 178.2;        // РѕР¶РёРґР°РµРјС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚
+    double eps = 0.01;              // РґРѕРїСѓСЃС‚РёРјРѕРµ СЂР°СЃС…РѕР¶РґРµРЅРёРµ РјРµР¶РґСѓ РѕР¶РёРґР°РµРјС‹Рј Рё РїРѕР»СѓС‡РµРЅРЅС‹Рј Р·РЅР°С‡РµРЅРёСЏРјРё
 
     Point p1( 15.5, 37.0 ),
           p2( 22.1, 45.2 ),
@@ -47,9 +47,9 @@ TEST( CrossProductClass, compute_ppp_test )
 
 TEST( DirectionFinderClass, find_direction_test_non_convex_polygon_anti_clockwise_points )
 {
-    int expected = -1;       // ожидаемый результат
+    int expected = -1;       // РѕР¶РёРґР°РµРјС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚
 
-    // координаты вершин в векторе
+    // РєРѕРѕСЂРґРёРЅР°С‚С‹ РІРµСЂС€РёРЅ РІ РІРµРєС‚РѕСЂРµ
     std::vector<Point> points;
 
     points.push_back( Point{ 2.0, 5.0 } );
@@ -71,9 +71,9 @@ TEST( DirectionFinderClass, find_direction_test_non_convex_polygon_anti_clockwis
 
 TEST( DirectionFinderClass, find_direction_test_non_convex_polygon_clockwise_points )
 {
-    int expected = 1;       // ожидаемый результат
+    int expected = 1;       // РѕР¶РёРґР°РµРјС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚
 
-    // координаты вершин в векторе
+    // РєРѕРѕСЂРґРёРЅР°С‚С‹ РІРµСЂС€РёРЅ РІ РІРµРєС‚РѕСЂРµ
     std::vector<Point> points;
 
     points.push_back( Point{ 5.5, 6.0 } );

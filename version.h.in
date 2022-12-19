@@ -1,17 +1,15 @@
-#if 0
-    #ifndef __VERSION_H__
-    #define __VERSION_H__
-        #define VERSION_MAJOR ${@PROJECT_NAME@_VERSION_MAJOR}
-        #define VERSION_MINOR ${@PROJECT_NAME@_VERSION_MINOR}
-        #define VERSION_PATCH ${@PROJECT_NAME@_VERSION_PATCH}
-        #define VERSION_TWEAK ${@PROJECT_NAME@_VERSION_TWEAK}
+#ifndef __VERSION_H__
+#define __VERSION_H__
+    #define VERSION_MAJOR ${@PROJECT_NAME@_VERSION_MAJOR}
+    #define VERSION_MINOR ${@PROJECT_NAME@_VERSION_MINOR}
+    #define VERSION_PATCH ${@PROJECT_NAME@_VERSION_PATCH}
+    #define VERSION_TWEAK ${@PROJECT_NAME@_VERSION_TWEAK}
 
-        #define BUILD_DATE "${TODAY}"
-    #endif
-#else
-    // https://jonathanhamberg.com/post/cmake-embedding-git-hash/
-    #ifndef __GIT_VERSION_H__
-    #define __GIT_VERSION_H__
-        const char *GIT_COMMIT_HASH = "@GIT_COMMIT_HASH@";
-    #endif
+    #define BUILD_DATE "${TODAY}"
+#endif
+
+// https://jonathanhamberg.com/post/cmake-embedding-git-hash/
+#ifndef __GIT_VERSION_H__
+#define __GIT_VERSION_H__
+    const char *GIT_COMMIT_HASH = "@GIT_COMMIT_HASH@";
 #endif

@@ -232,15 +232,18 @@ int main( int argc, char **argv )
         if ( vm.count( "version" ) )
         {
             std::string version = "?";
-            #if defined(__VERSION_H__)
-            version = VERSION_MAJOR + "."
-                      + VERSION_MINOR + "."
-                      + VERSION_PATCH + "."
-                      + VERSION_TWEAK + "-"
-                      + BUILD_DATE;
-            #elif defined(__GIT_VERSION_H__)
-            version = GIT_COMMIT_HASH;
-            #endif
+#if defined(__VERSION_H__)
+            version = std::to_string(VERSION_MAJOR) + "."
+                + std::to_string(VERSION_MINOR) + "."
+                + std::to_string(VERSION_PATCH) + "."
+                + std::to_string(VERSION_TWEAK) + "-"
+                + BUILD_DATE;
+
+#if defined(__GIT_VERSION_H__)
+            version += " (" + std::string(GIT_COMMIT_HASH) + ")";
+#endif
+
+#endif
             std::cout << version << std::endl;
 
             //            spdlog::info("Exit {}", EXIT_SUCCESS);

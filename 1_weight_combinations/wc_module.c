@@ -12,7 +12,6 @@
 #include "../stable.h"  // C precompiled headers
 
 #include "wc_module.h"
-#include "../random/src/xor_shift.h"
 
 /**
  * @brief Функция рекурсии, каждый раз вызывает саму себя и отнимает по одной гире из номенклатуры
@@ -165,9 +164,17 @@ int solution_recursive( unsigned int *nomenclature, unsigned int *nomenclature_s
 
     // назначаем уникальные id-шники каждой гире
     //static unsigned int id = 3;
+    RandomContext64 rctx;
+    InitRandomContext64( &rctx );
+
     for ( unsigned int *ptr = weights_ids, *end = weights_ids + *nomenclature_size; ptr != end; ptr++ )
-        *ptr = ( unsigned int )( ( next_xs64( 0 ) / ( double )RANDOM_MAX ) *
+    {
+        uint64_t value = next_xs64( &rctx );
+        double rnd = convert_to_double( &value );
+
+        *ptr = ( unsigned int )( rnd *
                                  UINT_MAX ); // id-шник должен быть максимально уникальным, т.к. суммы не должны переплетаться
+    }
 
     // максимальное кол-во комбинаций
     unsigned int max_combinations_value = ( unsigned int )pow( 2, *nomenclature_size );
@@ -397,11 +404,18 @@ int push_combination( unsigned int ***combinations, unsigned int *combinations_s
         if ( **combination )
             continue;
 
-        for ( unsigned int *ptr_c = *combination, *end_c = *combination + *original_nomenclature_size,
+        /*for ( unsigned int *ptr_c = *combination, *end_c = *combination + *original_nomenclature_size,
                 *ptr_cc = curr_combination, *end_cc = curr_combination + *original_nomenclature_size;
                 ptr_c != end_c && ptr_cc != end_cc;
                 ptr_c++, ptr_cc++ )
-            *ptr_c = *ptr_cc;
+            *ptr_c = *ptr_cc;*/
+        
+        unsigned int* ptr_c = *combination,
+            * end_c = *combination + *original_nomenclature_size,
+            * ptr_cc = curr_combination;
+        
+        while (ptr_c < end_c)
+            *ptr_c++ = *ptr_cc++;
 
         return 0;
     }

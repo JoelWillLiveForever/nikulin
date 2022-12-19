@@ -14,6 +14,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # define _CRT_SECURE_NO_WARNING
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(
+    FMT_SHARED 
+    SPDLOG_COMPILED_LIB 
+    SPDLOG_FMT_EXTERNAL 
+    SPDLOG_SHARED_LIB
+)
 
 # all warnings as errors
 # https://stackoverflow.com/questions/2368811/how-to-set-warning-level-in-cmake
@@ -69,6 +75,15 @@ endif()
 find_package(GTest CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
+# билдим библиотеку Random
+set(RANDOM_SHARED_LIBS ON)
+
+if (NOT RANDOM_SHARED_LIBS)
+    add_compile_definitions(RANDOM_STATIC_DEFINE)
+endif()
+
+add_subdirectory(random)
+
 # Get the current working branch
 execute_process(
     COMMAND git rev-parse HEAD
@@ -90,14 +105,6 @@ include_directories(${PROJECT_BINARY_DIR})
 
 add_custom_target(PrecompiledHeaders SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/stable.h
-)
-
-# add libraries
-add_library(generators STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/random/src/xor_shift.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/random/src/xor_shift.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/random/src/xor_shift_thread_safe.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/random/src/xor_shift_thread_safe.c
 )
 
 # C libraries
@@ -127,6 +134,7 @@ add_library(modules STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/polygon_traversal_direction.c
 )
 target_precompile_headers(modules PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/stable.h)
+target_link_libraries(modules PRIVATE random::random)
 
 # CPP libraries
 add_library(classes STATIC
@@ -142,8 +150,6 @@ add_library(classes STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/true_pi_selector_class.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/pi_convergence_check_class.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/pi_convergence_check_class.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/samples.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/2_pi_monte_carlo/samples.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/point_class.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/point_class.cpp
@@ -153,7 +159,13 @@ add_library(classes STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/3_polygon_traversal_direction/direction_finder_class.cpp
 )
 target_precompile_headers(classes PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/stable.h)
-target_link_libraries(classes PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
+target_link_libraries(classes
+    PRIVATE
+        random::random
+    PUBLIC
+        spdlog::spdlog 
+        spdlog::spdlog_header_only
+)
 
 # add executables
 # Weight Combinations
@@ -162,7 +174,7 @@ add_executable(WeightCombinations-C
 )
 target_link_libraries(WeightCombinations-C PRIVATE
     modules
-    generators
+    # generators
     ${GETOPT_LIBRARY}
     ${MATH_LIBRARY}
 )
@@ -194,7 +206,6 @@ add_executable(WeightCombinations-TESTS
 )
 target_link_libraries(WeightCombinations-TESTS PRIVATE
     modules
-    generators
     classes
     GTest::gmock
     GTest::gtest 
@@ -210,7 +221,7 @@ add_executable(PIMonteCarlo-C
 )
 target_link_libraries(PIMonteCarlo-C PRIVATE
     modules
-    generators
+    # generators
     ${GETOPT_LIBRARY}           # empty if build in linux
     ${OpenCL_LIBRARIES}
     ${PThreads4W_LIBRARIES}     # empty if build in linux
@@ -233,7 +244,7 @@ add_executable(PIMonteCarlo-CPP
 )
 target_link_libraries(PIMonteCarlo-CPP PRIVATE
    classes
-   generators
+   # generators
    Boost::program_options
 )
 target_precompile_headers(PIMonteCarlo-CPP REUSE_FROM classes)
@@ -243,7 +254,7 @@ add_executable(PIMonteCarlo-TESTS
 )
 target_link_libraries(PIMonteCarlo-TESTS PRIVATE
     modules
-    generators
+    # generators
     ${GETOPT_LIBRARY}           # empty if build in linux
     ${OpenCL_LIBRARIES}
     ${PThreads4W_LIBRARIES}     # empty if build in linux
@@ -350,3 +361,5 @@ if (BUILD_DOC)
         message("-- Doxygen need to be installed to generate the doxygen documentation")
     endif (DOXYGEN_FOUND)
 endif (BUILD_DOC)
+
+add_subdirectory(generator_research)
