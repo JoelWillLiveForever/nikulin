@@ -864,7 +864,43 @@ double get_pi_opencl( uint32_t number_of_counters,
         ret = clEnqueueNDRangeKernel( command_queue, kernel, 1, NULL, ( const size_t * ) & seeds_size,
                                       ( const size_t * )&max_work_group_size, 0, NULL, NULL );
 
-        if ( ret != CL_SUCCESS )
+        // на карте NVidia выдаёт такую ошибку
+        if ( ret == CL_INVALID_WORK_GROUP_SIZE )
+        {
+            //fprintf(stdout, "Cannot use CL_DEVICE_MAX_WORK_GROUP_SIZE: %llu\nTry use CL_KERNEL_WORK_GROUP_SIZE...\n", max_work_group_size);
+
+            size_t kernel_work_group_size;
+            ret = clGetKernelWorkGroupInfo( kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof( size_t ), &kernel_work_group_size,
+                                            NULL );
+
+            if ( ret != CL_SUCCESS )
+            {
+                fprintf( stderr, "Cannot get CL_KERNEL_WORK_GROUP_SIZE: %d\n", ret );
+                return -1;
+            }
+
+            //fprintf(stdout, "CL_KERNEL_WORK_GROUP_SIZE: %llu\n", kernel_work_group_size);
+
+            // на карте NVidia также может не сработать этот вариант
+            ret = clEnqueueNDRangeKernel( command_queue, kernel, 1, NULL, ( const size_t * )&seeds_size,
+                                          ( const size_t * )&kernel_work_group_size, 0, NULL, NULL );
+
+            if ( ret != CL_SUCCESS )
+            {
+                // если последний вариант запуска не сработает, выдать ошибку
+                ret = clEnqueueNDRangeKernel( command_queue, kernel, 1, NULL, ( const size_t * )&seeds_size,
+                                              NULL, 0, NULL, NULL );
+
+                if ( ret != CL_SUCCESS )
+                {
+                    fprintf( stderr, "Cannot run kernel: %d\n", ret );
+                    return -1;
+                }
+            }
+
+            // Success
+        }
+        else if ( ret != CL_SUCCESS )
         {
             fprintf( stderr, "Cannot run kernel: %d\n", ret );
             return -1;
