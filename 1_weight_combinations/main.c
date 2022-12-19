@@ -332,25 +332,25 @@ int main( int argc, char *argv[] )
 
             case 'v':
                 // show program version
-#if defined(__VERSION_H__)
-                fprintf(stdout, "%u.%u.%u.%u-%s %s%s%s\n",
+                #if defined(__VERSION_H__)
+                fprintf( stdout, "%u.%u.%u.%u-%s %s%s%s\n",
 
-                    VERSION_MAJOR,
-                    VERSION_MINOR,
-                    VERSION_PATCH,
-                    VERSION_TWEAK,
+                         VERSION_MAJOR,
+                         VERSION_MINOR,
+                         VERSION_PATCH,
+                         VERSION_TWEAK,
 
-                    BUILD_DATE,
+                         BUILD_DATE,
 
-#if defined(__GIT_VERSION_H__)
-                    "(", GIT_COMMIT_HASH, ")");
-#else
-                    "", "", "");
-#endif     
+                         #if defined(__GIT_VERSION_H__)
+                         "(", GIT_COMMIT_HASH, ")" );
+                         #else
+                         "", "", "" );
+                         #endif
 
-#else
-                fprintf(stdout, "%s\n", "?");
-#endif
+                #else
+                fprintf( stdout, "%s\n", "?" );
+                #endif
                 return EXIT_SUCCESS;
 
             case 'h':

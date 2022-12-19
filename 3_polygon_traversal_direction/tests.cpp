@@ -18,7 +18,8 @@ extern "C"
 TEST( CrossProductClass, compute_test )
 {
     double expected = -400.0;       // ожидаемый результат
-    double eps = 0.01;              // допустимое расхождение между ожидаемым и полученным значениями
+    double eps =
+        0.01;              // допустимое расхождение между ожидаемым и полученным значениями
 
     Point p1( 10.0, 10.0 ),
           p2( 20.0, 20.0 ),
@@ -33,7 +34,8 @@ TEST( CrossProductClass, compute_test )
 TEST( CrossProductClass, compute_ppp_test )
 {
     double expected = 178.2;        // ожидаемый результат
-    double eps = 0.01;              // допустимое расхождение между ожидаемым и полученным значениями
+    double eps =
+        0.01;              // допустимое расхождение между ожидаемым и полученным значениями
 
     Point p1( 15.5, 37.0 ),
           p2( 22.1, 45.2 ),

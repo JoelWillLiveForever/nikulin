@@ -25,7 +25,7 @@ inline std::istream &operator >> ( std::istream &in, GeneratorType &generator )
         generator = MT19937;
     else if ( arg == "rand16" )
         generator = RAND16;
-    else if (arg == "rand32")
+    else if ( arg == "rand32" )
         generator = RAND32;
     else
     {
@@ -72,23 +72,24 @@ int main( int argc, char **argv )
         if ( vm.count( "version" ) )
         {
             std::string version = "?";
-#if defined(__VERSION_H__)
-            version = std::to_string(VERSION_MAJOR) + "."
-                + std::to_string(VERSION_MINOR) + "."
-                + std::to_string(VERSION_PATCH) + "."
-                + std::to_string(VERSION_TWEAK) + "-"
-                + BUILD_DATE;
+            #if defined(__VERSION_H__)
+            version = std::to_string( VERSION_MAJOR ) + "."
+                      + std::to_string( VERSION_MINOR ) + "."
+                      + std::to_string( VERSION_PATCH ) + "."
+                      + std::to_string( VERSION_TWEAK ) + "-"
+                      + BUILD_DATE;
 
-#if defined(__GIT_VERSION_H__)
-            version += " (" + std::string(GIT_COMMIT_HASH) + ")";
-#endif
+            #if defined(__GIT_VERSION_H__)
+            version += " (" + std::string( GIT_COMMIT_HASH ) + ")";
+            #endif
 
-#endif
+            #endif
             std::cout << version << std::endl;
             return EXIT_SUCCESS;
         }
 
         bool isClassic = false;
+
         if ( vm.count( "classic" ) )
             isClassic = true;
 
@@ -96,26 +97,27 @@ int main( int argc, char **argv )
         GeneratorType generator = vm["generator"].as<GeneratorType>();
 
         SampleAbstract *obj;
+
         switch ( generator )
         {
             case XOR_SHIFT_64:
-                obj = new SampleXS64(sample_size, isClassic);
+                obj = new SampleXS64( sample_size, isClassic );
                 break;
 
             case XOR_SHIFT_1024:
-                obj = new SampleXS1024(sample_size, isClassic);
+                obj = new SampleXS1024( sample_size, isClassic );
                 break;
 
             case MT19937:
-                obj = new SampleMT19937(sample_size, isClassic);
+                obj = new SampleMT19937( sample_size, isClassic );
                 break;
 
             case RAND16:
-                obj = new SampleRand16(sample_size, isClassic);
+                obj = new SampleRand16( sample_size, isClassic );
                 break;
 
             case RAND32:
-                obj = new SampleRand32(sample_size, isClassic);
+                obj = new SampleRand32( sample_size, isClassic );
                 break;
 
             default:

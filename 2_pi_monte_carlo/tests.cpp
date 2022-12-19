@@ -98,7 +98,7 @@ TEST( counters_module, pi_single_thread_basic_usage_test )
 TEST( counters_module, pi_multithread_basic_usage_test )
 {
     double pi = 0;
-    pi = get_pi_multithread( 36, 1000, 2, 0.01, 6, XOR_SHIFT_64);
+    pi = get_pi_multithread( 36, 1000, 2, 0.01, 6, XOR_SHIFT_64 );
 
     ASSERT_NEAR( pi, 3.14, 0.01 );
 }
@@ -106,7 +106,7 @@ TEST( counters_module, pi_multithread_basic_usage_test )
 TEST( counters_module, pi_opencl_basic_usage_test )
 {
     double pi = 0;
-    pi = get_pi_opencl( 10, 1000, 2, 0.01, XOR_SHIFT_64);
+    pi = get_pi_opencl( 10, 1000, 2, 0.01, XOR_SHIFT_64 );
 
     ASSERT_NEAR( pi, 3.14, 0.01 );
 }

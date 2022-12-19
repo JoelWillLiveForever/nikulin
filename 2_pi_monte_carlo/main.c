@@ -58,54 +58,54 @@ int main()
 void print_help_message( char *argv[] )
 {
     fprintf( stdout, "Usage:\n\n"
-            " %s [options]\n\n"
-            "Options:\n"
+             " %s [options]\n\n"
+             "Options:\n"
 
-            " %-40s Show program help info\n"
-            " %-40s Show program version\n"
-            " %-40s Measure the speed of program execution in given unit\n"
-            " %-40s Valid arguments: [seconds | milliseconds | microseconds | nanoseconds] or\n"
-            " %-40s                  [sec | msec | usec | nsec] or\n"
-            " %-40s                  [ds | ms | us | ns ] or\n"
-            " %-40s                  [s | m | u | n ]\n"
-            " %-40s Set random generator\n"
-            " %-40s Valid arguments: [xor-shift-16 | xor-shift-32 | xor-shift-64 | xor-shift-1024 | gnu-random-16 | gnu-random-32 | gnu-random-64] or\n"
-            " %-40s                  [xs16 | xs32 | xs64 | xs1024 | rand16 | rand32 | rand64]\n\n"
+             " %-40s Show program help info\n"
+             " %-40s Show program version\n"
+             " %-40s Measure the speed of program execution in given unit\n"
+             " %-40s Valid arguments: [seconds | milliseconds | microseconds | nanoseconds] or\n"
+             " %-40s                  [sec | msec | usec | nsec] or\n"
+             " %-40s                  [ds | ms | us | ns ] or\n"
+             " %-40s                  [s | m | u | n ]\n"
+             " %-40s Set random generator\n"
+             " %-40s Valid arguments: [xor-shift-16 | xor-shift-32 | xor-shift-64 | xor-shift-1024 | gnu-random-16 | gnu-random-32 | gnu-random-64] or\n"
+             " %-40s                  [xs16 | xs32 | xs64 | xs1024 | rand16 | rand32 | rand64]\n\n"
 
-            " %-40s Use all CPU cores for calculating (multi-core processing)\n"
-            " %-40s Use GPU (OpenCL) for calculating (GPU processing)\n\n"
+             " %-40s Use all CPU cores for calculating (multi-core processing)\n"
+             " %-40s Use GPU (OpenCL) for calculating (GPU processing)\n\n"
 
-            " %-40s Set number of calculated PI numbers for increased accuracy of the final (true) PI numbers\n\n"
+             " %-40s Set number of calculated PI numbers for increased accuracy of the final (true) PI numbers\n\n"
 
-            " %-40s Set accuracy for calculating PI\n"
-            " %-40s Set start points count\n"
-            " %-40s Set multiplier to increase points at each calculation iteration\n",
+             " %-40s Set accuracy for calculating PI\n"
+             " %-40s Set start points count\n"
+             " %-40s Set multiplier to increase points at each calculation iteration\n",
 
-            argv[0],
-            "-h, --help",
-            "-v, --version",
-            "-u, --unit Arg (off)", " ", " ", " ", " ",
-            "-g, --generator Arg (xor-shift-64)", " ", " ",
-            "-t, --multithread (off)",
-            "-o, --opencl (off)",
-            "-n, --number-of-counters Arg (10)",
-            "-e, --eps Arg (0.001)",
-            "-s, --start Arg (1000)",
-            "-m, --multiplier Arg (2)" );
+             argv[0],
+             "-h, --help",
+             "-v, --version",
+             "-u, --unit Arg (off)", " ", " ", " ", " ",
+             "-g, --generator Arg (xor-shift-64)", " ", " ",
+             "-t, --multithread (off)",
+             "-o, --opencl (off)",
+             "-n, --number-of-counters Arg (10)",
+             "-e, --eps Arg (0.001)",
+             "-s, --start Arg (1000)",
+             "-m, --multiplier Arg (2)" );
 
     char example1[40],
-        example2[40],
-        example3[40];
+         example2[40],
+         example3[40];
 
     snprintf( example1, sizeof example1, "%s%s", argv[0], " -t" );
     snprintf( example2, sizeof example2, "%s%s", argv[0], " -o -e 0.01 -s 1000000" );
     snprintf( example3, sizeof example3, "%s%s", argv[0], " -u ms -e 0.001" );
 
     fprintf( stdout, "\nExamples:\n\n"
-            " %-40s Run PI calculation using all CPU cores (pthread)\n"
-            " %-40s Run PI calculation using GPU (OpenCL)\n"
-            " %-40s Run PI calc with precision 0.001 and output program elapsed time\n\n",
-            example1, example2, example3 );
+             " %-40s Run PI calculation using all CPU cores (pthread)\n"
+             " %-40s Run PI calculation using GPU (OpenCL)\n"
+             " %-40s Run PI calc with precision 0.001 and output program elapsed time\n\n",
+             example1, example2, example3 );
 }
 
 static int verbose_flag;
@@ -153,7 +153,7 @@ int main( int argc, char *argv[] )
     double eps = 0.001;
 
     uint32_t start = 1000,
-        multiplier = 2;
+             multiplier = 2;
 
     GeneratorType generator_type = XOR_SHIFT_64;
 
@@ -304,24 +304,24 @@ int main( int argc, char *argv[] )
                 else if ( !strcmp( optarg, "xs1024" ) || !strcmp( optarg, "xor-shift-1024" ) )
                     generator_type = XOR_SHIFT_1024;
 
-                else if ( !strcmp(optarg, "xs32") || !strcmp(optarg, "xor-shift-32"))
+                else if ( !strcmp( optarg, "xs32" ) || !strcmp( optarg, "xor-shift-32" ) )
                     generator_type = XOR_SHIFT_32;
 
-                else if (!strcmp(optarg, "xs16") || !strcmp(optarg, "xor-shift-16"))
+                else if ( !strcmp( optarg, "xs16" ) || !strcmp( optarg, "xor-shift-16" ) )
                     generator_type = XOR_SHIFT_16;
 
-                else if (!strcmp(optarg, "rand16") || !strcmp(optarg, "gnu-rand-16"))
+                else if ( !strcmp( optarg, "rand16" ) || !strcmp( optarg, "gnu-rand-16" ) )
                     generator_type = RAND16;
 
-                else if (!strcmp(optarg, "rand32") || !strcmp(optarg, "gnu-rand-32"))
+                else if ( !strcmp( optarg, "rand32" ) || !strcmp( optarg, "gnu-rand-32" ) )
                     generator_type = RAND32;
 
-                else if (!strcmp(optarg, "rand64") || !strcmp(optarg, "gnu-rand-64"))
+                else if ( !strcmp( optarg, "rand64" ) || !strcmp( optarg, "gnu-rand-64" ) )
                     generator_type = RAND64;
 
                 else
                 {
-                    fprintf(stderr, "You didn't specify a generator type");
+                    fprintf( stderr, "You didn't specify a generator type" );
                     return EXIT_FAILURE;
                 }
 
@@ -332,21 +332,21 @@ int main( int argc, char *argv[] )
                 #if defined(__VERSION_H__)
                 fprintf( stdout, "%u.%u.%u.%u-%s %s%s%s\n",
 
-                        VERSION_MAJOR,
-                        VERSION_MINOR,
-                        VERSION_PATCH,
-                        VERSION_TWEAK,
+                         VERSION_MAJOR,
+                         VERSION_MINOR,
+                         VERSION_PATCH,
+                         VERSION_TWEAK,
 
-                        BUILD_DATE,
+                         BUILD_DATE,
 
-                    #if defined(__GIT_VERSION_H__)
-                            "(", GIT_COMMIT_HASH, ")");
-                    #else
-                            "", "", "");
-                    #endif     
+                         #if defined(__GIT_VERSION_H__)
+                         "(", GIT_COMMIT_HASH, ")" );
+                         #else
+                         "", "", "" );
+                         #endif
 
                 #else
-                    fprintf( stdout, "%s\n", "?" );
+                fprintf( stdout, "%s\n", "?" );
                 #endif
                 return EXIT_SUCCESS;
 
@@ -449,12 +449,12 @@ int main( int argc, char *argv[] )
     }
 
     // if pi == -1
-    if (1 + pi < 0.01)
+    if ( 1 + pi < 0.01 )
         return EXIT_FAILURE;
 
     // if pi == 0
-    if (pi < 0.01)
-        fprintf(stdout, "Your device does not support OpenCL\n");
+    if ( pi < 0.01 )
+        fprintf( stdout, "Your device does not support OpenCL\n" );
     else
         fprintf( stdout, "%f\n", pi );
 

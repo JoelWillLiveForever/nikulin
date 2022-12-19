@@ -148,25 +148,25 @@ class SampleRand16 : public SampleAbstract
 
 class SampleRand32 : public SampleAbstract
 {
-private:
-    RandomContext32 _rctx;
+    private:
+        RandomContext32 _rctx;
 
-public:
-    SampleRand32()
-    {
-        InitRandomContext32(&_rctx);
-    }
-    SampleRand32(unsigned long long sample_size, bool use_classic) : SampleAbstract(sample_size, use_classic)
-    {
-        InitRandomContext32(&_rctx);
-    }
+    public:
+        SampleRand32()
+        {
+            InitRandomContext32( &_rctx );
+        }
+        SampleRand32( unsigned long long sample_size, bool use_classic ) : SampleAbstract( sample_size, use_classic )
+        {
+            InitRandomContext32( &_rctx );
+        }
 
-    std::vector<double> get_random_vector();
-    void print_sample_to_csv();
+        std::vector<double> get_random_vector();
+        void print_sample_to_csv();
 
-    const std::string& whoami() const
-    {
-        static const std::string result{ "rand32" };
-        return result;
-    }
+        const std::string &whoami() const
+        {
+            static const std::string result{ "rand32" };
+            return result;
+        }
 };

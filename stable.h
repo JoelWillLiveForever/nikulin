@@ -84,18 +84,18 @@
 
 // include OpenCL
 #ifndef CL_TARGET_OPENCL_VERSION
-#define CL_TARGET_OPENCL_VERSION 220
+    #define CL_TARGET_OPENCL_VERSION 220
 #endif
 
 #if defined (__APPLE__) || defined (__MACH__)
-#include <OpenCL/opencl.h>
+    #include <OpenCL/opencl.h>
 #else
-#ifdef _MSC_VER
-#pragma warning(disable: 4193)
-#include <CL/cl.h>
-#else
-#include <CL/cl.h>
-#endif
+    #ifdef _MSC_VER
+        #pragma warning(disable: 4193)
+        #include <CL/cl.h>
+    #else
+        #include <CL/cl.h>
+    #endif
 #endif
 
 // random library

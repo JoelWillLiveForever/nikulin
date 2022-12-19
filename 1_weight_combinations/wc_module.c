@@ -409,12 +409,12 @@ int push_combination( unsigned int ***combinations, unsigned int *combinations_s
                 ptr_c != end_c && ptr_cc != end_cc;
                 ptr_c++, ptr_cc++ )
             *ptr_c = *ptr_cc;*/
-        
-        unsigned int* ptr_c = *combination,
-            * end_c = *combination + *original_nomenclature_size,
-            * ptr_cc = curr_combination;
-        
-        while (ptr_c < end_c)
+
+        unsigned int *ptr_c = *combination,
+                      * end_c = *combination + *original_nomenclature_size,
+                        * ptr_cc = curr_combination;
+
+        while ( ptr_c < end_c )
             *ptr_c++ = *ptr_cc++;
 
         return 0;
