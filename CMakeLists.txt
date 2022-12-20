@@ -16,9 +16,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 add_compile_definitions(
     FMT_SHARED 
-    SPDLOG_COMPILED_LIB 
-    SPDLOG_FMT_EXTERNAL 
+    SPDLOG_COMPILED_LIB
+    SPDLOG_FMT_EXTERNAL
     SPDLOG_SHARED_LIB
+
+    BOOST_ATOMIC_NO_LIB
+    BOOST_ATOMIC_DYN_LINK
+    BOOST_FILESYSTEM_NO_LIB
+    BOOST_FILESYSTEM_DYN_LINK
+    BOOST_PROGRAM_OPTIONS_NO_LIB
+    BOOST_PROGRAM_OPTIONS_DYN_LINK
 )
 
 # all warnings as errors
@@ -30,7 +37,12 @@ if (MSVC)
     add_compile_options(/W4 /WX)
 else()
     # lots of warnings and all warnings as errors
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wno-deprecated)
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wno-deprecated -Wno-overlength-strings)
+    if (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease")
+        # эти предупреждения возникают только в release версии, и относятся к системным заголовочным файлам
+        # их нужно выключить, иначе сборка GeneratorResearch не работает
+        add_compile_options(-Wno-stringop-overflow -Wno-array-bounds -Wno-restrict)
+    endif()
 endif()
 
 # control where the static and shared libraries are built so that on windows

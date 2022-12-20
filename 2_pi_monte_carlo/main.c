@@ -112,7 +112,7 @@ static int verbose_flag;
 int main( int argc, char *argv[] )
 {
     // checked options
-    const char *const short_options = "toe:s:n:m:p:u:g:vh";
+    const char *const short_options = "toe:s:n:m:u:g:vh";
     const struct option long_options[] =
     {
         {"verbose",             no_argument,        &verbose_flag, 1},
@@ -126,7 +126,6 @@ int main( int argc, char *argv[] )
         {"eps",                 required_argument,  NULL, 'e'},
         {"start",               required_argument,  NULL, 's'},
         {"multiplier",          required_argument,  NULL, 'm'},
-        {"max-points",          required_argument,  NULL, 'p'},
 
         {"unit",                required_argument,  NULL, 'u'},
         {"generator",           required_argument,  NULL, 'g'},

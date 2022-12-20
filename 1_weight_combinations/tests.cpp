@@ -60,6 +60,21 @@ TEST( WeightCombinatorClass, combine_zero_target_test )
     WeightCombinator::Combinations result;
     int target = 0;
 
+    #ifdef __GNUC__
+    EXPECT_THROW(
+    {
+        try
+        {
+            WeightCombinator combinator;
+            combinator.combine( target, result, weights );
+        }
+        catch ( std::runtime_error const &e )
+        {
+            EXPECT_STREQ( "Zero target weight", e.what() );
+            throw;
+        }
+    }, std::runtime_error );
+    #else
     EXPECT_THROW(
     {
         try
@@ -73,6 +88,7 @@ TEST( WeightCombinatorClass, combine_zero_target_test )
             throw;
         }
     }, std::exception );
+    #endif
 }
 
 /// @brief Сокращённый вариант предыдущего теста TEST(WeightCombinatorClass, combine_zero_target_test)
@@ -85,7 +101,11 @@ TEST( WeightCombinatorClass, combine_zero_target_test_2 )
 
     WeightCombinator combinator;
 
+    #ifdef __GNUC__
+    EXPECT_THROW( combinator.combine( target, result, weights ), std::runtime_error );
+    #else
     EXPECT_THROW( combinator.combine( target, result, weights ), std::exception );
+    #endif
 }
 
 /**
@@ -98,6 +118,21 @@ TEST( WeightCombinatorClass, combine_empty_collection_test )
     WeightCombinator::Combinations result;
     int target = 123;
 
+    #ifdef __GNUC__
+    EXPECT_THROW(
+    {
+        try
+        {
+            WeightCombinator combinator;
+            combinator.combine( target, result, weights );
+        }
+        catch ( std::runtime_error const &e )
+        {
+            EXPECT_STREQ( "Invalid weights size", e.what() );
+            throw;
+        }
+    }, std::runtime_error );
+    #else
     EXPECT_THROW(
     {
         try
@@ -111,6 +146,7 @@ TEST( WeightCombinatorClass, combine_empty_collection_test )
             throw;
         }
     }, std::exception );
+    #endif
 }
 
 /**

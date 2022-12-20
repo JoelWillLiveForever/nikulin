@@ -301,7 +301,7 @@ double get_pi_multithread( uint32_t number_of_counters,
 
                 if ( !temp )
                 {
-                    fprintf( stderr, "Cannot resize *thread_args[%u].pi_points_array_indexes with realloc", thread_index );
+                    fprintf( stderr, "Cannot resize *thread_args[%ld].pi_points_array_indexes with realloc", thread_index );
                     return -1;
                 }
 
@@ -313,7 +313,7 @@ double get_pi_multithread( uint32_t number_of_counters,
 
                 if ( !temp )
                 {
-                    fprintf( stderr, "Cannot create *thread_args[%u].pi_points_array_indexes with calloc", thread_index );
+                    fprintf( stderr, "Cannot create *thread_args[%ld].pi_points_array_indexes with calloc", thread_index );
                     return -1;
                 }
 
@@ -347,7 +347,7 @@ double get_pi_multithread( uint32_t number_of_counters,
 
             if ( err )
             {
-                fprintf( stderr, "Error! Unable to create thread: %d\n", i );
+                fprintf( stderr, "Error! Unable to create thread: %ld\n", i );
                 return -1;
             }
         }

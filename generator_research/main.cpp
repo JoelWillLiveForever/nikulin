@@ -121,7 +121,12 @@ int main( int argc, char **argv )
                 break;
 
             default:
+                #ifdef _WIN32
                 throw std::exception( "Cannot find generator" );
+
+                #else
+                throw std::runtime_error( "Cannot find generator" );
+                #endif
         }
 
         // засекаем время генерации выборки
@@ -135,9 +140,20 @@ int main( int argc, char **argv )
 
         return EXIT_SUCCESS;
     }
+
+    #ifdef _WIN32
     catch ( const std::exception &e )
     {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
+
+    #else
+    catch ( const std::runtime_error &e )
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    #endif
 }

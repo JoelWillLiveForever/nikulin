@@ -109,7 +109,6 @@ double convert_to_double_xs1024( RandomContext1024 *context )
     return di.double_value;
 }
 
-#if 1
 __kernel void boost( __global PIPoints *pi_points_array, __global ulong *seeds, __global ulong *pi_points_array_indexes, __global GeneratorType *generator_type, __global int *error_code )
 {
     int gid = get_global_id(0);
@@ -162,8 +161,9 @@ __kernel void boost( __global PIPoints *pi_points_array, __global ulong *seeds, 
 
     *error_code = 0;
 }
-#else
+
 // don't work
+/*
 __kernel void boost( __global ulong *all_points, __global ulong *good_points, __global ulong *pi_numbers, __global ulong *pi_numbers_indexes,  __global uint *start, __global uint *multiplier, __global double *precision, __global double *pi, __global char *str, __global uint *number_of_counters)
 {
     // Init
@@ -238,4 +238,4 @@ __kernel void boost( __global ulong *all_points, __global ulong *good_points, __
         *multiplier = max_val;
     }
 }
-#endif
+*/
